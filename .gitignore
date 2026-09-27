@@ -45,3 +45,9 @@ coverage/
 # Vercel appends `.env*` when it links a project, which would otherwise
 # re-ignore the example file. The negation has to come last to win.
 !.env.example
+
+# iCloud Drive placeholders. This project sits in a synced Documents folder,
+# and iCloud leaves `.<name>.icloud` stubs behind when it evicts or duplicates
+# a file. They are not project files and must never be committed.
+*.icloud
+
