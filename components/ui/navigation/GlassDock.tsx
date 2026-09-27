@@ -111,18 +111,14 @@ export function GlassDock() {
   const visible = items.filter((item) => !item.hideOn?.some((route) => pathname.startsWith(route)));
   if (!visible.length) return null;
 
+  // The entrance is a CSS animation on transform only. It must never animate
+  // opacity from 0: a frozen animation would leave the dock — and with it the
+  // bag — invisible and unreachable.
   return (
-    <motion.div
-      className="nn-dock glass glass--pane glass--dispersive"
-      initial={{ y: 28, opacity: 0.001 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ ...SPRING.surface, delay: 0.5 }}
-      role="group"
-      aria-label="Nero Noren tools"
-    >
+    <div className="nn-dock glass glass--pane glass--dispersive" role="group" aria-label="Nero Noren tools">
       {visible.map((item) => (
         <DockButton key={item.label} item={item} />
       ))}
-    </motion.div>
+    </div>
   );
 }

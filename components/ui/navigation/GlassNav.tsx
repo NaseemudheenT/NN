@@ -77,11 +77,14 @@ export function GlassNav() {
 
   return (
     <>
-      <motion.header
-        className={`nn-nav${lifted ? " nn-nav--lifted" : ""}`}
-        animate={{ y: hidden ? "-100%" : "0%" }}
-        transition={SPRING.surface}
-      >
+      {/* The position is a CSS class, deliberately, not a JavaScript spring.
+          A spring is driven by requestAnimationFrame, and rAF does not fire in
+          a hidden tab or under heavy load — measured. A stalled spring leaves
+          the navigation parked at an arbitrary offset, which for this
+          component means the customer cannot navigate at all. A CSS transform
+          either runs or does not: its resting state is always one of the two
+          states I declared, and the default one is visible. */}
+      <header className={`nn-nav${lifted ? " nn-nav--lifted" : ""}${hidden ? " nn-nav--hidden" : ""}`}>
         <div className="nn-nav__inner nn-wrap">
           {/* ── the mark ── */}
           <Link href="/" className="nn-nav__brand" aria-label="Nero Noren, home">
@@ -139,7 +142,7 @@ export function GlassNav() {
             </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* ── the mobile sheet ── */}
       <AnimatePresence>

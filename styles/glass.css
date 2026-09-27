@@ -589,8 +589,17 @@
     inset-inline: 0;
     top: 0;
     z-index: 90;
-    /* transparent at rest: the nav is part of the room, not a bar on it */
-    background: transparent;
+    /* Not transparent at rest, but a soft scrim that fades to nothing. It is
+       invisible over the dark hero and still guarantees the wordmark and the
+       links stay legible over a pale page — which matters because the
+       "lifted" state below is applied by a scroll listener, and a scroll
+       listener is one more thing that can fail to run. The baseline has to be
+       readable on its own. */
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-void) 62%, transparent) 0%,
+      transparent 100%
+    );
     border-bottom: 1px solid transparent;
     transition:
       background-color var(--duration-panel) var(--ease-architect),
@@ -1453,4 +1462,28 @@
     color: var(--ink-secondary);
   }
   .nn-invite__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+}
+
+/* ─── nav and dock position: CSS, never a JavaScript animation ───────
+   A spring is driven by requestAnimationFrame, which does not fire in
+   a hidden tab or under load. A stalled spring parks the element at an
+   arbitrary offset — for the navigation that means the customer cannot
+   navigate, and for the dock it means the bag disappears. A CSS
+   transform either runs or does not, and either way the element rests
+   in one of the two states declared here. The default is visible.   */
+@layer components {
+  .nn-nav {
+    transform: translateY(0);
+    transition: transform var(--duration-panel) var(--ease-architect);
+    will-change: transform;
+  }
+  .nn-nav--hidden { transform: translateY(-100%); }
+
+  .nn-dock {
+    animation: nn-dock-in var(--duration-panel) var(--ease-material) 420ms both;
+  }
+  @keyframes nn-dock-in {
+    from { transform: translate3d(0, 24px, 0); }
+    to   { transform: none; }
+  }
 }
