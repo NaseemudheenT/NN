@@ -51,3 +51,4 @@ coverage/
 # a file. They are not project files and must never be committed.
 *.icloud
 
+.21st/

@@ -116,7 +116,9 @@ export function LogoMark({
 
       <g transform={`translate(${pad} ${pad})`} fill={`url(#${uid}sheen)`}>
         {/* the second N sits behind the first, overlapping its right stem */}
-        <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} opacity="0.62" />
+        {/* Both at full strength: the board shows one solid ligature, and a
+            faded second N would put a seam down the shared stem. */}
+        <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} />
         <path d={N_PATH} />
       </g>
     </svg>

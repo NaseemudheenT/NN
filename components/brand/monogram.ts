@@ -27,10 +27,19 @@ export const N_OUTLINE: readonly [number, number][] = [
 export const N_PATH = `M${N_OUTLINE.map(([x, y]) => `${x},${y}`).join(" L")} Z`;
 
 /**
- * How far the second N sits to the right of the first. Less than the letter's
- * width, so the right stem of the first N and the left stem of the second
- * share space — that overlap is what makes the monogram read as interlocked
- * rather than as two letters standing side by side.
+ * How far the second N sits to the right of the first.
+ *
+ * 58 is not an aesthetic choice, it is what the brand board shows. The first
+ * N's right stem occupies x 66–76; at an offset of 58 the second N's left stem
+ * lands on exactly the same 66–76. The two letters SHARE a stem, so the mark
+ * reads as one ligature — stem, diagonal, shared stem, diagonal, stem — rather
+ * than as two letters standing near each other. That shared stem is the
+ * identity.
+ *
+ * It only works because the letters are drawn as two separate meshes at
+ * slightly different depths in 3D, and as two overlapping paths with the same
+ * fill in 2D. Handed to one extrusion they would coincide and the triangulator
+ * would fold them into a mess.
  */
 export const N_INTERLOCK_X = 58;
 

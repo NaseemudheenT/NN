@@ -11,8 +11,8 @@ import type { ThemeMode } from "@/lib/daytime";
 
 const OPTIONS: { value: ThemeMode; label: string; hint: string }[] = [
   { value: "auto", label: "Auto", hint: "Follow the time where you are" },
-  { value: "light", label: "Day", hint: "Always the ivory showroom" },
-  { value: "dark", label: "Night", hint: "Always the matte black showroom" },
+  { value: "day", label: "Day", hint: "Always the daylight showroom" },
+  { value: "night", label: "Night", hint: "Always the night showroom" },
 ];
 
 const PHASE_WORD = {

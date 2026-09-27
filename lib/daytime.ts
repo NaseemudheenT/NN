@@ -12,7 +12,9 @@
  */
 
 export type DayPhase = "morning" | "afternoon" | "evening" | "night";
-export type ThemeName = "light" | "evening" | "dark";
+/* The names the token system uses: day, dusk, night. "night" is the
+   brand's default state, because the board is overwhelmingly black. */
+export type ThemeName = "day" | "dusk" | "night";
 export type ThemeMode = "auto" | ThemeName;
 
 const RAD = Math.PI / 180;
@@ -39,9 +41,9 @@ export function phaseFromDate(d: Date = new Date()): DayPhase {
 export function themeForPhase(phase: DayPhase): ThemeName {
   // Morning and afternoon are the ivory light theme. Evening keeps light
   // tokens with a warmer accent. Night is matte black.
-  if (phase === "night") return "dark";
-  if (phase === "evening") return "evening";
-  return "light";
+  if (phase === "night") return "night";
+  if (phase === "evening") return "dusk";
+  return "day";
 }
 
 /** Minutes until the next phase boundary — used to re-arm the phase timer. */

@@ -29,8 +29,8 @@ const LANGUAGES = [
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "auto", label: "Auto" },
-  { value: "light", label: "Day" },
-  { value: "dark", label: "Night" },
+  { value: "day", label: "Day" },
+  { value: "night", label: "Night" },
 ];
 
 const KEYS = {
@@ -109,7 +109,7 @@ export function SettingsUI() {
     toast("Everything NN stored on this device has been deleted.");
   };
 
-  const themeWord = theme === "dark" ? "night" : theme === "evening" ? "evening" : "day";
+  const themeWord = theme === "night" ? "night" : theme === "dusk" ? "dusk" : "day";
 
   /* The sun's elevation is negative at night, and "−68° above the horizon" is
      not a sentence. Say below, and describe what that actually means. */

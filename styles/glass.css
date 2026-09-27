@@ -1,0 +1,820 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NERO NOREN — liquid glass
+   
+   `backdrop-filter: blur()` on a translucent box is not glass. It is
+   frosted plastic. Real optical glass does five things, and leaving
+   any of them out is what makes a "glass" component look cheap:
+   
+     1. It BENDS what is behind it. Blur alone loses the displacement,
+        so the backdrop is also scaled and saturated — light through
+        glass comes out slightly magnified and slightly richer.
+     2. It LIGHTS ITS EDGE. Light entering the body travels to the
+        rim and leaves there. That bright hairline is the single most
+        recognisable property of a glass edge.
+     3. It has FRESNEL. A sheet of glass is nearly transparent
+        face-on and nearly a mirror at a grazing angle. The rim is
+        therefore always more reflective than the centre.
+     4. It SPLITS LIGHT. Barely — a warm cast on one edge and a cool
+        one on the other. Overdone it looks like a cheap lens; at a
+        few percent it is the difference between glass and grey.
+     5. It CATCHES A HIGHLIGHT where the light actually is, which is
+        why the specular tracks the pointer rather than sitting in
+        the middle.
+   
+   Every surface below is built from those five, at different
+   strengths. Nothing here is decoration.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  /* ── the base material ─────────────────────────────────────────── */
+  .glass {
+    /* how much light the body holds back, and how thick it is */
+    --glass-tint: 7%;
+    --glass-blur: 26px;
+    --glass-magnify: 1.012;
+    --glass-edge: 0.34;
+    --glass-fresnel: 0.1;
+    --glass-radius: 0;
+    /* the pointer, written by the interaction layer */
+    --mx: 50%;
+    --my: 50%;
+
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--glass-radius);
+    background: color-mix(in srgb, var(--ink-primary) var(--glass-tint), transparent);
+
+    /* (1) the backdrop: bent, blurred and enriched, not merely blurred */
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+
+    /* (2) the lit edge, (3) fresnel toward the rim, and the cast shadow */
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 60%), transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 22%, transparent),
+      inset 1px 0 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 18%), transparent),
+      inset -1px 0 0 color-mix(in srgb, #000 12%, transparent),
+      var(--shadow-panel);
+
+    border: 1px solid color-mix(in srgb, var(--ink-primary) 13%, transparent);
+
+    transition:
+      box-shadow var(--duration-hover) var(--ease-architect),
+      border-color var(--duration-hover) var(--ease-architect),
+      background-color var(--duration-hover) var(--ease-architect),
+      transform var(--duration-hover) var(--ease-architect);
+  }
+
+  /* (3) fresnel — the rim reflects, the centre does not */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      120% 120% at 50% 50%,
+      transparent 42%,
+      color-mix(in srgb, var(--metal-spec) calc(var(--glass-fresnel) * 100%), transparent) 100%
+    );
+  }
+
+  /* (5) the specular, where the light actually is */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      40% 55% at var(--mx) var(--my),
+      color-mix(in srgb, var(--metal-spec) 22%, transparent),
+      transparent 70%
+    );
+    transition: opacity var(--duration-hover) var(--ease-architect);
+  }
+  .glass:hover::after,
+  .glass:focus-within::after { opacity: 1; }
+
+  /* (4) chromatic split. Two hairlines, warm and cool, a few percent
+     each. Turn them off and the edge goes grey and dead. */
+  .glass--dispersive {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 60%), transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 22%, transparent),
+      inset 1.5px 0 0 color-mix(in srgb, var(--light-warm) 14%, transparent),
+      inset -1.5px 0 0 color-mix(in srgb, var(--light-cool) 12%, transparent),
+      var(--shadow-panel);
+  }
+
+  /* ── thicknesses ───────────────────────────────────────────────── */
+
+  /* a pane: navigation, bars, docks. Thin, so what is behind reads. */
+  .glass--pane {
+    --glass-tint: 5%;
+    --glass-blur: 30px;
+    --glass-edge: 0.4;
+  }
+
+  /* a panel: sheets, modals, cards. Thick enough to carry text. */
+  .glass--panel {
+    --glass-tint: 11%;
+    --glass-blur: 34px;
+    --glass-edge: 0.3;
+    --glass-fresnel: 0.13;
+  }
+
+  /* a block: solid, for surfaces that must not compete with content */
+  .glass--block {
+    --glass-tint: 22%;
+    --glass-blur: 40px;
+    --glass-edge: 0.22;
+    backdrop-filter: blur(40px) saturate(1.4) brightness(1.02);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4) brightness(1.02);
+  }
+
+  /* a lens: barely there, for overlaying imagery */
+  .glass--lens {
+    --glass-tint: 2.5%;
+    --glass-blur: 14px;
+    --glass-edge: 0.5;
+    --glass-fresnel: 0.16;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 34%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 14%, transparent);
+  }
+
+  /* ── metal ─────────────────────────────────────────────────────────
+     Gold on the board is a finish, never a fill. Three stops across
+     the surface and a specular that moves: that is what separates
+     brushed brass from yellow paint.                              */
+  .metal-foil {
+    background: linear-gradient(
+      104deg,
+      var(--metal-shadow) 0%,
+      var(--metal-body) 26%,
+      var(--metal-light) 44%,
+      var(--metal-spec) 50%,
+      var(--metal-light) 56%,
+      var(--metal-body) 74%,
+      var(--metal-shadow) 100%
+    );
+    background-size: 220% 100%;
+    background-position: 60% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* the same material, as a surface rather than as type */
+  .metal-surface {
+    background: linear-gradient(
+      148deg,
+      var(--metal-shadow),
+      var(--metal-body) 38%,
+      var(--metal-light) 52%,
+      var(--metal-body) 66%,
+      var(--metal-shadow)
+    );
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 46%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 34%, transparent);
+  }
+
+  /* an engraved line, as on the button and the embossed bag */
+  .metal-engraved {
+    color: var(--metal-body);
+    text-shadow:
+      0 1px 0 color-mix(in srgb, #000 55%, transparent),
+      0 -1px 0 color-mix(in srgb, var(--metal-spec) 24%, transparent);
+  }
+}
+
+/* ── where the material cannot be built ────────────────────────────
+   No backdrop-filter means no glass. A translucent tint with
+   nothing behind it reads as a washed-out box, so the surface
+   becomes opaque instead and keeps its edge.                   */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: color-mix(in srgb, var(--surface-panel) 96%, transparent);
+  }
+}
+
+/* A finger has no hover, so there is no highlight to track and no
+   reason to pay for the extra paint. */
+@media (hover: none) {
+  .glass::after { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTROLS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-btn {
+    --mx: 50%;
+    --my: 50%;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid var(--edge-line);
+    border-radius: 0;
+    background: transparent;
+    font-family: var(--font-ui);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color var(--duration-hover) var(--ease-architect),
+      border-color var(--duration-hover) var(--ease-architect),
+      box-shadow var(--duration-hover) var(--ease-architect);
+  }
+
+  /* the rising fill */
+  .nn-btn__fill {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transform: translateY(101%);
+    transition: transform var(--duration-panel) var(--ease-architect);
+  }
+  .nn-btn__label {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+  }
+  .nn-btn:hover .nn-btn__fill,
+  .nn-btn:focus-visible .nn-btn__fill { transform: translateY(0); }
+
+  .nn-btn--icon { padding: 0; gap: 0; }
+  .nn-btn--icon svg { width: 1.05rem; height: 1.05rem; }
+
+  /* ── metal: the primary action. A finish, not a fill. ──────────── */
+  .nn-btn--metal {
+    border-color: color-mix(in srgb, var(--metal-body) 58%, transparent);
+    color: var(--metal-light);
+    background: color-mix(in srgb, var(--metal-body) 9%, transparent);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 34%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 26%, transparent),
+      var(--shadow-lift);
+  }
+  .nn-btn--metal .nn-btn__fill {
+    background: linear-gradient(
+      148deg,
+      var(--metal-shadow),
+      var(--metal-body) 34%,
+      var(--metal-light) 50%,
+      var(--metal-body) 68%,
+      var(--metal-shadow)
+    );
+  }
+  .nn-btn--metal:hover,
+  .nn-btn--metal:focus-visible {
+    color: var(--ink-inverse);
+    border-color: var(--metal-light);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 52%, transparent),
+      0 14px 34px -14px color-mix(in srgb, var(--metal-body) 42%, transparent);
+  }
+
+  /* ── solid: the workhorse ─────────────────────────────────────── */
+  .nn-btn--solid {
+    background: var(--ink-primary);
+    color: var(--ink-inverse);
+    border-color: transparent;
+    box-shadow: var(--shadow-lift);
+  }
+  .nn-btn--solid .nn-btn__fill {
+    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+  }
+  .nn-btn--solid:hover,
+  .nn-btn--solid:focus-visible { color: var(--ink-inverse); }
+
+  /* ── glass: over imagery and the showroom ─────────────────────── */
+  .nn-btn--glass {
+    background: color-mix(in srgb, var(--ink-primary) 7%, transparent);
+    backdrop-filter: blur(24px) saturate(1.8) brightness(1.04);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.04);
+    color: var(--ink-primary);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 22%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 20%, transparent),
+      var(--shadow-lift);
+  }
+  .nn-btn--glass .nn-btn__fill { background: var(--ink-primary); }
+  .nn-btn--glass:hover,
+  .nn-btn--glass:focus-visible {
+    color: var(--ink-inverse);
+    border-color: var(--edge-strong);
+  }
+
+  /* ── quiet: a hairline ────────────────────────────────────────── */
+  .nn-btn--quiet {
+    border-color: var(--edge-hair);
+    color: var(--ink-secondary);
+  }
+  .nn-btn--quiet .nn-btn__fill { background: color-mix(in srgb, var(--ink-primary) 12%, transparent); }
+  .nn-btn--quiet:hover,
+  .nn-btn--quiet:focus-visible {
+    color: var(--ink-primary);
+    border-color: var(--edge-line);
+  }
+
+  /* the specular, on every tone */
+  .nn-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      44% 62% at var(--mx) var(--my),
+      color-mix(in srgb, var(--metal-spec) 24%, transparent),
+      transparent 72%
+    );
+    transition: opacity var(--duration-hover) var(--ease-architect);
+  }
+  .nn-btn:hover::after { opacity: 1; }
+
+  .nn-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .nn-btn:disabled .nn-btn__fill { transform: translateY(101%); }
+
+  /* ── pill ─────────────────────────────────────────────────────── */
+  .nn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.32rem 0.7rem;
+    border: 1px solid var(--edge-hair);
+    background: color-mix(in srgb, var(--ink-primary) 5%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: var(--ink-secondary);
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: inherit;
+    transition:
+      color var(--duration-hover) var(--ease-architect),
+      border-color var(--duration-hover) var(--ease-architect),
+      background-color var(--duration-hover) var(--ease-architect);
+  }
+  button.nn-pill { cursor: pointer; }
+  .nn-pill[data-active="true"] {
+    color: var(--ink-inverse);
+    background: var(--ink-primary);
+    border-color: transparent;
+  }
+  .nn-pill--metal[data-active="true"] {
+    color: var(--ink-inverse);
+    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+  }
+  button.nn-pill:hover { color: var(--ink-primary); border-color: var(--edge-line); }
+  button.nn-pill[data-active="true"]:hover { color: var(--ink-inverse); }
+
+  /* ── field ────────────────────────────────────────────────────── */
+  .nn-field {
+    --mx: 50%;
+    --my: 50%;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--edge-line);
+    background: color-mix(in srgb, var(--ink-primary) 4%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    color: var(--ink-primary);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    transition:
+      border-color var(--duration-hover) var(--ease-architect),
+      background-color var(--duration-hover) var(--ease-architect),
+      box-shadow var(--duration-hover) var(--ease-architect);
+  }
+  .nn-field::placeholder { color: var(--ink-tertiary); }
+  .nn-field:hover { border-color: var(--edge-strong); }
+  .nn-field:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--metal-body) 70%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--metal-body) 40%, transparent),
+      inset 0 0 24px color-mix(in srgb, var(--metal-body) 8%, transparent);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ATMOSPHERE
+   The slow drift that makes the room feel occupied rather than
+   rendered. Long cycles on purpose: the customer should register
+   that the space is alive without ever catching an animation.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .nn-atmo-pool {
+    animation: nn-atmo-drift 54s var(--ease-in-out-quint) infinite alternate;
+    will-change: transform;
+  }
+  @keyframes nn-atmo-drift {
+    from { transform: translate3d(-3%, -2%, 0) scale(1); }
+    to   { transform: translate3d(4%, 3%, 0) scale(1.16); }
+  }
+
+  .nn-atmo-motes {
+    background-image:
+      radial-gradient(1.4px 1.4px at 22% 32%, color-mix(in srgb, var(--light-warm) 62%, transparent), transparent),
+      radial-gradient(1px 1px at 68% 22%, color-mix(in srgb, var(--light-warm) 46%, transparent), transparent),
+      radial-gradient(1.6px 1.6px at 44% 68%, color-mix(in srgb, var(--light-warm) 38%, transparent), transparent),
+      radial-gradient(1px 1px at 84% 58%, color-mix(in srgb, var(--light-warm) 52%, transparent), transparent);
+    animation: nn-atmo-motes 42s linear infinite;
+    will-change: transform;
+  }
+  @keyframes nn-atmo-motes {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-28px, -78px, 0); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-atmo-pool,
+  .nn-atmo-motes { animation: none; }
+  .nn-atmo-motes { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE ENTRANCE
+   A shutter over the shop. Every rule here assumes the animation
+   might not run, so nothing the customer needs is hidden by one.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-entry {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: grid;
+    place-items: center;
+    background: var(--surface-void);
+    /* the shutter lifts; it does not fade */
+    clip-path: inset(0 0 0 0);
+    transition:
+      clip-path var(--duration-room) var(--ease-in-out-quint),
+      opacity var(--duration-room) var(--ease-architect);
+  }
+  .nn-entry[data-lifting="true"] {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+
+  .nn-entry__light {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      52% 40% at 50% 38%,
+      color-mix(in srgb, var(--metal-body) 13%, transparent),
+      transparent 72%
+    );
+  }
+
+  .nn-entry__stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 1.6rem;
+    padding-inline: 1.5rem;
+    text-align: center;
+  }
+
+  /* the mark strikes, then light crosses it */
+  .nn-entry__mark {
+    width: clamp(6rem, 17vw, 10.5rem);
+    height: auto;
+    animation: nn-entry-strike 1100ms var(--ease-material) both;
+  }
+  @keyframes nn-entry-strike {
+    from { transform: scale(0.9); opacity: 0.001; filter: blur(7px); }
+    to   { transform: none; opacity: 1; filter: blur(0); }
+  }
+
+  .nn-entry__type {
+    display: grid;
+    justify-items: center;
+    gap: 0.7rem;
+    animation: nn-entry-settle 900ms var(--ease-architect) 420ms both;
+  }
+  @keyframes nn-entry-settle {
+    from { transform: translate3d(0, 10px, 0); opacity: 0.001; }
+    to   { transform: none; opacity: 1; }
+  }
+
+  .nn-entry__wordmark {
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 3.4vw, 2rem);
+    font-weight: 400;
+    letter-spacing: var(--tracking-wordmark);
+    text-transform: uppercase;
+    color: var(--ink-primary);
+  }
+  .nn-entry__audience {
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: 0.44em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+  }
+
+  /* the meter: a hairline that fills */
+  .nn-entry__meter {
+    width: min(16rem, 62vw);
+    height: 1px;
+    margin-top: 0.6rem;
+    background: var(--edge-hair);
+    overflow: hidden;
+  }
+  .nn-entry__fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--metal-body), var(--metal-light));
+    transition: transform var(--duration-panel) var(--ease-out-quint);
+  }
+
+  .nn-entry__tagline {
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+    animation: nn-entry-settle 900ms var(--ease-architect) 700ms both;
+  }
+}
+
+/* The entrance never plays under reduced motion. This is the belt to
+   that braces: if a stylesheet ordering change ever let it through,
+   it is hidden rather than flashing a shutter over the shop. */
+@media (prefers-reduced-motion: reduce) {
+  .nn-entry { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-nav {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 90;
+    /* transparent at rest: the nav is part of the room, not a bar on it */
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+      background-color var(--duration-panel) var(--ease-architect),
+      border-color var(--duration-panel) var(--ease-architect),
+      backdrop-filter var(--duration-panel) var(--ease-architect);
+  }
+  .nn-nav--lifted {
+    background: color-mix(in srgb, var(--surface-base) 62%, transparent);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border-bottom-color: var(--edge-hair);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 8%, transparent);
+  }
+
+  .nn-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    min-height: 4.5rem;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .nn-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--ink-primary);
+    flex: 0 0 auto;
+  }
+  .nn-nav__lockup { display: grid; gap: 0.18rem; }
+  .nn-nav__wordmark { font-size: 0.82rem; line-height: 1; }
+  .nn-nav__audience {
+    font-family: var(--font-ui);
+    font-size: 0.5rem;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+    line-height: 1;
+  }
+
+  .nn-nav__links {
+    display: none;
+    align-items: center;
+    gap: clamp(1.1rem, 2.4vw, 2.4rem);
+  }
+  @media (min-width: 900px) {
+    .nn-nav__links { display: flex; }
+  }
+  .nn-nav__link {
+    position: relative;
+    padding-block: 0.4rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+    transition: color var(--duration-hover) var(--ease-architect);
+  }
+  .nn-nav__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 0;
+    background: var(--metal-body);
+    transition: width var(--duration-panel) var(--ease-architect);
+  }
+  .nn-nav__link:hover { color: var(--ink-primary); }
+  .nn-nav__link:hover::after,
+  .nn-nav__link[data-active="true"]::after { width: 100%; }
+  .nn-nav__link[data-active="true"] { color: var(--ink-primary); }
+
+  .nn-nav__actions { display: flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
+
+  .nn-nav__count {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.5rem;
+    min-width: 1rem;
+    padding: 0 0.2rem;
+    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    color: var(--ink-inverse);
+    font-family: var(--font-ui);
+    font-size: 0.56rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* the menu toggle: two bars that become a cross */
+  .nn-nav__menu {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink-primary);
+    cursor: pointer;
+  }
+  @media (min-width: 900px) {
+    .nn-nav__menu { display: none; }
+  }
+  .nn-nav__bars { display: grid; gap: 0.32rem; width: 1.15rem; }
+  .nn-nav__bars i {
+    display: block;
+    height: 1px;
+    background: currentColor;
+    transition: transform var(--duration-panel) var(--ease-architect);
+  }
+  .nn-nav__bars[data-open="true"] i:first-child { transform: translateY(0.165rem) rotate(45deg); }
+  .nn-nav__bars[data-open="true"] i:last-child { transform: translateY(-0.165rem) rotate(-45deg); }
+
+  /* ── the sheet ── */
+  .nn-nav__sheet {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 85;
+    display: grid;
+    align-content: space-between;
+    gap: 2rem;
+    min-height: 100svh;
+    padding: 7rem clamp(1.5rem, 6vw, 3rem) calc(3rem + env(safe-area-inset-bottom, 0px));
+  }
+  .nn-nav__sheetlinks { display: grid; gap: 0.2rem; }
+  .nn-nav__sheetlink {
+    display: block;
+    padding-block: 0.55rem;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 11vw, 3.4rem);
+    font-weight: 300;
+    line-height: 1.06;
+    letter-spacing: var(--tracking-title);
+    color: var(--ink-secondary);
+    transition: color var(--duration-hover) var(--ease-architect);
+  }
+  .nn-nav__sheetlink[data-active="true"],
+  .nn-nav__sheetlink:hover { color: var(--ink-primary); }
+  .nn-nav__sheetfoot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--edge-hair);
+    font-size: var(--text-fine);
+  }
+
+  /* ═══ the dock ═══ */
+  .nn-dock {
+    position: fixed;
+    z-index: 88;
+    display: flex;
+    align-items: stretch;
+    gap: 0.15rem;
+    padding: 0.3rem;
+    /* phone: along the bottom, inside the safe area, where a thumb is */
+    inset-inline: clamp(0.75rem, 4vw, 1.25rem);
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .nn-dock {
+      /* desktop: out of the reading column */
+      inset-inline: auto;
+      right: clamp(1rem, 2.5vw, 2rem);
+      bottom: clamp(1rem, 2.5vw, 2rem);
+    }
+  }
+
+  .nn-dock__item,
+  .nn-dock__link {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.9rem;
+    padding: 0 0.85rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color var(--duration-hover) var(--ease-architect),
+      background-color var(--duration-hover) var(--ease-architect);
+  }
+  .nn-dock__item { flex: 1 1 0; }
+  .nn-dock__item:hover,
+  .nn-dock__item:has(.nn-dock__link:hover) {
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 7%, transparent);
+  }
+  .nn-dock__icon { display: grid; place-items: center; flex: 0 0 auto; }
+  .nn-dock__icon svg { width: 1.05rem; height: 1.05rem; }
+  /* the label is hidden on the narrowest phones, where the icons carry it */
+  .nn-dock__label { display: none; }
+  @media (min-width: 420px) {
+    .nn-dock__label { display: inline; }
+  }
+  .nn-dock__count {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.45rem;
+    min-width: 0.95rem;
+    padding: 0 0.18rem;
+    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    color: var(--ink-inverse);
+    font-size: 0.54rem;
+    font-weight: 600;
+    line-height: 0.95rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+}

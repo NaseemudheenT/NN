@@ -3,7 +3,7 @@
 /**
  * NERO NOREN — theme and time of day.
  *
- * Three modes, as specified: "auto" (default), "light", "dark". In auto the
+ * Three modes: "auto" (default), "day", "night". In auto the
  * theme follows the visitor's own clock via the NN phase table, and re-arms a
  * timer at each phase boundary so a browser left open at 19:29 goes dark by
  * itself. An explicit choice is remembered in localStorage and always wins.
@@ -88,7 +88,7 @@ export function ThemeProvider({
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === "auto" || stored === "light" || stored === "dark") {
+      if (stored === "auto" || stored === "day" || stored === "night") {
         setModeState(stored);
       }
     } catch {
@@ -145,13 +145,13 @@ export function ThemeProvider({
      day, so the room and the interface never disagree */
   const phase: DayPhase = useMemo(() => {
     if (mode === "auto") return autoPhase;
-    if (mode === "dark") return "night";
+    if (mode === "night") return "night";
     return autoPhase === "night" ? "afternoon" : autoPhase;
   }, [mode, autoPhase]);
 
   const theme: ThemeName = useMemo(() => {
-    if (mode === "light") return themeForPhase(phase) === "dark" ? "light" : themeForPhase(phase);
-    if (mode === "dark") return "dark";
+    if (mode === "day") return themeForPhase(phase) === "night" ? "day" : themeForPhase(phase);
+    if (mode === "night") return "night";
     return themeForPhase(phase);
   }, [mode, phase]);
 
@@ -167,7 +167,11 @@ export function ThemeProvider({
     root.dataset.phase = phase;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "dark" ? "#000000" : theme === "evening" ? "#eae1d1" : "#efe9dd");
+      // matches --surface-base for each theme
+      meta.setAttribute(
+        "content",
+        theme === "night" ? "#0a0a0a" : theme === "dusk" ? "#12151c" : "#f7f5ef",
+      );
     }
   }, [theme, phase]);
 

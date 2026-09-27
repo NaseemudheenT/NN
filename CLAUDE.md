@@ -7,9 +7,32 @@ The official website of NERO NOREN, an online-first, European-inspired menswear 
 Next.js (App Router) + TypeScript (strict), React Three Fiber + drei + @react-three/postprocessing, GSAP, Framer Motion, Tailwind CSS, Shopify Storefront API (headless) for products and cart, Razorpay for payments, Claude API (server-side only) for AI, Supabase for owner auth and analytics, Vercel for hosting.
 
 ## Brand
-Colours: Matte Black #000000, Ivory #EFE9DD, Charcoal #3A3A3D, Stone #B8AE9C, Taupe #8A7B6A, Olive #4F5443, Burgundy #5C1F24, NN Gold #C9A43A.
-Fonts: Cormorant Garamond (display), Hanken Grotesk (UI). Tagline: "The art of dressing well."
-Voice: calm, precise, warm. Sentence case. No hype words, no emojis, no fake scarcity, no fake luxury or origin claims.
+Source of truth: the NN brand board (2026). Where it and anything else disagree, the board wins.
+
+Tagline: "Timeless style builds character."
+Audience lockup: MEN & BOYS.
+Supporting lines: "More than clothing, a lifestyle." · "Crafted for what comes next."
+
+Palette, exactly as the board states it:
+Deep Black #0A0A0A · Ivory #F7F5EF · Charcoal #2E2E2E · Stone #B7B1A7 · Taupe #6B5E52 · Olive #3EA639 · Burgundy #A41F34.
+Described as earth tones inspired by European heritage and timeless elegance.
+
+Gold is a MATERIAL, not a palette colour. The board shows it only as a physical
+finish — foil on the hangtag and the shopping bag, the engraved button, the
+embroidery, the illuminated signage. So in the interface gold appears as a
+metallic treatment that responds to light, never as a flat accent fill. Flat
+gold text on ivory is a misuse of the identity.
+
+Marks: the primary monogram is two interlocked serif Ns, the second overlapping
+the first so they share a stem — simple, strong, timeless. The wordmark is
+NERO NOREN in a refined serif with wide letterspacing — elegant, refined,
+European. The stacked lockup pairs them — premium, versatile, iconic. Black and
+white variations both exist and both must work.
+
+Fonts: Cormorant Garamond (display), Hanken Grotesk (UI).
+Voice: calm, precise, warm. Sentence case in prose; wide-tracked uppercase for
+labels and metadata only. No hype words, no emojis, no fake scarcity, no fake
+luxury or origin claims.
 Design reference: /reference/nero-noren.html
 
 ## Collection 001 — The Foundations
