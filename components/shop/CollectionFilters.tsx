@@ -59,7 +59,7 @@ export function CollectionFilters({ products }: { products: Product[] }) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setFilter(f.value)}
-                className="border px-4 py-2 text-[var(--text-eyebrow)] uppercase tracking-[0.14em] transition-colors duration-500"
+                className="border px-4 py-2 text-eyebrow uppercase tracking-[0.14em] transition-colors duration-500"
                 style={{
                   borderColor: on ? "var(--btn-bg)" : "var(--line)",
                   background: on ? "var(--btn-bg)" : "transparent",

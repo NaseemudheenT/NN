@@ -9,6 +9,7 @@ import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { Toaster } from "@/components/layout/Toaster";
 import { BagMount } from "@/components/shop/BagMount";
 import { env, shopifyReady } from "@/lib/env";
+import { readShowroomSettings } from "@/lib/supabase";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -63,15 +64,17 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Whether the shop is live is a server fact; the bag needs to know it to
   // decide between a Shopify cart and a device-only bag.
   const shopLive = shopifyReady();
+  // The owner can pin a time of day for everyone from the console.
+  const { settings } = await readShowroomSettings();
 
   return (
     <html lang="en-IN" data-theme="light" suppressHydrationWarning>
       <body className={`${cormorant.variable} ${hanken.variable} antialiased`}>
-        <ThemeProvider>
+        <ThemeProvider housePhase={settings.forcedPhase}>
           <BagProvider shopLive={shopLive}>
             <a className="nn-skip" href="#main">
               Skip to content

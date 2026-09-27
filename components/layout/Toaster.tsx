@@ -39,7 +39,7 @@ export function Toaster() {
     >
       {message ? (
         <p
-          className="nn-panel nn-fade-up m-0 px-5 py-3 text-[var(--text-step--1)]"
+          className="nn-panel nn-fade-up m-0 px-5 py-3 text-fine"
           style={{ borderColor: "var(--accent)" }}
         >
           {message}

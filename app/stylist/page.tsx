@@ -29,7 +29,7 @@ export default async function StylistPage() {
 
           <aside>
             <h2 className="nn-eyebrow">What it will and will not do</h2>
-            <ul className="mt-5 flex list-none flex-col gap-4 p-0 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <ul className="mt-5 flex list-none flex-col gap-4 p-0 text-fine text-[var(--ink-soft)]">
               <li>
                 It recommends only from the {products.length} pieces in Collection 001. It has
                 not been shown anything else, so it cannot invent a product.

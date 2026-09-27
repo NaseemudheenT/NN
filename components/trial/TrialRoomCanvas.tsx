@@ -9,9 +9,9 @@
  * daylight fluorescents.
  */
 
-import { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Suspense, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { ProceduralEnvironment } from "@/components/showroom/ProceduralEnvironment";
 import * as THREE from "three";
 import type { BodyEstimate, SizeFit } from "@/lib/fit";
 import type { Product } from "@/lib/catalog/types";
@@ -139,14 +139,17 @@ function Room() {
             path={TRIAL_MODELS.curtain}
             placeholder={
               <group position={[0, 1.3, 1.18]}>
-                {Array.from({ length: 9 }, (_, i) => (
+                {/* Gathered to the left, the way a fitting-room curtain is left
+                    when the room is open. Drawing it across the opening would
+                    put linen between the customer and the mirror. */}
+                {Array.from({ length: 5 }, (_, i) => (
                   <Mat
                     key={i}
                     material="linen"
-                    position={[-0.95 + i * 0.22, 0, Math.sin(i * 1.7) * 0.035]}
+                    position={[-1.06 + i * 0.17, 0, Math.sin(i * 1.7) * 0.05]}
                     castShadow
                   >
-                    <boxGeometry args={[0.2, 2.5, 0.035]} />
+                    <boxGeometry args={[0.16, 2.5, 0.05]} />
                   </Mat>
                 ))}
                 {/* brass rail */}
@@ -161,6 +164,16 @@ function Room() {
       }
     />
   );
+}
+
+/** Aims the camera at a point once, on mount. */
+function CameraAim({ target }: { target: [number, number, number] }) {
+  const camera = useThree((state) => state.camera);
+  useEffect(() => {
+    camera.lookAt(new THREE.Vector3(...target));
+    camera.updateProjectionMatrix();
+  }, [camera, target]);
+  return null;
 }
 
 export default function TrialRoomCanvas({
@@ -180,7 +193,7 @@ export default function TrialRoomCanvas({
       className="absolute inset-0"
       shadows
       dpr={[1, 1.8]}
-      camera={{ fov: 42, position: [0, 1.35, 2.5], near: 0.1, far: 30 }}
+      camera={{ fov: 44, position: [0.22, 1.32, 2.45], near: 0.1, far: 30 }}
       gl={{ antialias: true, alpha: false }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
@@ -210,9 +223,20 @@ export default function TrialRoomCanvas({
         color="#ffe3bb"
         distance={6}
       />
-      <Environment preset="apartment" background={false} environmentIntensity={0.4} />
+      {/* R3F points a new camera at the origin, which is the figure's feet.
+          Aim it at the chest instead. */}
+      <CameraAim target={[0, 0.98, 0]} />
 
       <Suspense fallback={null}>
+        {/* Warm and enclosed: a fitting room has no daylight in it. */}
+        <ProceduralEnvironment
+          keyColour="#ffe3bb"
+          fillColour="#8a7b6a"
+          daylight={0.25}
+          lampColour="#ffdcae"
+          lampLevel={1}
+          intensity={0.5}
+        />
         <Room />
         <group rotation={[0, turn, 0]}>
           <TrialBody body={body} product={product} fit={fit} />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadCatalogue } from "@/lib/catalog";
+import { readShowroomSettings } from "@/lib/supabase";
 import { Showroom } from "@/components/showroom/Showroom";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { OutfitBuilder } from "@/components/shop/OutfitBuilder";
@@ -20,8 +21,27 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const catalogue = await loadCatalogue();
-  const { products } = catalogue;
+  const [catalogue, { settings }] = await Promise.all([loadCatalogue(), readShowroomSettings()]);
+
+  /* The owner decides what stands where, from the console. A product with no
+     override keeps the placement it came with. */
+  const arranged = {
+    ...catalogue,
+    products: catalogue.products.map((p) => {
+      const placement = settings.placements[p.handle];
+      return placement && placement !== p.placement
+        ? { ...p, placement: placement as typeof p.placement }
+        : p;
+    }),
+  };
+
+  /* A featured piece leads the collection grid. */
+  const products = settings.featuredHandle
+    ? [
+        ...arranged.products.filter((p) => p.handle === settings.featuredHandle),
+        ...arranged.products.filter((p) => p.handle !== settings.featuredHandle),
+      ]
+    : arranged.products;
   const shirts = products.filter((p) => p.type === "shirt");
   const trousers = products.filter((p) => p.type === "trouser");
 
@@ -59,16 +79,16 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
       />
 
-      <Showroom catalogue={catalogue} />
+      <Showroom catalogue={arranged} />
 
-      <CatalogueNotice catalogue={catalogue} />
+      <CatalogueNotice catalogue={arranged} />
 
       {/* ── the collection ── */}
       <section id="collection" className="nn-wrap py-24">
         <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="nn-eyebrow">Ready to wear</p>
-            <h2 className="mt-3 text-[var(--text-step-2)]">The Foundations</h2>
+            <h2 className="mt-3 text-title">The Foundations</h2>
             <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
               {products.length} pieces, made to be worn together. Start with a shirt and a
               trouser; everything else in the collection will meet them.
@@ -92,7 +112,7 @@ export default async function HomePage() {
       <section id="wardrobe" className="nn-wrap py-24">
         <div className="mb-10">
           <p className="nn-eyebrow">The wardrobe</p>
-          <h2 className="mt-3 text-[var(--text-step-2)]">One shirt, four ways</h2>
+          <h2 className="mt-3 text-title">One shirt, four ways</h2>
           <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
             Choose a shirt and see it against every trouser we make. This is the whole point
             of a foundation collection: nothing in it fights anything else.
@@ -114,7 +134,7 @@ export default async function HomePage() {
       <section id="fit" className="nn-wrap py-24">
         <div className="mb-10">
           <p className="nn-eyebrow">Sizing</p>
-          <h2 className="mt-3 text-[var(--text-step-2)]">Find your fit</h2>
+          <h2 className="mt-3 text-title">Find your fit</h2>
           <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
             Tell us your height, your weight and the waist of the jeans you wear. We work out
             the rest from the finished measurements of the garment.
@@ -128,28 +148,28 @@ export default async function HomePage() {
       {/* ── the house ── */}
       <section id="story" className="nn-wrap py-24">
         <p className="nn-eyebrow">The house</p>
-        <h2 className="mt-3 max-w-[28ch] text-[var(--text-step-2)]">
+        <h2 className="mt-3 max-w-[28ch] text-title">
           European in design, honest about origin
         </h2>
         <div className="mt-12 grid gap-10 md:grid-cols-3">
           <div>
-            <h3 className="text-[var(--text-step-1)]">Fabric, fit and finish first</h3>
-            <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <h3 className="text-lead">Fabric, fit and finish first</h3>
+            <p className="mt-3 text-fine text-[var(--ink-soft)]">
               The cloth is chosen before the colour and the pattern is corrected before the
               range is signed off. A shirt that fits badly in a beautiful fabric is still a
               shirt that fits badly.
             </p>
           </div>
           <div>
-            <h3 className="text-[var(--text-step-1)]">Fair prices, no permanent sale</h3>
-            <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <h3 className="text-lead">Fair prices, no permanent sale</h3>
+            <p className="mt-3 text-fine text-[var(--ink-soft)]">
               One price, held. We would rather cut a piece from the range than discount it
               until it means nothing.
             </p>
           </div>
           <div>
-            <h3 className="text-[var(--text-step-1)]">Details</h3>
-            <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <h3 className="text-lead">Details</h3>
+            <p className="mt-3 text-fine text-[var(--ink-soft)]">
               A woven label at the back neck, engraved buttons, a pressed crease that holds.
               Turn a piece around in the showroom and you will find them.
             </p>

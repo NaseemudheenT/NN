@@ -37,7 +37,7 @@ export function OrderSummary({
 
   return (
     <div className="border p-6" style={{ background: "var(--surface)", borderColor: "var(--line)" }}>
-      <h2 className="text-[var(--text-step-1)]">Your order</h2>
+      <h2 className="text-lead">Your order</h2>
 
       <ul className="m-0 mt-6 flex list-none flex-col gap-5 p-0">
         {lines.map((l) => (
@@ -52,26 +52,26 @@ export function OrderSummary({
               {editable ? (
                 <Link
                   href={`/product/${l.handle}`}
-                  className="block text-[var(--text-step--1)] text-[var(--ink)] no-underline hover:text-[var(--accent)]"
+                  className="block text-fine text-[var(--ink)] no-underline hover:text-[var(--accent)]"
                 >
                   {l.product.name}
                 </Link>
               ) : (
-                <span className="block text-[var(--text-step--1)]">{l.product.name}</span>
+                <span className="block text-fine">{l.product.name}</span>
               )}
               <span className="block text-[0.72rem] text-[var(--ink-faint)]">
                 {l.product.colour} · {l.product.type === "shirt" ? "Size" : "Waist"} {l.size} ·{" "}
                 {l.quantity} {l.quantity === 1 ? "piece" : "pieces"}
               </span>
             </span>
-            <span className="nn-tabular shrink-0 text-[var(--text-step--1)]">
+            <span className="nn-tabular shrink-0 text-fine">
               {formatMinor(l.totalMinor, l.product.currency)}
             </span>
           </li>
         ))}
       </ul>
 
-      <dl className="mt-7 flex flex-col gap-2 border-t pt-5 text-[var(--text-step--1)]">
+      <dl className="mt-7 flex flex-col gap-2 border-t pt-5 text-fine">
         <div className="flex justify-between gap-4">
           <dt className="text-[var(--ink-faint)]">Subtotal</dt>
           <dd className="nn-tabular m-0">{formatMinor(subtotalMinor, currency)}</dd>
@@ -89,7 +89,7 @@ export function OrderSummary({
         ) : null}
         <div className="mt-2 flex justify-between gap-4 border-t pt-3">
           <dt className="nn-eyebrow">Total</dt>
-          <dd className="nn-tabular m-0 text-[var(--text-step-1)]">
+          <dd className="nn-tabular m-0 text-lead">
             {formatMinor(totalMinor, currency)}
           </dd>
         </div>

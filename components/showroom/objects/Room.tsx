@@ -16,7 +16,8 @@ import * as THREE from "three";
 import { ROOM_MODELS } from "../assets";
 import { MATERIALS } from "../materials";
 import { OptionalModel } from "../OptionalModel";
-import { buildMonogramGeometry, monogramWidthFor } from "@/components/brand/monogramGeometry";
+import { monogramWidthFor } from "@/components/brand/monogramGeometry";
+import { MonogramMesh } from "@/components/brand/MonogramMesh";
 
 export const ROOM = {
   width: 12,
@@ -63,27 +64,26 @@ function Surface({
 function FloorMonogram({ intensity = 1 }: { intensity?: number }) {
   // Brass inlay, 0.7 m tall, standing a few millimetres proud of the stone the
   // way a real inlay does once the floor has been honed back.
-  const geometry = useMemo(
-    () => buildMonogramGeometry({ heightMeters: 0.7, depth: 0.004, bevel: 0.38 }),
-    [],
+  const brass = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: MATERIALS.brass.colour,
+        roughness: MATERIALS.brass.roughness,
+        metalness: 1,
+        emissive: new THREE.Color("#c9a43a"),
+        emissiveIntensity: 0.12 * intensity,
+      }),
+    [intensity],
   );
 
   const ring = useMemo(
-    () => new THREE.TorusGeometry(monogramWidthFor(0.7) * 0.68, 0.008, 8, 96),
+    () => new THREE.TorusGeometry(monogramWidthFor(0.7) * 0.78, 0.008, 8, 96),
     [],
   );
 
   return (
-    <group position={[-4.5, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <mesh geometry={geometry}>
-        <meshPhysicalMaterial
-          color={MATERIALS.brass.colour}
-          roughness={MATERIALS.brass.roughness}
-          metalness={1}
-          emissive="#c9a43a"
-          emissiveIntensity={0.12 * intensity}
-        />
-      </mesh>
+    <group position={[-4.5, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <MonogramMesh height={0.7} depth={0.006} bevel={0.34} material={brass} />
       <mesh geometry={ring}>
         <meshPhysicalMaterial
           color={MATERIALS.brassBright.colour}

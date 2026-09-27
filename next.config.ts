@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // A stray package-lock.json in the home directory otherwise makes Next pick
+  // the wrong tracing root, which bloats the deployment bundle.
+  outputFileTracingRoot: import.meta.dirname,
   poweredByHeader: false,
   images: {
     remotePatterns: [{ protocol: "https", hostname: "cdn.shopify.com" }],

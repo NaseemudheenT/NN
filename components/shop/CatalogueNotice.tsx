@@ -22,7 +22,7 @@ export function CatalogueNotice({ catalogue }: { catalogue: CatalogueResult }) {
         <p className="nn-eyebrow" style={{ color: "var(--accent)" }}>
           Reference catalogue
         </p>
-        <p className="mt-3 max-w-[70ch] text-[var(--text-step--1)] text-[var(--ink-soft)]">
+        <p className="mt-3 max-w-[70ch] text-fine text-[var(--ink-soft)]">
           The showroom is running on the Collection 001 reference catalogue, so everything on
           the site works — but prices and stock are not yet live.
           {envVars.length ? (

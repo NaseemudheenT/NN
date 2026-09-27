@@ -39,7 +39,7 @@ export function ConsentControls() {
       className="my-6 border p-5"
       style={{ borderColor: "var(--line)", background: "var(--surface)" }}
     >
-      <p className="m-0 text-[var(--text-step--1)] text-[var(--ink)]">
+      <p className="m-0 text-fine text-[var(--ink)]">
         Right now:{" "}
         <strong>
           {consent === "granted"
@@ -69,7 +69,7 @@ export function ConsentControls() {
         {consent !== null ? (
           <button
             type="button"
-            className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.14em]"
+            className="nn-link text-eyebrow uppercase tracking-[0.14em]"
             onClick={() => choose(null)}
           >
             Forget my answer

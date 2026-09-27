@@ -107,14 +107,14 @@ export function ProductPanel({
         <div className="flex items-start justify-between gap-4 border-b p-6">
           <div>
             <p className="nn-eyebrow">{product.colour}</p>
-            <h2 id="nn-panel-title" className="mt-1 text-[var(--text-step-1)]">
+            <h2 id="nn-panel-title" className="mt-1 text-lead">
               {product.name}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.16em]"
+            className="nn-link text-eyebrow uppercase tracking-[0.16em]"
           >
             Close
           </button>
@@ -129,12 +129,12 @@ export function ProductPanel({
             <GarmentArt product={product} className="w-full drop-shadow-sm" />
           </div>
 
-          <p className="nn-tabular mt-6 text-[var(--text-step-1)]">{price}</p>
-          <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+          <p className="nn-tabular mt-6 text-lead">{price}</p>
+          <p className="mt-3 text-fine text-[var(--ink-soft)]">
             {product.description}
           </p>
 
-          <dl className="mt-6 flex flex-col gap-3 border-t pt-5 text-[var(--text-step--1)]">
+          <dl className="mt-6 flex flex-col gap-3 border-t pt-5 text-fine">
             {product.fabric ? (
               <div>
                 <dt className="nn-eyebrow">Fabric</dt>

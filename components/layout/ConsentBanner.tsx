@@ -74,11 +74,11 @@ export function ConsentBanner() {
       <div className="p-6">
         <h2
           id="nn-consent-title"
-          className="text-[var(--text-step-1)] font-[family-name:var(--font-display)]"
+          className="text-lead font-[family-name:var(--font-display)]"
         >
           A word about measurement
         </h2>
-        <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+        <p className="mt-3 text-fine text-[var(--ink-soft)]">
           We would like to count which parts of the showroom people use, so we can make
           it better. Nothing is recorded until you agree, and we never sell what we
           learn. You can change your mind at any time on our{" "}

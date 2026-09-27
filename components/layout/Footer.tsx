@@ -38,7 +38,7 @@ export function Footer() {
             <LogoMark size={34} shimmer={false} title={null} />
             <Wordmark className="text-[0.95rem]" />
           </div>
-          <p className="mt-5 max-w-[34ch] text-[var(--text-step--1)] text-[var(--ink-soft)]">
+          <p className="mt-5 max-w-[34ch] text-fine text-[var(--ink-soft)]">
             European-inspired menswear, cut for Indian life. Online first, delivered
             across India.
           </p>
@@ -51,7 +51,7 @@ export function Footer() {
             <ul className="mt-4 flex list-none flex-col gap-2 p-0">
               {col.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="nn-link text-[var(--text-step--1)]">
+                  <Link href={l.href} className="nn-link text-fine">
                     {l.label}
                   </Link>
                 </li>
@@ -61,7 +61,7 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="nn-wrap flex flex-col gap-2 border-t py-7 text-[var(--text-step--1)] text-[var(--ink-faint)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="nn-wrap flex flex-col gap-2 border-t py-7 text-fine text-[var(--ink-faint)] sm:flex-row sm:items-center sm:justify-between">
         <span>
           © {new Date().getFullYear()} Nero Noren Private Limited. All rights reserved.
         </span>

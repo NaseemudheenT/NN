@@ -40,7 +40,7 @@ export function ThemeSwitch({ className = "" }: { className?: string }) {
             onClick={() => setMode(o.value)}
             aria-pressed={active}
             title={o.hint}
-            className="px-3 py-2 text-[var(--text-eyebrow)] font-medium uppercase tracking-[0.16em] transition-colors duration-500 data-[on=true]:bg-[var(--btn-bg)] data-[on=true]:text-[var(--btn-ink)] text-[var(--ink-faint)] hover:text-[var(--ink)]"
+            className="px-3 py-2 text-eyebrow font-medium uppercase tracking-[0.16em] transition-colors duration-500 data-[on=true]:bg-[var(--btn-bg)] data-[on=true]:text-[var(--btn-ink)] text-[var(--ink-faint)] hover:text-[var(--ink)]"
             data-on={active}
           >
             {o.label}

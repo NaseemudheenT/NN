@@ -144,18 +144,33 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
       ) : null}
 
       {/* ── chrome ── */}
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
-        <div className="nn-wrap pointer-events-auto grid items-start gap-10 pt-24 lg:grid-cols-[1fr_auto]">
+      {/* A scrim behind the text. The room behind it is bright at noon and
+          black at night, so type alone cannot be relied on to stay legible —
+          this holds the contrast at AA in both. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 82%, transparent) 0%, color-mix(in srgb, var(--bg) 58%, transparent) 38%, transparent 62%), linear-gradient(to right, color-mix(in srgb, var(--bg) 76%, transparent) 0%, transparent 58%), linear-gradient(to top, color-mix(in srgb, var(--bg) 72%, transparent) 0%, transparent 26%)",
+        }}
+      />
+
+      {/* Both bars are pinned rather than laid out with justify-between: on a
+          short viewport a tall headline would otherwise push the viewpoint nav
+          off the bottom of the room entirely. */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="nn-wrap pointer-events-auto absolute inset-x-0 top-0 grid items-start gap-10 pt-20 sm:pt-24 lg:grid-cols-[1fr_auto]">
           <div>
           <p className="nn-eyebrow">
             {enabled && canvasReady ? viewpoint.label : "Collection 001 — The Foundations"}
           </p>
-          <h1 className="mt-2 max-w-[18ch] text-[var(--text-step-3)]">
+          <h1 className="mt-2 max-w-[18ch] text-hero">
             <span className="block">The art</span>
             <span className="block pl-[0.14em] italic text-[var(--accent)]">of dressing</span>
             <span className="block">well.</span>
           </h1>
-          <p className="mt-5 max-w-[42ch] text-[var(--ink-soft)]">
+          <p className="mt-5 hidden max-w-[42ch] text-[var(--ink)] opacity-80 [@media(min-height:560px)]:block">
             European-inspired menswear, cut for Indian life. Eight considered pieces that work
             together, season after season.
           </p>
@@ -176,7 +191,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
           </div>
         </div>
 
-        <div className="nn-wrap pointer-events-auto pb-6">
+        <div className="nn-wrap pointer-events-auto absolute inset-x-0 bottom-0 pb-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
             {enabled && canvasReady ? (
               <nav aria-label="Showroom viewpoints" className="flex flex-wrap items-center gap-2">
@@ -194,7 +209,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
                     type="button"
                     onClick={() => goTo(v.id)}
                     aria-current={v.id === viewpointId ? "true" : undefined}
-                    className="nn-link px-2 text-[var(--text-eyebrow)] uppercase tracking-[0.16em]"
+                    className="nn-link px-2 text-eyebrow uppercase tracking-[0.16em]"
                     data-active={v.id === viewpointId}
                   >
                     {v.label}
@@ -210,7 +225,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
                 </button>
               </nav>
             ) : (
-              <p className="max-w-[34ch] text-[var(--text-step--1)] text-[var(--ink-faint)]">
+              <p className="max-w-[34ch] text-fine text-[var(--ink-faint)]">
                 {enabled === false
                   ? "The 3D showroom is off. Everything is still here in two dimensions."
                   : " "}
@@ -225,7 +240,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
               {enabled === null ? null : (
                 <button
                   type="button"
-                  className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.16em]"
+                  className="nn-link text-eyebrow uppercase tracking-[0.16em]"
                   onClick={() => set3D(!enabled)}
                 >
                   {enabled ? "Turn 3D off" : "Turn 3D on"}

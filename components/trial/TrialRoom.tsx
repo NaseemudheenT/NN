@@ -309,7 +309,7 @@ export function TrialRoom({ products }: { products: Product[] }) {
                   aria-checked={on}
                   title={p.hint}
                   onClick={() => setPreference(p.value)}
-                  className="border px-4 py-2.5 text-[var(--text-step--1)] transition-colors duration-500"
+                  className="border px-4 py-2.5 text-fine transition-colors duration-500"
                   style={{
                     borderColor: on ? "var(--btn-bg)" : "var(--line)",
                     background: on ? "var(--btn-bg)" : "transparent",
@@ -326,7 +326,7 @@ export function TrialRoom({ products }: { products: Product[] }) {
         {errors.length ? (
           <ul className="mt-5 m-0 list-none p-0" role="alert">
             {errors.map((e) => (
-              <li key={e} className="text-[var(--text-step--1)]" style={{ color: "var(--accent)" }}>
+              <li key={e} className="text-fine" style={{ color: "var(--accent)" }}>
                 {e}
               </li>
             ))}
@@ -359,8 +359,8 @@ export function TrialRoom({ products }: { products: Product[] }) {
               {fit.chosen.areas.map((a) => (
                 <div key={a.area}>
                   <div className="flex items-baseline justify-between gap-4">
-                    <span className="text-[var(--text-step--1)]">{a.label}</span>
-                    <span className="text-[var(--text-step--1)]">
+                    <span className="text-fine">{a.label}</span>
+                    <span className="text-fine">
                       <span style={{ color: VERDICT_COLOUR[a.verdict] ?? "var(--ink)" }}>
                         {a.verdict}
                       </span>
@@ -387,7 +387,7 @@ export function TrialRoom({ products }: { products: Product[] }) {
 
             {fit.caution ? (
               <p
-                className="mt-5 border-l-2 pl-3 text-[var(--text-step--1)]"
+                className="mt-5 border-l-2 pl-3 text-fine"
                 style={{ borderColor: "var(--accent)", color: "var(--ink-soft)" }}
               >
                 {fit.caution}
@@ -398,10 +398,10 @@ export function TrialRoom({ products }: { products: Product[] }) {
 
             {/* the body we estimated, shown openly */}
             <details className="mt-5 border-t pt-4">
-              <summary className="cursor-pointer text-[var(--text-step--1)] text-[var(--ink-soft)]">
+              <summary className="cursor-pointer text-fine text-[var(--ink-soft)]">
                 What we worked out about you
               </summary>
-              <dl className="mt-4 flex flex-col gap-2 text-[var(--text-step--1)]">
+              <dl className="mt-4 flex flex-col gap-2 text-fine">
                 {[
                   { term: "Chest", cm: body.chestCm, measured: false },
                   { term: "Waist", cm: body.waistCm, measured: body.measured.waist },
@@ -437,7 +437,7 @@ export function TrialRoom({ products }: { products: Product[] }) {
                   {fit.alternatives.map((alt) => {
                     const chest = alt.areas.find((a) => a.area === "chest" || a.area === "waist");
                     return (
-                      <div key={alt.size} className="text-[var(--text-step--1)]">
+                      <div key={alt.size} className="text-fine">
                         <span className="font-[family-name:var(--font-display)] text-[1.5rem]">
                           {alt.size}
                         </span>
@@ -457,13 +457,13 @@ export function TrialRoom({ products }: { products: Product[] }) {
               <button type="button" className="nn-btn nn-btn--solid w-full" onClick={addRecommended}>
                 <span>Add size {fit.recommendedSize} to bag</span>
               </button>
-              <Link href={`/product/${product.handle}`} className="nn-link text-center text-[var(--text-step--1)]">
+              <Link href={`/product/${product.handle}`} className="nn-link text-center text-fine">
                 See the full measurements for {product.name}
               </Link>
             </div>
 
             {/* the one privacy choice on the page */}
-            <label className="mt-6 flex cursor-pointer items-start gap-3 border-t pt-5 text-[var(--text-step--1)]">
+            <label className="mt-6 flex cursor-pointer items-start gap-3 border-t pt-5 text-fine">
               <input
                 type="checkbox"
                 checked={remember}

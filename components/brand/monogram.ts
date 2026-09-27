@@ -37,6 +37,10 @@ export const N_INTERLOCK_X = 58;
 /** Total width of the interlocked pair. */
 export const MONOGRAM_WIDTH = N_INTERLOCK_X + N_WIDTH;
 
+/** Gap in metres between the two letters' extrusion planes, so the overlap
+    resolves as one plate in front of another rather than as z-fighting. */
+export const N_INTERLOCK_Z = 0.28;
+
 /** The thin ring the monogram sits inside. */
 export const RING = {
   /** Radius as a multiple of the monogram's half-diagonal. */

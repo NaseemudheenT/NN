@@ -278,15 +278,15 @@ export function OwnerConsole({
           <div className="flex justify-center">
             <LogoMark size={44} />
           </div>
-          <h1 className="mt-9 text-center text-[var(--text-step-2)]">Owner console</h1>
-          <p className="mt-4 text-center text-[var(--text-step--1)] text-[var(--ink-soft)]">
+          <h1 className="mt-9 text-center text-title">Owner console</h1>
+          <p className="mt-4 text-center text-fine text-[var(--ink-soft)]">
             Sign in with a link sent to your email. There is no password to remember, and none
             for us to store.
           </p>
 
           {!supabaseConfigured || !ownerListConfigured ? (
             <div
-              className="mt-8 border p-5 text-[var(--text-step--1)] text-[var(--ink-soft)]"
+              className="mt-8 border p-5 text-fine text-[var(--ink-soft)]"
               style={{ borderColor: "var(--accent)" }}
             >
               <p className="nn-eyebrow" style={{ color: "var(--accent)" }}>
@@ -342,7 +342,7 @@ export function OwnerConsole({
 
           {authMessage ? (
             <p
-              className="mt-6 text-center text-[var(--text-step--1)]"
+              className="mt-6 text-center text-fine"
               role="status"
               style={{
                 color: authState === "refused" ? "var(--color-nn-burgundy)" : "var(--ink-soft)",
@@ -363,9 +363,9 @@ export function OwnerConsole({
       <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-6">
         <div>
           <p className="nn-eyebrow">Owner console</p>
-          <h1 className="mt-2 text-[var(--text-step-2)]">Nero Noren</h1>
+          <h1 className="mt-2 text-title">Nero Noren</h1>
         </div>
-        <p className="text-[var(--text-step--1)] text-[var(--ink-faint)]">
+        <p className="text-fine text-[var(--ink-faint)]">
           {signedInAs} · last {data.windowDays} days
         </p>
       </div>
@@ -380,7 +380,7 @@ export function OwnerConsole({
           <h2 className="nn-eyebrow" style={{ color: "var(--accent)" }}>
             What this dashboard cannot tell you yet
           </h2>
-          <ul className="mt-3 flex list-none flex-col gap-2 p-0 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+          <ul className="mt-3 flex list-none flex-col gap-2 p-0 text-fine text-[var(--ink-soft)]">
             {data.gaps.map((g) => (
               <li key={g}>{g}</li>
             ))}
@@ -420,9 +420,9 @@ export function OwnerConsole({
 
       {/* per product */}
       <section className="mt-14" aria-label="Product performance">
-        <h2 className="text-[var(--text-step-1)]">By piece</h2>
+        <h2 className="text-lead">By piece</h2>
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[46rem] border-collapse text-[var(--text-step--1)]">
+          <table className="w-full min-w-[46rem] border-collapse text-fine">
             <thead>
               <tr>
                 <th scope="col" className="nn-eyebrow border-b p-3 text-left">Piece</th>
@@ -472,8 +472,8 @@ export function OwnerConsole({
 
       {/* showroom controls */}
       <section className="mt-14" aria-label="Showroom controls">
-        <h2 className="text-[var(--text-step-1)]">The showroom floor</h2>
-        <p className="mt-3 max-w-[60ch] text-[var(--text-step--1)] text-[var(--ink-soft)]">
+        <h2 className="text-lead">The showroom floor</h2>
+        <p className="mt-3 max-w-[60ch] text-fine text-[var(--ink-soft)]">
           What sits where, and which piece the showroom leads with. Saved to Supabase; the live
           site reads it.
         </p>
@@ -550,7 +550,7 @@ export function OwnerConsole({
                 const current = settings.placements[p.handle] ?? p.placement;
                 return (
                   <li key={p.handle} className="flex items-center justify-between gap-4 border-b py-2">
-                    <span className="min-w-0 truncate text-[var(--text-step--1)]">{p.title}</span>
+                    <span className="min-w-0 truncate text-fine">{p.title}</span>
                     <select
                       className="nn-field w-auto py-1.5 text-[0.8rem]"
                       value={current}
@@ -576,7 +576,7 @@ export function OwnerConsole({
         </div>
 
         {saveNote ? (
-          <p className="mt-6 text-[var(--text-step--1)] text-[var(--ink-soft)]" role="status">
+          <p className="mt-6 text-fine text-[var(--ink-soft)]" role="status">
             {saveNote}
           </p>
         ) : null}
@@ -584,8 +584,8 @@ export function OwnerConsole({
 
       {/* the command centre */}
       <section className="mt-14" aria-label="NN Command Centre">
-        <h2 className="text-[var(--text-step-1)]">NN Command Centre</h2>
-        <p className="mt-3 max-w-[60ch] text-[var(--text-step--1)] text-[var(--ink-soft)]">
+        <h2 className="text-lead">NN Command Centre</h2>
+        <p className="mt-3 max-w-[60ch] text-fine text-[var(--ink-soft)]">
           Ask about the business. It is given exactly the figures above and nothing else, so it
           cannot invent one — where a number is missing it will say so.
         </p>
@@ -636,7 +636,7 @@ export function OwnerConsole({
 
         {insight || thinking ? (
           <div
-            className="mt-6 whitespace-pre-wrap border p-6 text-[var(--text-step--1)]"
+            className="mt-6 whitespace-pre-wrap border p-6 text-fine"
             style={{ background: "var(--surface)", borderColor: "var(--line)" }}
             aria-live="polite"
           >

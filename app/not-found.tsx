@@ -11,7 +11,7 @@ export default function NotFound() {
           <LogoMark size={48} />
         </div>
         <p className="nn-eyebrow mt-10">404</p>
-        <h1 className="mt-4 text-[var(--text-step-2)]">This room does not exist</h1>
+        <h1 className="mt-4 text-title">This room does not exist</h1>
         <p className="mt-5 text-[var(--ink-soft)]">
           The page you were looking for is not here. The showroom is, and so is the whole
           collection.

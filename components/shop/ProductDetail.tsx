@@ -101,8 +101,8 @@ export function ProductDetail({
       {/* ── the details ── */}
       <div>
         <p className="nn-eyebrow">{product.colour}</p>
-        <h1 className="mt-3 text-[var(--text-step-2)]">{product.name}</h1>
-        <p className="nn-tabular mt-5 text-[var(--text-step-1)]">
+        <h1 className="mt-3 text-title">{product.name}</h1>
+        <p className="nn-tabular mt-5 text-lead">
           {formatMinor(variant?.priceMinor ?? product.priceMinor, product.currency)}
         </p>
         <p className="mt-5 max-w-[46ch] text-[var(--ink-soft)]">{product.description}</p>
@@ -136,7 +136,7 @@ export function ProductDetail({
           </Link>
         </div>
 
-        <dl className="mt-11 flex flex-col divide-y border-t text-[var(--text-step--1)]">
+        <dl className="mt-11 flex flex-col divide-y border-t text-fine">
           {[
             { term: "Fabric", detail: product.fabric },
             { term: "How it fits", detail: product.fitNotes },

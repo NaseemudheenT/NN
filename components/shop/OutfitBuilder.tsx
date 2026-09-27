@@ -63,7 +63,7 @@ export function OutfitBuilder({
                     <GarmentArt product={s} className="w-full" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate text-[var(--text-step--1)]">{s.name}</span>
+                    <span className="block truncate text-fine">{s.name}</span>
                     <span className="block text-[0.72rem] text-[var(--ink-faint)]">{s.colour}</span>
                   </span>
                 </button>
@@ -87,13 +87,13 @@ export function OutfitBuilder({
                 className="w-[88%] transition-transform duration-700 ease-[var(--ease-showroom)] group-hover:scale-[1.03]"
               />
             </div>
-            <p className="mt-4 text-[var(--text-step--1)]">
+            <p className="mt-4 text-fine">
               With {t.name.replace("The ", "").toLowerCase()} in {t.colour}
             </p>
             {t.bestFor ? (
               <p className="mt-1 text-[0.72rem] text-[var(--ink-faint)]">{t.bestFor}</p>
             ) : null}
-            <p className="nn-tabular mt-2 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <p className="nn-tabular mt-2 text-fine text-[var(--ink-soft)]">
               {formatMinor(shirt.priceMinor + t.priceMinor, t.currency)} together
             </p>
             <div className="mt-3 flex flex-wrap gap-3">

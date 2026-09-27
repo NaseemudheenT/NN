@@ -259,7 +259,7 @@ export function StylistChat({
               <p className="nn-eyebrow mb-2">NN stylist</p>
             ) : null}
             <p
-              className="m-0 whitespace-pre-wrap px-4 py-3 text-[var(--text-step--1)]"
+              className="m-0 whitespace-pre-wrap px-4 py-3 text-fine"
               style={{
                 background: m.role === "user" ? "var(--btn-bg)" : "var(--bg)",
                 color: m.role === "user" ? "var(--btn-ink)" : "var(--ink)",
@@ -289,7 +289,7 @@ export function StylistChat({
                         <GarmentArt product={p} className="w-full" />
                       </span>
                       <span className="text-left">
-                        <span className="block text-[var(--text-step--1)] text-[var(--ink)]">
+                        <span className="block text-fine text-[var(--ink)]">
                           {p.name}
                         </span>
                         <span className="block text-[0.72rem] text-[var(--ink-faint)]">

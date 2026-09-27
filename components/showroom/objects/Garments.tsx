@@ -20,7 +20,7 @@ import type { Product } from "@/lib/catalog/types";
 import { MATERIALS } from "../materials";
 import { OptionalModel } from "../OptionalModel";
 import { garmentModel } from "../assets";
-import { buildMonogramGeometry } from "@/components/brand/monogramGeometry";
+import { MonogramMesh } from "@/components/brand/MonogramMesh";
 import { Hanger } from "./Fixtures";
 
 /* ── cloth ─────────────────────────────────────────────────────── */
@@ -66,9 +66,10 @@ export function BackNeckLabel({
   position?: [number, number, number];
   width?: number;
 }) {
-  const monogram = useMemo(
-    () => buildMonogramGeometry({ heightMeters: width * 0.34, depth: 0.0004, bevel: 0 }),
-    [width],
+  const thread = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({ color: "#c9a43a", roughness: 0.44, metalness: 0.7 }),
+    [],
   );
 
   return (
@@ -86,13 +87,9 @@ export function BackNeckLabel({
         />
       </mesh>
       {/* the monogram, woven in gold thread */}
-      <mesh geometry={monogram} position={[0, width * 0.04, 0.0008]}>
-        <meshPhysicalMaterial
-          color="#c9a43a"
-          roughness={0.44}
-          metalness={0.7}
-        />
-      </mesh>
+      <group position={[0, width * 0.04, 0.0008]}>
+        <MonogramMesh height={width * 0.3} depth={0.0004} bevel={0} material={thread} />
+      </group>
       {/* the stitch line across the top */}
       <mesh position={[0, width * 0.24, 0.0004]}>
         <planeGeometry args={[width * 0.94, 0.0012]} />

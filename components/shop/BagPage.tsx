@@ -42,7 +42,7 @@ export function BagPage({ products }: { products: Product[] }) {
   if (!priced.length) {
     return (
       <div className="nn-wrap py-24 text-center">
-        <h2 className="text-[var(--text-step-2)]">Nothing here yet</h2>
+        <h2 className="text-title">Nothing here yet</h2>
         <p className="mt-4 text-[var(--ink-soft)]">
           Your bag is empty. The collection is eight pieces; start with a shirt.
         </p>
@@ -76,15 +76,15 @@ export function BagPage({ products }: { products: Product[] }) {
                 <div>
                   <Link
                     href={`/product/${l.handle}`}
-                    className="text-[var(--text-step-1)] text-[var(--ink)] no-underline hover:text-[var(--accent)]"
+                    className="text-lead text-[var(--ink)] no-underline hover:text-[var(--accent)]"
                   >
                     {l.product.name}
                   </Link>
-                  <p className="mt-1 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+                  <p className="mt-1 text-fine text-[var(--ink-soft)]">
                     {l.product.colour} · {l.product.type === "shirt" ? "Size" : "Waist"} {l.size}
                   </p>
                 </div>
-                <p className="nn-tabular text-[var(--text-step-1)]">
+                <p className="nn-tabular text-lead">
                   {formatMinor(l.totalMinor, l.product.currency)}
                 </p>
               </div>
@@ -109,7 +109,7 @@ export function BagPage({ products }: { products: Product[] }) {
                     +
                   </button>
                 </div>
-                <span className="nn-tabular text-[var(--text-step--1)] text-[var(--ink-faint)]">
+                <span className="nn-tabular text-fine text-[var(--ink-faint)]">
                   {formatMinor(l.unitMinor, l.product.currency)} each
                 </span>
                 <Link
@@ -136,7 +136,7 @@ export function BagPage({ products }: { products: Product[] }) {
         <Link href="/checkout" className="nn-btn nn-btn--solid mt-6 w-full">
           <span>Checkout</span>
         </Link>
-        <Link href="/collection" className="nn-link mt-5 block text-center text-[var(--text-step--1)]">
+        <Link href="/collection" className="nn-link mt-5 block text-center text-fine">
           Keep looking
         </Link>
       </aside>

@@ -13,7 +13,7 @@ import { ROOM_MODELS } from "../assets";
 import { MATERIALS } from "../materials";
 import { OptionalModel } from "../OptionalModel";
 import { ROOM, Surface } from "./Room";
-import { buildMonogramGeometry } from "@/components/brand/monogramGeometry";
+import { MonogramMesh } from "@/components/brand/MonogramMesh";
 
 /* ── walnut service counter ────────────────────────────────────── */
 
@@ -54,9 +54,16 @@ export function WallSign({
   position?: [number, number, number];
 }) {
   // 0.52 m tall letters, deep enough to catch the light box behind them.
-  const monogram = useMemo(
-    () => buildMonogramGeometry({ heightMeters: 0.52, depth: 0.018, bevel: 0.11 }),
-    [],
+  const brass = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: MATERIALS.brass.colour,
+        roughness: MATERIALS.brass.roughness,
+        metalness: 1,
+        emissive: new THREE.Color("#c9a43a"),
+        emissiveIntensity: intensity * 1.5,
+      }),
+    [intensity],
   );
 
   return (
@@ -75,15 +82,7 @@ export function WallSign({
             />
           </mesh>
           {/* letters, in brass, glowing when the box is lit */}
-          <mesh geometry={monogram} castShadow>
-            <meshPhysicalMaterial
-              color={MATERIALS.brass.colour}
-              roughness={MATERIALS.brass.roughness}
-              metalness={1}
-              emissive="#c9a43a"
-              emissiveIntensity={intensity * 1.5}
-            />
-          </mesh>
+          <MonogramMesh height={0.52} depth={0.02} bevel={0.11} material={brass} castShadow />
           {/* a shallow reveal so the box sits in the wall, not on it */}
           <Surface material="steel" position={[0, 0, -0.045]}>
             <boxGeometry args={[1.62, 0.9, 0.03]} />

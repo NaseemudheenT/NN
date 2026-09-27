@@ -30,13 +30,13 @@ export default async function SuccessPage({
         </div>
 
         <p className="nn-eyebrow mt-10">Payment verified</p>
-        <h1 className="mt-4 text-[var(--text-step-2)]">Thank you.</h1>
+        <h1 className="mt-4 text-title">Thank you.</h1>
         <p className="mt-5 text-[var(--ink-soft)]">
           Your payment has been verified against Razorpay&rsquo;s signature, so this is
           confirmed rather than assumed. We will email your confirmation shortly.
         </p>
 
-        <dl className="mt-10 flex flex-col gap-3 border-t pt-7 text-left text-[var(--text-step--1)]">
+        <dl className="mt-10 flex flex-col gap-3 border-t pt-7 text-left text-fine">
           {order ? (
             <div className="flex justify-between gap-4">
               <dt className="text-[var(--ink-faint)]">Order</dt>
@@ -53,7 +53,7 @@ export default async function SuccessPage({
 
         {note ? (
           <p
-            className="mt-7 border-l-2 pl-4 text-left text-[var(--text-step--1)] text-[var(--ink-soft)]"
+            className="mt-7 border-l-2 pl-4 text-left text-fine text-[var(--ink-soft)]"
             style={{ borderColor: "var(--accent)" }}
           >
             {note}

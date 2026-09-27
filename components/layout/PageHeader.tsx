@@ -22,7 +22,7 @@ export function PageHeader({
       <ShowroomPlateStatic />
       <div className="nn-wrap relative pb-14 pt-32">
         <p className="nn-eyebrow">{eyebrow}</p>
-        <h1 className="mt-3 max-w-[22ch] text-[var(--text-step-2)]">{title}</h1>
+        <h1 className="mt-3 max-w-[22ch] text-title">{title}</h1>
         {lede ? (
           <p className="mt-5 max-w-[52ch] text-[var(--ink-soft)]">{lede}</p>
         ) : null}

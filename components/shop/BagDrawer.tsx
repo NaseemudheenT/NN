@@ -101,16 +101,16 @@ export function BagDrawer({ products }: { products: Product[] }) {
         style={{ animation: "nn-slide-in 480ms var(--ease-showroom) both" }}
       >
         <div className="flex items-baseline justify-between gap-4 border-b p-6">
-          <h2 id="nn-bag-title" className="text-[var(--text-step-1)]">
+          <h2 id="nn-bag-title" className="text-lead">
             Your bag
-            <span className="nn-tabular ml-2 text-[var(--text-step--1)] text-[var(--ink-faint)]">
+            <span className="nn-tabular ml-2 text-fine text-[var(--ink-faint)]">
               {count} {count === 1 ? "item" : "items"}
             </span>
           </h2>
           <button
             type="button"
             onClick={closeBag}
-            className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.16em]"
+            className="nn-link text-eyebrow uppercase tracking-[0.16em]"
           >
             Close
           </button>
@@ -145,11 +145,11 @@ export function BagDrawer({ products }: { products: Product[] }) {
                         >
                           {product.name}
                         </Link>
-                        <p className="mt-0.5 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+                        <p className="mt-0.5 text-fine text-[var(--ink-soft)]">
                           {product.colour} · {product.type === "shirt" ? "Size" : "Waist"} {line.size}
                         </p>
                       </div>
-                      <p className="nn-tabular shrink-0 text-[var(--text-step--1)]">
+                      <p className="nn-tabular shrink-0 text-fine">
                         {formatMinor(totalMinor, product.currency)}
                       </p>
                     </div>
@@ -167,7 +167,7 @@ export function BagDrawer({ products }: { products: Product[] }) {
                         >
                           −
                         </button>
-                        <span className="nn-tabular min-w-[2rem] text-center text-[var(--text-step--1)]">
+                        <span className="nn-tabular min-w-[2rem] text-center text-fine">
                           {line.quantity}
                         </span>
                         <button
@@ -201,7 +201,7 @@ export function BagDrawer({ products }: { products: Product[] }) {
           <div className="border-t p-6">
             <div className="flex items-baseline justify-between">
               <span className="nn-eyebrow">Subtotal</span>
-              <span className="nn-tabular text-[var(--text-step-1)]">
+              <span className="nn-tabular text-lead">
                 {formatMinor(subtotalMinor, currency)}
               </span>
             </div>
@@ -211,7 +211,7 @@ export function BagDrawer({ products }: { products: Product[] }) {
             <Link href="/checkout" onClick={closeBag} className="nn-btn nn-btn--solid mt-5 w-full">
               <span>Checkout</span>
             </Link>
-            <Link href="/bag" onClick={closeBag} className="nn-link mt-4 block text-center text-[var(--text-step--1)]">
+            <Link href="/bag" onClick={closeBag} className="nn-link mt-4 block text-center text-fine">
               See the full bag
             </Link>
           </div>

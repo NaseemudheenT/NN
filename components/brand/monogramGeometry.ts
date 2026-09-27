@@ -8,7 +8,7 @@
  */
 
 import * as THREE from "three";
-import { N_HEIGHT, N_INTERLOCK_X, N_OUTLINE } from "./monogram";
+import { N_HEIGHT, N_INTERLOCK_X, N_OUTLINE, N_WIDTH } from "./monogram";
 
 export interface MonogramGeometryOptions {
   /** Finished height of the letterform, in metres. */
@@ -21,7 +21,15 @@ export interface MonogramGeometryOptions {
   center?: boolean;
 }
 
-export function buildMonogramGeometry({
+/**
+ * A single extruded N.
+ *
+ * One letter per geometry, deliberately. The two Ns of the monogram overlap,
+ * and handing overlapping shapes to a single ExtrudeGeometry makes the
+ * triangulator fold the shared region into a mess. Two meshes at slightly
+ * different depths give a clean interlock and cost nothing.
+ */
+export function buildLetterGeometry({
   heightMeters,
   depth = heightMeters * 0.06,
   bevel = 0.12,
@@ -29,21 +37,18 @@ export function buildMonogramGeometry({
 }: MonogramGeometryOptions): THREE.ExtrudeGeometry {
   const scale = heightMeters / N_HEIGHT;
 
-  const shapes = [0, N_INTERLOCK_X].map((offsetX) => {
-    const shape = new THREE.Shape();
-    N_OUTLINE.forEach(([x, y], i) => {
-      const px = (x + offsetX) * scale;
-      // The outline is authored y-down, the way SVG is; flip it for world space.
-      const py = (N_HEIGHT - y) * scale;
-      if (i === 0) shape.moveTo(px, py);
-      else shape.lineTo(px, py);
-    });
-    shape.closePath();
-    return shape;
+  const shape = new THREE.Shape();
+  N_OUTLINE.forEach(([x, y], i) => {
+    const px = x * scale;
+    // The outline is authored y-down, the way SVG is; flip it for world space.
+    const py = (N_HEIGHT - y) * scale;
+    if (i === 0) shape.moveTo(px, py);
+    else shape.lineTo(px, py);
   });
+  shape.closePath();
 
   const bevelSize = depth * bevel;
-  const geometry = new THREE.ExtrudeGeometry(shapes, {
+  const geometry = new THREE.ExtrudeGeometry(shape, {
     depth,
     bevelEnabled: bevel > 0,
     bevelThickness: bevelSize,
@@ -52,11 +57,23 @@ export function buildMonogramGeometry({
     curveSegments: 4,
   });
 
-  if (center) geometry.center();
+  if (center) {
+    // Centre on the PAIR, not on this letter, so two meshes built from this
+    // geometry sit symmetrically about the origin.
+    geometry.translate(
+      -((N_INTERLOCK_X + N_WIDTH) / 2) * scale,
+      -(N_HEIGHT / 2) * scale,
+      -depth / 2,
+    );
+  }
   geometry.computeVertexNormals();
   return geometry;
 }
 
+/** Horizontal gap between the two letters, in metres, for a given height. */
+export const letterOffsetFor = (heightMeters: number) =>
+  (N_INTERLOCK_X / N_HEIGHT) * heightMeters;
+
 /** Width of the monogram for a given height, so callers can lay it out. */
 export const monogramWidthFor = (heightMeters: number) =>
-  ((N_INTERLOCK_X + 84) / N_HEIGHT) * heightMeters;
+  ((N_INTERLOCK_X + N_WIDTH) / N_HEIGHT) * heightMeters;

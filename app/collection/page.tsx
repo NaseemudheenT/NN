@@ -43,7 +43,7 @@ export default async function CollectionPage() {
         >
           <div className="grid gap-8 md:grid-cols-[1.3fr_1fr] md:items-center">
             <div>
-              <h2 className="text-[var(--text-step-2)]">Not sure of your size?</h2>
+              <h2 className="text-title">Not sure of your size?</h2>
               <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
                 The trial room scales a body to your measurements and works out how much room
                 each size leaves you at the chest, the waist and the hip. It tells you what it

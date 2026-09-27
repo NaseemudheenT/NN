@@ -13,12 +13,11 @@
  * Dragging turns the whole thing.
  */
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { ProceduralEnvironment } from "@/components/showroom/ProceduralEnvironment";
 import * as THREE from "three";
-import { buildMonogramGeometry, monogramWidthFor } from "./monogramGeometry";
-import { N_HEIGHT, N_INTERLOCK_X } from "./monogram";
+import { buildLetterGeometry, letterOffsetFor, monogramWidthFor } from "./monogramGeometry";
 
 const LETTER_HEIGHT = 1.0;
 
@@ -28,20 +27,12 @@ function Monogram({ separation, spin }: { separation: number; spin: number }) {
   const spotlight = useRef<THREE.SpotLight>(null);
   const target = useMemo(() => new THREE.Object3D(), []);
 
-  /* A single N, and the pair placed from the same geometry. */
   const single = useMemo(
-    () =>
-      buildMonogramGeometry({
-        heightMeters: LETTER_HEIGHT,
-        depth: 0.18,
-        bevel: 0.16,
-        center: false,
-      }),
+    () => buildLetterGeometry({ heightMeters: LETTER_HEIGHT, depth: 0.18, bevel: 0.16 }),
     [],
   );
 
-  const letterScale = LETTER_HEIGHT / N_HEIGHT;
-  const offset = N_INTERLOCK_X * letterScale;
+  const offset = letterOffsetFor(LETTER_HEIGHT);
   const pairWidth = monogramWidthFor(LETTER_HEIGHT);
 
   const ringGeometry = useMemo(
@@ -111,17 +102,16 @@ function Monogram({ separation, spin }: { separation: number; spin: number }) {
         decay={1.4}
       />
 
-      {/* the pair, centred on the group */}
-      <group position={[-pairWidth / 2 + 0.06, -LETTER_HEIGHT / 2, 0]}>
-        {/* the N behind, which the front one interlocks with */}
+      {/* the pair. The geometry is already centred on the pair, so the two
+          meshes only need their own offsets and the hover separation. */}
+      <group>
         <mesh
           geometry={single}
           material={gold}
           position={[offset + separation, 0, -0.06]}
           castShadow
         />
-        {/* the N in front */}
-        <mesh geometry={single} material={goldBright} position={[-separation, 0, 0.02]} castShadow />
+        <mesh geometry={single} material={goldBright} position={[-separation, 0, 0.05]} castShadow />
       </group>
 
       {/* the thin ring */}
@@ -178,7 +168,18 @@ export default function LiveLogoScene({ reducedMotion }: { reducedMotion: boolea
       <ambientLight intensity={0.35} />
       <directionalLight position={[3, 4, 5]} intensity={2.2} color="#fff6e2" />
       <directionalLight position={[-4, -1, -3]} intensity={0.9} color="#8aa0c0" />
-      <Environment preset="studio" background={false} environmentIntensity={0.7} />
+      {/* Suspense matters here: without it, anything that loads inside the
+          canvas takes the whole logo down rather than just delaying it. */}
+      <Suspense fallback={null}>
+        <ProceduralEnvironment
+          keyColour="#fff4e0"
+          fillColour="#c8d8ea"
+          daylight={1}
+          lampColour="#ffd9a0"
+          lampLevel={0.5}
+          intensity={0.85}
+        />
+      </Suspense>
 
       <Monogram separation={separation} spin={spin} />
     </Canvas>

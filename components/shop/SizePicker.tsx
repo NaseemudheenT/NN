@@ -40,7 +40,7 @@ export function SizePicker({
               aria-checked={selected}
               disabled={!v.available}
               onClick={() => onChange(v.size)}
-              className="relative min-w-[3rem] border px-3 py-2.5 text-[var(--text-step--1)] transition-[background-color,color,border-color] duration-500 disabled:cursor-not-allowed disabled:opacity-35 disabled:line-through"
+              className="relative min-w-[3rem] border px-3 py-2.5 text-fine transition-[background-color,color,border-color] duration-500 disabled:cursor-not-allowed disabled:opacity-35 disabled:line-through"
               style={{
                 borderColor: selected
                   ? "var(--btn-bg)"
@@ -65,7 +65,7 @@ export function SizePicker({
         })}
       </div>
       {recommended ? (
-        <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-faint)]">
+        <p className="mt-3 text-fine text-[var(--ink-faint)]">
           The trial room put you in a {recommended}.
         </p>
       ) : null}

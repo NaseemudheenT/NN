@@ -277,7 +277,7 @@ export function Checkout({
   if (!priced.length && status === "idle") {
     return (
       <div className="nn-wrap py-24 text-center">
-        <h2 className="text-[var(--text-step-2)]">Your bag is empty</h2>
+        <h2 className="text-title">Your bag is empty</h2>
         <p className="mt-4 text-[var(--ink-soft)]">There is nothing to check out just now.</p>
         <Link href="/collection" className="nn-btn mt-8">
           <span>See Collection 001</span>
@@ -298,7 +298,7 @@ export function Checkout({
         noValidate
       >
         <fieldset className="border-0 p-0" disabled={busy}>
-          <h2 className="text-[var(--text-step-1)]">Where it is going</h2>
+          <h2 className="text-lead">Where it is going</h2>
 
           <div className="mt-6 grid gap-5">
             <Field
@@ -387,7 +387,7 @@ export function Checkout({
 
           {delivery ? (
             <p
-              className="mt-6 border-l-2 pl-4 text-[var(--text-step--1)] text-[var(--ink-soft)]"
+              className="mt-6 border-l-2 pl-4 text-fine text-[var(--ink-soft)]"
               style={{ borderColor: "var(--accent)" }}
             >
               {delivery.text} An estimate, not a promise — we would rather be honest than early.
@@ -395,15 +395,15 @@ export function Checkout({
           ) : null}
 
           <div className="mt-10">
-            <h2 className="text-[var(--text-step-1)]">Payment</h2>
-            <p className="mt-3 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+            <h2 className="text-lead">Payment</h2>
+            <p className="mt-3 text-fine text-[var(--ink-soft)]">
               UPI, cards and netbanking, through Razorpay. Your card details are entered in
               Razorpay&rsquo;s own window and never reach us.
             </p>
 
             {!razorpayLive ? (
               <p
-                className="mt-5 border p-4 text-[var(--text-step--1)] text-[var(--ink-soft)]"
+                className="mt-5 border p-4 text-fine text-[var(--ink-soft)]"
                 style={{ borderColor: "var(--accent)" }}
               >
                 Payments are not connected yet. Set{" "}
@@ -430,7 +430,7 @@ export function Checkout({
 
             {message ? (
               <p
-                className="mt-5 text-[var(--text-step--1)]"
+                className="mt-5 text-fine"
                 role="alert"
                 style={{
                   color: status === "failed" ? "var(--color-nn-burgundy)" : "var(--ink-soft)",

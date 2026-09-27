@@ -127,7 +127,7 @@ export function LogoMark({
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`font-[family-name:var(--font-display)] uppercase tracking-[0.34em] ${className}`}
+      className={`font-[family-name:var(--font-display)] uppercase tracking-[0.3em] ${className}`}
     >
       Nero Noren
     </span>

@@ -64,7 +64,19 @@ function longitudeFromTimezone(): number {
   return Math.max(-180, Math.min(180, offsetHours * 15));
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({
+  children,
+  /**
+   * A phase the owner has pinned for everyone from the console, for a campaign.
+   * Null — the normal state — means every visitor sees their own hour. A
+   * visitor's explicit light/dark choice still wins over it, because the theme
+   * switch must never look broken.
+   */
+  housePhase = null,
+}: {
+  children: React.ReactNode;
+  housePhase?: DayPhase | null;
+}) {
   const [mode, setModeState] = useState<ThemeMode>("auto");
   const [now, setNow] = useState<Date>(() => new Date());
   const [override, setOverride] = useState<DayPhase | null>(null);
@@ -119,10 +131,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
   }, [hydrated]);
 
-  /* the clock we light the room by: real, or the forced phase's representative time */
+  /* The clock we light the room by. A ?phase= test override wins over the
+     owner's pinned phase, which in turn wins over the visitor's real clock. */
+  const forced = override ?? housePhase;
   const effectiveDate = useMemo(
-    () => (override ? clockForPhase(override, now) : now),
-    [override, now],
+    () => (forced ? clockForPhase(forced, now) : now),
+    [forced, now],
   );
 
   const autoPhase = useMemo(() => phaseFromDate(effectiveDate), [effectiveDate]);

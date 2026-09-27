@@ -17,9 +17,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Environment } from "@react-three/drei";
+import { ProceduralEnvironment } from "./ProceduralEnvironment";
 import type { SkyState } from "@/lib/daytime";
 import { BLEND_MS, rigFromSky, type LightingRig } from "./lightingRig";
-import { HDRI, HDRI_FALLBACK_PRESET, hasHdri, loadManifest } from "./assets";
+import { HDRI, hasHdri, loadManifest } from "./assets";
 import { ROOM } from "./objects/Room";
 
 interface LightingProps {
@@ -151,21 +152,30 @@ export function Lighting({ sky, quality, onRig }: LightingProps) {
       {/* a low fill so a dark corner is dark, not empty */}
       <ambientLight ref={fill} intensity={target.ambientIntensity * 0.4} color={target.ambientColour} />
 
-      {/* Photographed light when an .hdr has been supplied, a built-in preset
-          otherwise. The room is lit correctly either way; the HDRI is what
-          makes the brass and the mirror look like brass and a mirror. */}
-      {quality === "low" ? null : (
+      {/* Photographed light when an .hdr has been supplied, and a built
+          environment otherwise. The room is lit correctly either way; the
+          environment is what makes the brass and the mirror read as brass and
+          a mirror rather than as coloured plastic. */}
+      {quality === "low" ? null : hdriFile ? (
         <Environment
-          key={`${sky.phase}-${hdriFile ?? "preset"}`}
-          {...(hdriFile
-            ? { files: hdriFile }
-            : { preset: HDRI_FALLBACK_PRESET[sky.phase] })}
+          key={hdriFile}
+          files={hdriFile}
           background={false}
           environmentIntensity={0.35 + 0.55 * sky.beam}
+        />
+      ) : (
+        <ProceduralEnvironment
+          key={sky.phase}
+          keyColour={target.windowColour}
+          fillColour={target.ambientColour}
+          daylight={sky.beam}
+          lampColour={target.lampColour}
+          lampLevel={sky.lampLevel}
+          intensity={0.35 + 0.55 * sky.beam}
+          resolution={quality === "high" ? 128 : 64}
         />
       )}
     </>
   );
 }
 
-export { HDRI_FALLBACK_PRESET };

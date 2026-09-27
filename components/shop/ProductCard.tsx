@@ -65,12 +65,12 @@ export function ProductCard({ product }: { product: Product }) {
 
       <div className="flex items-start justify-between gap-4 pt-4">
         <div>
-          <h3 className="text-[var(--text-step-1)]">{product.name}</h3>
-          <p className="mt-0.5 text-[var(--text-step--1)] tracking-[0.06em] text-[var(--ink-soft)]">
+          <h3 className="text-lead">{product.name}</h3>
+          <p className="mt-0.5 text-fine tracking-[0.06em] text-[var(--ink-soft)]">
             {product.colour}
           </p>
         </div>
-        <p className="nn-tabular shrink-0 text-[var(--text-step--1)] text-[var(--ink-soft)]">
+        <p className="nn-tabular shrink-0 text-fine text-[var(--ink-soft)]">
           {formatMinor(product.priceMinor, product.currency)}
         </p>
       </div>

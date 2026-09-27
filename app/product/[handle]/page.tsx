@@ -82,7 +82,7 @@ export default async function ProductPage({
       />
 
       <div className="nn-wrap pt-28">
-        <nav aria-label="Breadcrumb" className="mb-8 text-[var(--text-step--1)]">
+        <nav aria-label="Breadcrumb" className="mb-8 text-fine">
           <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-[var(--ink-faint)]">
             <li>
               <Link href="/" className="nn-link">
@@ -107,7 +107,7 @@ export default async function ProductPage({
 
       {/* the size chart, straight from the tech pack */}
       <section className="nn-wrap py-20">
-        <h2 className="text-[var(--text-step-2)]">Measurements</h2>
+        <h2 className="text-title">Measurements</h2>
         <p className="mt-4 max-w-[54ch] text-[var(--ink-soft)]">
           {product.type === "shirt"
             ? "The body measurements each size is cut to fit, and the finished measurements of the garment itself. The difference between them is the room you have."
@@ -115,7 +115,7 @@ export default async function ProductPage({
         </p>
 
         <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-[34rem] border-collapse text-[var(--text-step--1)]">
+          <table className="w-full min-w-[34rem] border-collapse text-fine">
             <caption className="sr-only">
               Size chart for {product.title}, in centimetres and inches
             </caption>
@@ -184,7 +184,7 @@ export default async function ProductPage({
       {/* what it is worn with */}
       {pairsWith.length ? (
         <section className="nn-wrap border-t py-20">
-          <h2 className="text-[var(--text-step-2)]">Wear it with</h2>
+          <h2 className="text-title">Wear it with</h2>
           <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
             Everything in Collection 001 is cut to sit alongside everything else. These are the
             pieces from the other half of the wardrobe.

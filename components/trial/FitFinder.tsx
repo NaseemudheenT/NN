@@ -142,7 +142,7 @@ export function FitFinder({ products }: { products: Product[] }) {
                   aria-checked={on}
                   title={p.hint}
                   onClick={() => setPreference(p.value)}
-                  className="border px-4 py-2.5 text-[var(--text-step--1)] transition-colors duration-500"
+                  className="border px-4 py-2.5 text-fine transition-colors duration-500"
                   style={{
                     borderColor: on ? "var(--btn-bg)" : "var(--line)",
                     background: on ? "var(--btn-bg)" : "transparent",
@@ -160,7 +160,7 @@ export function FitFinder({ products }: { products: Product[] }) {
           <button type="submit" className="nn-btn">
             <span>Find my size</span>
           </button>
-          <Link href="/trial-room" className="nn-link text-[var(--text-step--1)]">
+          <Link href="/trial-room" className="nn-link text-fine">
             Or take it into the trial room
           </Link>
         </div>
@@ -168,7 +168,7 @@ export function FitFinder({ products }: { products: Product[] }) {
         {submitted && errors.length ? (
           <ul className="m-0 list-none p-0" role="alert">
             {errors.map((e) => (
-              <li key={e} className="text-[var(--text-step--1)]" style={{ color: "var(--accent)" }}>
+              <li key={e} className="text-fine" style={{ color: "var(--accent)" }}>
                 {e}
               </li>
             ))}
@@ -207,7 +207,7 @@ export function FitFinder({ products }: { products: Product[] }) {
               </div>
             </div>
 
-            <dl className="mt-7 flex flex-col gap-2 border-t pt-5 text-[var(--text-step--1)]">
+            <dl className="mt-7 flex flex-col gap-2 border-t pt-5 text-fine">
               <div className="flex justify-between gap-4">
                 <dt className="text-[var(--ink-faint)]">Chest, estimated</dt>
                 <dd className="nn-tabular">
@@ -227,8 +227,8 @@ export function FitFinder({ products }: { products: Product[] }) {
             <div className="mt-6 flex flex-col gap-3 border-t pt-5">
               {result.shirt.chosen.areas.slice(0, 3).map((a) => (
                 <div key={a.area} className="flex items-baseline justify-between gap-4">
-                  <span className="text-[var(--text-step--1)] text-[var(--ink-faint)]">{a.label}</span>
-                  <span className="text-[var(--text-step--1)]">
+                  <span className="text-fine text-[var(--ink-faint)]">{a.label}</span>
+                  <span className="text-fine">
                     <span style={{ color: "var(--accent)" }}>{a.verdict}</span>{" "}
                     <span className="nn-tabular text-[var(--ink-faint)]">
                       ({a.easeCm > 0 ? "+" : ""}

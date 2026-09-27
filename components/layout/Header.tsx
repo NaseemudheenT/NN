@@ -58,16 +58,16 @@ export function Header() {
           aria-label="Nero Noren, home"
         >
           <LogoMark size={30} title={null} />
-          <Wordmark className="hidden text-[0.95rem] sm:inline nn-shimmer" />
+          <Wordmark className="hidden whitespace-nowrap text-[0.9rem] sm:inline nn-shimmer" />
         </Link>
 
-        <nav aria-label="Main" className="hidden md:block">
-          <ul className="flex list-none items-center gap-8 p-0">
+        <nav aria-label="Main" className="hidden lg:block">
+          <ul className="flex list-none items-center gap-7 p-0">
             {LINKS.map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.14em]"
+                  className="nn-link text-eyebrow uppercase tracking-[0.14em]"
                   data-active={isActive(l.href)}
                   aria-current={isActive(l.href) ? "page" : undefined}
                 >
@@ -79,11 +79,11 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeSwitch className="hidden sm:inline-flex" />
+          <ThemeSwitch className="hidden md:inline-flex" />
           <button
             type="button"
             onClick={openBag}
-            className="nn-link text-[var(--text-eyebrow)] uppercase tracking-[0.14em] px-2"
+            className="nn-link text-eyebrow uppercase tracking-[0.14em] px-2"
             aria-label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}
           >
             Bag
@@ -91,7 +91,7 @@ export function Header() {
           </button>
           <button
             type="button"
-            className="md:hidden nn-link px-2 text-[var(--text-eyebrow)] uppercase tracking-[0.14em]"
+            className="lg:hidden nn-link px-2 text-eyebrow uppercase tracking-[0.14em]"
             aria-expanded={open}
             aria-controls="nn-mobile-nav"
             onClick={() => setOpen((v) => !v)}
@@ -105,7 +105,7 @@ export function Header() {
       <div
         id="nn-mobile-nav"
         hidden={!open}
-        className="md:hidden border-t"
+        className="lg:hidden border-t"
         style={{ background: "var(--bg)" }}
       >
         <nav aria-label="Main, mobile" className="nn-wrap py-4">
