@@ -1,102 +1,15 @@
-import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Hanken_Grotesk } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { BagProvider } from "@/components/shop/BagProvider";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { ConsentBanner } from "@/components/layout/ConsentBanner";
-import { Toaster } from "@/components/layout/Toaster";
-import { BagMount } from "@/components/shop/BagMount";
-import { StylistMount } from "@/components/stylist/StylistMount";
-import { LogoReveal } from "@/components/brand/LogoReveal";
-import { PointerLight } from "@/components/layout/PointerLight";
-import { env, shopifyReady } from "@/lib/env";
-import { readShowroomSettings } from "@/lib/supabase";
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-hanken",
-  display: "swap",
-});
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.siteUrl),
-  title: {
-    default: "Nero Noren — the art of dressing well",
-    template: "%s — Nero Noren",
-  },
-  description:
-    "European-inspired menswear, cut for Indian life. Eight considered pieces that work together, season after season. Walk the Nero Noren showroom in 3D.",
-  applicationName: "Nero Noren",
-  keywords: [
-    "Nero Noren",
-    "menswear",
-    "Oxford shirt",
-    "tailored trousers",
-    "Indian menswear",
-    "Collection 001",
-  ],
-  authors: [{ name: "Nero Noren Private Limited" }],
-  openGraph: {
-    type: "website",
-    siteName: "Nero Noren",
-    title: "Nero Noren — the art of dressing well",
-    description:
-      "European-inspired menswear, cut for Indian life. Walk the showroom in 3D, find your fit, and buy.",
-    locale: "en_IN",
-  },
-  twitter: { card: "summary_large_image" },
-  robots: { index: true, follow: true },
-  alternates: { canonical: "/" },
+  title: "Nero Noren",
+  description: "Nero Noren Private Limited.",
+  robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#efe9dd",
-  colorScheme: "light dark",
-};
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Whether the shop is live is a server fact; the bag needs to know it to
-  // decide between a Shopify cart and a device-only bag.
-  const shopLive = shopifyReady();
-  // The owner can pin a time of day for everyone from the console.
-  const { settings } = await readShowroomSettings();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" data-theme="light" suppressHydrationWarning>
-      <body className={`${cormorant.variable} ${hanken.variable} antialiased`}>
-        <ThemeProvider housePhase={settings.forcedPhase}>
-          <BagProvider shopLive={shopLive}>
-            {/* the brand opening, once per session */}
-            <LogoReveal />
-            {/* one pointer listener, feeding every glass surface */}
-            <PointerLight />
-
-            <a className="nn-skip" href="#main">
-              Skip to content
-            </a>
-            <Header />
-            <main id="main">{children}</main>
-            <Footer />
-            <BagMount />
-            <StylistMount />
-            <ConsentBanner />
-            <Toaster />
-          </BagProvider>
-        </ThemeProvider>
-      </body>
+    <html lang="en-IN">
+      <body>{children}</body>
     </html>
   );
 }
