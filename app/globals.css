@@ -855,3 +855,158 @@
   }
   .nn-segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
+
+/* ─── the page transition ────────────────────────────────────────────
+   Transform only. Deliberately.
+
+   Both requestAnimationFrame and the CSS animation timeline are frozen
+   in a hidden tab — measured, not assumed. So any entrance that starts
+   at opacity 0 leaves the page *blank* until the tab is looked at, and
+   permanently blank if it never is. Content must never be hidden by an
+   animation that might not run.
+
+   Animating the transform alone gives the same lift, and the worst
+   case when it is frozen is fourteen pixels of offset that nobody can
+   see, on a page that is fully readable.                          */
+@layer utilities {
+  .nn-page-enter {
+    animation: nn-page-enter 460ms var(--ease-showroom) both;
+    will-change: transform;
+  }
+  @keyframes nn-page-enter {
+    from { transform: translate3d(0, 16px, 0); }
+    to   { transform: none; }
+  }
+}
+
+/* ─── the brand opening ──────────────────────────────────────────────
+   The whole sequence in keyframes, for the same reason: it must
+   complete, and its removal must never depend on an animation that
+   might not run.                                                  */
+@layer components {
+  .nn-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    background: #000000;
+    opacity: 1;
+    transition: opacity 700ms var(--ease-showroom);
+  }
+  .nn-intro[data-leaving="true"] { opacity: 0; }
+
+  /* a single lamp above, so the gold has something to catch */
+  .nn-intro__lamp {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      60% 45% at 50% 38%,
+      rgb(201 164 58 / 0.18),
+      transparent 70%
+    );
+    animation: nn-intro-lamp 5.4s var(--ease-showroom) both;
+  }
+  @keyframes nn-intro-lamp {
+    0%   { opacity: 0.9; }
+    22%  { opacity: 1; }
+    30%  { opacity: 0.22; }
+    44%  { opacity: 1; }
+    100% { opacity: 1; }
+  }
+
+  .nn-intro__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-inline: 1.5rem;
+  }
+
+  /* the monogram: in, held, then gone */
+  .nn-intro__mark {
+    position: absolute;
+    animation: nn-intro-mark 2.1s var(--ease-showroom) both;
+  }
+  @keyframes nn-intro-mark {
+    0%   { opacity: 0; transform: scale(0.86); filter: blur(10px); }
+    48%  { opacity: 1; transform: scale(1);    filter: blur(0); }
+    67%  { opacity: 1; transform: scale(1);    filter: blur(0); }
+    100% { opacity: 0; transform: scale(1.08); filter: blur(8px); }
+  }
+
+  .nn-intro__words {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    color: #efe9dd;
+  }
+
+  .nn-intro__word {
+    display: flex;
+    font-size: clamp(2.4rem, 11vw, 5.5rem);
+    line-height: 1.02;
+    letter-spacing: 0.16em;
+  }
+
+  /* the N that each word opens out of */
+  .nn-intro__n {
+    display: inline-block;
+    color: #c9a43a;
+    opacity: 0;
+    animation: nn-intro-n 600ms var(--ease-showroom) both;
+  }
+  @keyframes nn-intro-n {
+    from { opacity: 0; transform: scale(1.5); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* the letters trailing out of it */
+  .nn-intro__letter {
+    display: inline-block;
+    opacity: 0;
+    animation: nn-intro-letter 500ms var(--ease-showroom) both;
+  }
+  @keyframes nn-intro-letter {
+    from { opacity: 0; transform: translateX(-18px); filter: blur(6px); }
+    to   { opacity: 1; transform: none; filter: blur(0); }
+  }
+
+  .nn-intro__rule {
+    display: block;
+    height: 1px;
+    width: 0;
+    margin-top: 1.5rem;
+    background: #c9a43a;
+    animation: nn-intro-rule 800ms var(--ease-showroom) 4.6s both;
+  }
+  @keyframes nn-intro-rule {
+    from { width: 0; }
+    to   { width: min(20rem, 70vw); }
+  }
+
+  .nn-intro__tagline {
+    margin-top: 1.25rem;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.42em;
+    color: #b8ae9c;
+    opacity: 0;
+    animation: nn-intro-tagline 700ms var(--ease-showroom) 4.85s both;
+  }
+  @keyframes nn-intro-tagline {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
+/* The opening never plays under reduced motion, but if a stylesheet
+   ordering change ever let it, this stops it dead rather than
+   flashing a black screen. */
+@media (prefers-reduced-motion: reduce) {
+  .nn-intro { display: none; }
+  .nn-page-enter { animation: none; opacity: 1; transform: none; }
+}

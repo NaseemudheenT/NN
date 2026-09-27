@@ -161,7 +161,7 @@ export function Lighting({ sky, quality, onRig }: LightingProps) {
           key={hdriFile}
           files={hdriFile}
           background={false}
-          environmentIntensity={0.35 + 0.55 * sky.beam}
+          environmentIntensity={0.55 + 0.7 * sky.beam}
         />
       ) : (
         <ProceduralEnvironment
@@ -171,7 +171,7 @@ export function Lighting({ sky, quality, onRig }: LightingProps) {
           daylight={sky.beam}
           lampColour={target.lampColour}
           lampLevel={sky.lampLevel}
-          intensity={0.35 + 0.55 * sky.beam}
+          intensity={0.55 + 0.7 * sky.beam}
           resolution={quality === "high" ? 128 : 64}
         />
       )}

@@ -202,7 +202,7 @@ function ArchedWindow({
       </group>
 
       {/* stone sill */}
-      <Surface material="travertine" position={[0, -0.06, 0.12]} receiveShadow>
+      <Surface material="marbleBorder" position={[0, -0.06, 0.12]} receiveShadow>
         <boxGeometry args={[WINDOW.width + 0.35, 0.1, 0.34]} />
       </Surface>
     </group>
@@ -228,10 +228,37 @@ export function Room({
       path={ROOM_MODELS.shell}
       placeholder={
         <group>
-          {/* floor */}
-          <Surface material="travertine" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          {/* the floor: Nero Marquina, honed. Its low roughness is what makes
+              the brass appear twice — once on the wall and once underfoot. */}
+          <Surface material="marble" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[ROOM.width, ROOM.depth]} />
           </Surface>
+
+          {/* a brass band inlaid a metre in from the walls, the way a stone
+              floor in a European house is framed rather than simply laid */}
+          {[
+            { p: [0, 0.002, -ROOM.halfD + 1] as [number, number, number], a: [ROOM.width - 2, 0.03] as [number, number] },
+            { p: [0, 0.002, ROOM.halfD - 1] as [number, number, number], a: [ROOM.width - 2, 0.03] as [number, number] },
+          ].map((band, i) => (
+            <mesh key={`bx${i}`} position={band.p} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={band.a} />
+              <meshPhysicalMaterial
+                color={MATERIALS.brass.colour}
+                roughness={MATERIALS.brass.roughness}
+                metalness={1}
+              />
+            </mesh>
+          ))}
+          {[-ROOM.halfW + 1, ROOM.halfW - 1].map((x) => (
+            <mesh key={`bz${x}`} position={[x, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[0.03, ROOM.depth - 2]} />
+              <meshPhysicalMaterial
+                color={MATERIALS.brass.colour}
+                roughness={MATERIALS.brass.roughness}
+                metalness={1}
+              />
+            </mesh>
+          ))}
 
           {/* ceiling */}
           <Surface
@@ -319,14 +346,19 @@ export function Room({
             }
           />
 
-          {/* skirting, a small thing that makes a room read as built */}
+          {/* skirting and cornice. Two hairlines of brass at the floor and the
+              ceiling are what stop a dark room reading as an empty void: they
+              give the eye the edges of the architecture. */}
           {[
-            { p: [0, 0.06, ROOM.halfD - 0.02] as [number, number, number], a: [ROOM.width, 0.12, 0.03] as [number, number, number] },
-            { p: [-ROOM.halfW + 0.02, 0.06, 0] as [number, number, number], a: [0.03, 0.12, ROOM.depth] as [number, number, number] },
-            { p: [ROOM.halfW - 0.02, 0.06, 0] as [number, number, number], a: [0.03, 0.12, ROOM.depth] as [number, number, number] },
-          ].map((s, i) => (
-            <Surface key={i} material="oak" position={s.p}>
-              <boxGeometry args={s.a} />
+            { p: [0, 0.07, ROOM.halfD - 0.02] as [number, number, number], a: [ROOM.width, 0.14, 0.035] as [number, number, number] },
+            { p: [-ROOM.halfW + 0.02, 0.07, 0] as [number, number, number], a: [0.035, 0.14, ROOM.depth] as [number, number, number] },
+            { p: [ROOM.halfW - 0.02, 0.07, 0] as [number, number, number], a: [0.035, 0.14, ROOM.depth] as [number, number, number] },
+            { p: [0, ROOM.height - 0.08, ROOM.halfD - 0.02] as [number, number, number], a: [ROOM.width, 0.1, 0.05] as [number, number, number] },
+            { p: [-ROOM.halfW + 0.02, ROOM.height - 0.08, 0] as [number, number, number], a: [0.05, 0.1, ROOM.depth] as [number, number, number] },
+            { p: [ROOM.halfW - 0.02, ROOM.height - 0.08, 0] as [number, number, number], a: [0.05, 0.1, ROOM.depth] as [number, number, number] },
+          ].map((band, i) => (
+            <Surface key={i} material="brass" position={band.p}>
+              <boxGeometry args={band.a} />
             </Surface>
           ))}
 

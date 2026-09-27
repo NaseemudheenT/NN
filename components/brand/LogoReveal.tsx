@@ -3,8 +3,8 @@
 /**
  * The NN opening.
  *
- * The brand introduces itself the way a name is spoken: the monogram first,
- * a beat of silence, then each N opening out into the word it stands for.
+ * The brand introduces itself the way a name is spoken: the monogram first, a
+ * beat of silence, then each N opening out into the word it stands for.
  *
  *   0.0s  the interlocked NN draws itself in gold
  *   1.4s  it goes dark — one full second of nothing, which is what gives the
@@ -14,75 +14,95 @@
  *   4.6s  the rule draws, the tagline settles
  *   5.4s  the curtain lifts and the showroom is behind it
  *
- * It plays once per session. A returning customer is not made to watch it
- * again, and anyone who wants past it can press a key or tap. With reduced
- * motion it does not play at all.
+ * Two rules this obeys, because a full-screen overlay that fails is the worst
+ * thing on a storefront:
+ *
+ *  1. The whole sequence is CSS keyframes, not a JavaScript animation.
+ *     requestAnimationFrame does not fire in a hidden tab, so an rAF-driven
+ *     intro would freeze mid-sequence and — worse — its exit could never
+ *     complete, leaving the customer looking at a black screen with no way
+ *     out. CSS animations are composited and finish regardless.
+ *  2. Removal is state, never animation. When the timer says done, the element
+ *     is gone. There is also a hard backstop well past the end, so even if a
+ *     timer is throttled into oblivion the overlay cannot outlive it.
+ *
+ * It plays once per session, only when the tab is actually being looked at,
+ * and not at all under reduced motion. Any key or tap skips it.
  */
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { LogoMark } from "./LogoMark";
 
 const SESSION_KEY = "nn-intro-played";
 
-/** Letters that trail out of each N. */
-const NERO = ["E", "R", "O"];
-const NOREN = ["O", "R", "E", "N"];
-
-const EASE = [0.22, 0.61, 0.36, 1] as const;
+/** Total run time, and the backstop that cannot be outlived. */
+const RUN_MS = 5400;
+const FADE_MS = 700;
+const BACKSTOP_MS = RUN_MS + FADE_MS + 3000;
 
 export function LogoReveal() {
-  const reducedMotion = useReducedMotion();
   const [playing, setPlaying] = useState(false);
-  /** 0 monogram · 1 dark · 2 NERO · 3 NOREN · 4 settle */
-  const [beat, setBeat] = useState(0);
+  const [leaving, setLeaving] = useState(false);
 
   const finish = useCallback(() => {
-    setPlaying(false);
+    setLeaving(true);
     try {
       window.sessionStorage.setItem(SESSION_KEY, "1");
     } catch {
-      /* the intro simply plays again next time */
+      /* it simply plays again next session */
     }
     document.documentElement.style.removeProperty("overflow");
   }, []);
 
   /* decide whether to play at all */
   useEffect(() => {
-    if (reducedMotion) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // ?intro=1 forces it, for review. Same idea as ?phase=night.
+    const forced = new URLSearchParams(window.location.search).get("intro") === "1";
+
+    // Don't spend the one-per-session opening on a tab nobody is looking at.
+    if (!forced && document.visibilityState !== "visible") return;
+
     let seen = false;
     try {
       seen = window.sessionStorage.getItem(SESSION_KEY) === "1";
     } catch {
       /* no storage: play it */
     }
-    if (seen) return;
+    if (seen && !forced) return;
 
     setPlaying(true);
-    // Hold the page still underneath, so the showroom is not scrolled past
-    // while the curtain is down.
+    // Hold the page still underneath while the curtain is down.
     document.documentElement.style.overflow = "hidden";
-  }, [reducedMotion]);
+  }, []);
 
-  /* the beats */
+  /* the end, and the backstop */
   useEffect(() => {
     if (!playing) return;
-    const timers = [
-      setTimeout(() => setBeat(1), 1400), // the monogram goes
-      setTimeout(() => setBeat(2), 2400), // NERO
-      setTimeout(() => setBeat(3), 3500), // NOREN
-      setTimeout(() => setBeat(4), 4600), // settle
-      setTimeout(finish, 5400),
-    ];
-    return () => timers.forEach(clearTimeout);
+    const done = setTimeout(finish, RUN_MS);
+    const gone = setTimeout(() => setPlaying(false), RUN_MS + FADE_MS);
+    // If either of the above is throttled away, this still clears the screen.
+    const backstop = setTimeout(() => {
+      setPlaying(false);
+      document.documentElement.style.removeProperty("overflow");
+    }, BACKSTOP_MS);
+    return () => {
+      clearTimeout(done);
+      clearTimeout(gone);
+      clearTimeout(backstop);
+    };
   }, [playing, finish]);
 
   /* any key or tap gets you past it */
   useEffect(() => {
     if (!playing) return;
-    const skip = () => finish();
-    window.addEventListener("keydown", skip);
-    window.addEventListener("pointerdown", skip);
+    const skip = () => {
+      finish();
+      setTimeout(() => setPlaying(false), FADE_MS);
+    };
+    window.addEventListener("keydown", skip, { once: true });
+    window.addEventListener("pointerdown", skip, { once: true });
     return () => {
       window.removeEventListener("keydown", skip);
       window.removeEventListener("pointerdown", skip);
@@ -97,116 +117,60 @@ export function LogoReveal() {
     [],
   );
 
-  const word = (letters: string[], visible: boolean, delayBase: number) =>
-    letters.map((letter, i) => (
-      <motion.span
-        key={letter + i}
-        initial={{ opacity: 0, x: -18, filter: "blur(6px)" }}
-        animate={
-          visible
-            ? { opacity: 1, x: 0, filter: "blur(0px)" }
-            : { opacity: 0, x: -18, filter: "blur(6px)" }
-        }
-        transition={{ duration: 0.5, ease: EASE, delay: visible ? delayBase + i * 0.075 : 0 }}
-        className="inline-block"
-      >
-        {letter}
-      </motion.span>
-    ));
+  if (!playing) return null;
 
   return (
-    <AnimatePresence>
-      {playing ? (
-        <motion.div
-          key="nn-intro"
-          className="fixed inset-0 z-[200] grid place-items-center"
-          style={{ background: "#000000" }}
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.7, ease: EASE } }}
-          aria-hidden="true"
-        >
-          {/* a single lamp above, so the gold has something to catch */}
-          <motion.div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(60% 45% at 50% 38%, rgba(201,164,58,0.16), transparent 70%)",
-            }}
-            animate={{ opacity: beat === 1 ? 0.25 : 1 }}
-            transition={{ duration: 0.8, ease: EASE }}
-          />
+    <div
+      className="nn-intro"
+      data-leaving={leaving ? "true" : "false"}
+      aria-hidden="true"
+      // Never able to swallow a tap, even if something above goes wrong.
+      style={{ pointerEvents: leaving ? "none" : "auto" }}
+    >
+      <div className="nn-intro__lamp" />
 
-          <div className="relative flex flex-col items-center px-6">
-            {/* ── the monogram ── */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.86, filter: "blur(10px)" }}
-              animate={
-                beat === 0
-                  ? { opacity: 1, scale: 1, filter: "blur(0px)" }
-                  : { opacity: 0, scale: 1.08, filter: "blur(8px)" }
-              }
-              transition={{ duration: beat === 0 ? 1.0 : 0.55, ease: EASE }}
-              className="absolute"
-            >
-              <LogoMark size={128} shimmer={false} title={null} />
-            </motion.div>
+      <div className="nn-intro__stage">
+        {/* the monogram, then its absence */}
+        <div className="nn-intro__mark">
+          <LogoMark size={128} shimmer={false} title={null} />
+        </div>
 
-            {/* ── the two words ── */}
-            <motion.div
-              className="flex flex-col items-center gap-1 font-[family-name:var(--font-display)] uppercase"
-              style={{ color: "#efe9dd" }}
-              animate={{ opacity: beat >= 2 ? 1 : 0 }}
-              transition={{ duration: 0.4, ease: EASE }}
-            >
-              {/* NERO */}
-              <span className="flex text-[clamp(2.4rem,11vw,5.5rem)] leading-[1.02] tracking-[0.16em]">
-                <motion.span
-                  initial={{ opacity: 0, scale: 1.5 }}
-                  animate={beat >= 2 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.5 }}
-                  transition={{ duration: 0.6, ease: EASE }}
-                  className="inline-block"
-                  style={{ color: "#c9a43a" }}
-                >
-                  N
-                </motion.span>
-                {word(NERO, beat >= 2, 0.28)}
-              </span>
-
-              {/* NOREN */}
-              <span className="flex text-[clamp(2.4rem,11vw,5.5rem)] leading-[1.02] tracking-[0.16em]">
-                <motion.span
-                  initial={{ opacity: 0, scale: 1.5 }}
-                  animate={beat >= 3 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.5 }}
-                  transition={{ duration: 0.6, ease: EASE }}
-                  className="inline-block"
-                  style={{ color: "#c9a43a" }}
-                >
-                  N
-                </motion.span>
-                {word(NOREN, beat >= 3, 0.28)}
-              </span>
-
-              {/* the rule, then the tagline */}
-              <motion.span
-                className="mt-6 block h-px"
-                style={{ background: "#c9a43a" }}
-                initial={{ width: 0 }}
-                animate={{ width: beat >= 4 ? "min(20rem, 70vw)" : 0 }}
-                transition={{ duration: 0.8, ease: EASE }}
-              />
-              <motion.span
-                className="mt-5 font-[family-name:var(--font-ui)] text-[0.7rem] tracking-[0.42em]"
-                style={{ color: "#b8ae9c" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: beat >= 4 ? 1 : 0 }}
-                transition={{ duration: 0.7, ease: EASE, delay: 0.25 }}
+        {/* the two words */}
+        <div className="nn-intro__words">
+          <span className="nn-intro__word">
+            <span className="nn-intro__n" style={{ animationDelay: "2.40s" }}>
+              N
+            </span>
+            {["E", "R", "O"].map((letter, i) => (
+              <span
+                key={letter}
+                className="nn-intro__letter"
+                style={{ animationDelay: `${2.68 + i * 0.075}s` }}
               >
-                THE ART OF DRESSING WELL
-              </motion.span>
-            </motion.div>
-          </div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+                {letter}
+              </span>
+            ))}
+          </span>
+
+          <span className="nn-intro__word">
+            <span className="nn-intro__n" style={{ animationDelay: "3.50s" }}>
+              N
+            </span>
+            {["O", "R", "E", "N"].map((letter, i) => (
+              <span
+                key={letter + i}
+                className="nn-intro__letter"
+                style={{ animationDelay: `${3.78 + i * 0.075}s` }}
+              >
+                {letter}
+              </span>
+            ))}
+          </span>
+
+          <span className="nn-intro__rule" />
+          <span className="nn-intro__tagline">THE ART OF DRESSING WELL</span>
+        </div>
+      </div>
+    </div>
   );
 }

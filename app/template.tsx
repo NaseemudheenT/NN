@@ -1,32 +1,20 @@
-"use client";
-
 /**
  * Page transitions.
  *
- * `template.tsx` re-mounts on every navigation, which is exactly what a
- * transition needs — a layout would not. Each page rises a little and settles,
- * the way a card is laid on a counter rather than snapping into place.
+ * `template.tsx` re-mounts on every navigation, which is what a transition
+ * needs — a layout would not.
  *
- * It is deliberately quick: 420ms in, nothing on the way out. A long exit
- * animation makes a fast site feel slow, because the customer is already
- * waiting for what they asked for. With reduced motion there is no movement at
- * all, only the content.
+ * Done in CSS rather than with a motion library, for a reason that is not
+ * stylistic. A JavaScript animation runs on requestAnimationFrame, and rAF
+ * does not fire at all in a hidden tab. A wrapper that starts at opacity 0 and
+ * animates to 1 therefore leaves the page *permanently blank* for anyone who
+ * opens NN in a background tab and comes back to it later. A CSS animation is
+ * handed to the compositor, runs without rAF, and finishes whether or not
+ * anyone was watching.
+ *
+ * It is also a server component now, so the transition costs no JavaScript.
  */
 
-import { motion, useReducedMotion } from "framer-motion";
-
 export default function Template({ children }: { children: React.ReactNode }) {
-  const reducedMotion = useReducedMotion();
-
-  if (reducedMotion) return <>{children}</>;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 0.61, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className="nn-page-enter">{children}</div>;
 }

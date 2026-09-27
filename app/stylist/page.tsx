@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { loadCatalogue } from "@/lib/catalog";
 import { StylistChat } from "@/components/stylist/StylistChat";
+import { StylistHero } from "@/components/stylist/StylistHero";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { anthropicReady } from "@/lib/env";
 
@@ -22,6 +23,10 @@ export default async function StylistPage() {
         title="Your NN stylist"
         lede="Ask about an occasion, a pairing, a fabric or a size. The stylist only knows Collection 001, so it will never send you after something we do not make."
       />
+
+      <section className="nn-wrap pt-12">
+        <StylistHero />
+      </section>
 
       <section className="nn-wrap py-16">
         <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,18rem)]">

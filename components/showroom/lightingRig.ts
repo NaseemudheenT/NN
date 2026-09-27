@@ -82,12 +82,14 @@ export function rigFromSky(sky: SkyState): LightingRig {
   return {
     sunPosition: [dx * SUN_DISTANCE, height * SUN_DISTANCE, dz * SUN_DISTANCE],
     sunColour,
-    sunIntensity: 3.4 * sky.beam * c.sunGain,
+    sunIntensity: 4.1 * sky.beam * c.sunGain,
     ambientColour: windowColour,
-    ambientIntensity: (0.22 + 0.5 * sky.beam) * c.ambientGain,
+    // Lifted for the black marble and charcoal plaster: dark surfaces return
+    // almost nothing, so the fill has to do the work the walls used to.
+    ambientIntensity: (0.42 + 0.72 * sky.beam) * c.ambientGain,
     windowColour,
     windowIntensity: (0.35 + 2.4 * sky.beam) * c.windowGain,
-    lampIntensity: sky.lampLevel * 2.6,
+    lampIntensity: sky.lampLevel * 3.4,
     lampColour,
     signIntensity: c.signGain * (0.4 + sky.lampLevel),
     exposure: sky.exposure,

@@ -26,45 +26,73 @@ export interface MaterialSpec {
 }
 
 export const MATERIALS = {
-  /** Honed travertine: warm, matte, faintly porous. */
-  travertine: { colour: "#cfc6b4", roughness: 0.78, metalness: 0 },
-  /** Warm limestone plaster on the walls. */
-  plaster: { colour: "#d8d1c2", roughness: 0.94, metalness: 0 },
-  plasterNight: { colour: "#2a2823", roughness: 0.94, metalness: 0 },
-  /** Ceiling, a touch cooler than the walls. */
-  ceiling: { colour: "#e2ddd2", roughness: 0.96, metalness: 0 },
-  /** European walnut, oiled. */
-  walnut: { colour: "#4a3526", roughness: 0.42, metalness: 0 },
-  /** White oak, waxed. */
-  oak: { colour: "#a87f52", roughness: 0.52, metalness: 0 },
-  /** Brushed brass — the rails, the hangers, the inlay. */
-  brass: { colour: "#c9a43a", roughness: 0.28, metalness: 1 },
-  /** Polished brass for the small fittings. */
-  brassBright: { colour: "#d9b85a", roughness: 0.14, metalness: 1 },
+  /* ── the floor ──────────────────────────────────────────────────
+     Nero Marquina: black marble with fine white veining, honed to a
+     low sheen rather than a mirror. It is the floor of every serious
+     European house, and it is the reason the brand board reads as a
+     palace rather than a boutique. High reflectivity is what makes it
+     expensive: the gold fittings appear twice, once on the wall and
+     once underfoot.                                                */
+  marble: { colour: "#141416", roughness: 0.14, metalness: 0 },
+  /** The border band, one shade lighter, that frames the entrance. */
+  marbleBorder: { colour: "#1d1d20", roughness: 0.18, metalness: 0 },
+  /** Honed travertine, kept for window sills and thresholds. */
+  travertine: { colour: "#2a2620", roughness: 0.72, metalness: 0 },
+
+  /* ── the walls ──────────────────────────────────────────────────
+     Deep charcoal plaster in daylight, near black at night. Dark
+     walls are what let gold read as gold; against cream it reads as
+     yellow.                                                        */
+  plaster: { colour: "#252423", roughness: 0.92, metalness: 0 },
+  plasterNight: { colour: "#111112", roughness: 0.92, metalness: 0 },
+  /** Coffered ceiling, a touch lighter so the room does not close in. */
+  ceiling: { colour: "#1b1b1d", roughness: 0.95, metalness: 0 },
+
+  /* ── joinery ────────────────────────────────────────────────────
+     Ebonised walnut: the counter, the architraves, the table. Dark,
+     open-grained, oiled rather than lacquered.                     */
+  walnut: { colour: "#231810", roughness: 0.38, metalness: 0 },
+  /** Fumed oak, for the table and the bench. */
+  oak: { colour: "#3a2a1c", roughness: 0.46, metalness: 0 },
+
+  /* ── metal ──────────────────────────────────────────────────────
+     Brushed brass for the rails and hangers, polished for the small
+     fittings and the inlay. NN gold, at two finishes.              */
+  brass: { colour: "#c9a43a", roughness: 0.26, metalness: 1 },
+  brassBright: { colour: "#e0c063", roughness: 0.10, metalness: 1 },
   /** Antique bronze, for the mirror frame. */
-  bronze: { colour: "#6b5431", roughness: 0.38, metalness: 1 },
-  /** Blackened steel window frames. */
-  steel: { colour: "#232326", roughness: 0.42, metalness: 1 },
-  /** Window glazing. */
+  bronze: { colour: "#6b5431", roughness: 0.34, metalness: 1 },
+  /** Blackened steel, for the window frames. */
+  steel: { colour: "#16161a", roughness: 0.38, metalness: 1 },
+
+  /* ── glass ──────────────────────────────────────────────────── */
   glass: {
     colour: "#eef3f6",
-    roughness: 0.04,
+    roughness: 0.03,
     metalness: 0,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.16,
     ior: 1.52,
-    transmission: 0.92,
+    transmission: 0.93,
   },
-  /** Mirror glass. */
-  mirror: { colour: "#f2f3f2", roughness: 0.02, metalness: 1 },
-  /** The matte-black mannequins. */
-  mannequin: { colour: "#141414", roughness: 0.62, metalness: 0 },
-  /** Ivory linen, the fitting-room curtain. */
-  linen: { colour: "#e8e1d2", roughness: 0.88, metalness: 0, sheen: 0.4, sheenColour: "#fffaf0" },
-  /** Cotton shirting — sheen is what makes cloth read as cloth. */
+  mirror: { colour: "#f4f5f4", roughness: 0.015, metalness: 1 },
+
+  /* ── the forms ──────────────────────────────────────────────────
+     Matte black mannequins. Against a black floor they need a lift in
+     roughness to separate, or they disappear into it.               */
+  mannequin: { colour: "#1a1a1c", roughness: 0.68, metalness: 0 },
+
+  /* ── cloth ──────────────────────────────────────────────────────
+     Sheen is what makes fabric read as fabric: real fibres scatter
+     light off their ends at grazing angles, and a material without it
+     reads as painted plastic.                                       */
+  linen: { colour: "#e8e1d2", roughness: 0.88, metalness: 0, sheen: 0.45, sheenColour: "#fffaf0" },
   cotton: { colour: "#f3f2ee", roughness: 0.72, metalness: 0, sheen: 0.55, sheenColour: "#ffffff" },
-  /** Trouser twill, denser and less lustrous. */
   twill: { colour: "#3a3a3d", roughness: 0.82, metalness: 0, sheen: 0.25, sheenColour: "#d8d2c6" },
+  /** Burgundy velvet on the fitting-room bench. */
+  velvet: { colour: "#5c1f24", roughness: 0.94, metalness: 0, sheen: 0.85, sheenColour: "#b06a70" },
+
+  /* ── light sources ──────────────────────────────────────────── */
   /** The backlit NN sign face. */
   signFace: {
     colour: "#efe9dd",
