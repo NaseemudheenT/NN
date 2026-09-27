@@ -109,16 +109,25 @@ export function SettingsUI() {
     toast("Everything NN stored on this device has been deleted.");
   };
 
-  const phaseWord = phase;
   const themeWord = theme === "dark" ? "night" : theme === "evening" ? "evening" : "day";
+
+  /* The sun's elevation is negative at night, and "−68° above the horizon" is
+     not a sentence. Say below, and describe what that actually means. */
+  const elevation = Math.round(sky.solar.elevation);
+  const sunSentence =
+    elevation >= 0
+      ? `Auto follows the clock where you are. It is ${phase} for you now, so the room is lit for ${themeWord}: the sun sits ${elevation}° above your horizon and its light is about ${Math.round(
+          sky.kelvin,
+        )} K. Those are computed from your clock, date and longitude, not chosen from a list.`
+      : `Auto follows the clock where you are. It is ${phase} for you now, so the room is lit for ${themeWord}: the sun is ${Math.abs(
+          elevation,
+        )}° below your horizon, and the light in the room comes from the lamps. All of it is computed from your clock, date and longitude, not chosen from a list.`;
 
   return (
     <div className="nn-settings">
       <Group
         title="Showroom light"
-        footnote={`Auto follows the clock where you are. It is ${phaseWord} for you now, so the room is lit for ${themeWord}: the sun sits ${Math.round(
-          sky.solar.elevation,
-        )}° above your horizon and its light is about ${Math.round(sky.kelvin)} K. Those are computed, not chosen.`}
+        footnote={sunSentence}
       >
         <Row
           icon={ICONS.sun}
