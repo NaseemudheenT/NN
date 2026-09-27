@@ -2,29 +2,31 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { loadCatalogue } from "@/lib/catalog";
 import { readShowroomSettings } from "@/lib/supabase";
-import { Showroom } from "@/components/showroom/Showroom";
+import { env } from "@/lib/env";
+
+import { ShowroomWalk } from "@/components/home/ShowroomWalk";
+import { Section } from "@/components/layout/Section";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { OutfitBuilder } from "@/components/shop/OutfitBuilder";
 import { CatalogueNotice } from "@/components/shop/CatalogueNotice";
 import { StylistTeaser } from "@/components/stylist/StylistTeaser";
 import { FitFinder } from "@/components/trial/FitFinder";
-import { env } from "@/lib/env";
+import { GlassButton } from "@/components/ui/glass/GlassButton";
 
 export const metadata: Metadata = {
-  title: "Nero Noren — the art of dressing well",
+  title: "Nero Noren — timeless style builds character",
   description:
-    "Walk the Nero Noren showroom in 3D. European-inspired menswear, cut for Indian life. Collection 001, The Foundations.",
+    "Walk the Nero Noren showroom. European-inspired menswear for men and boys, cut for Indian life. Collection 001, The Foundations.",
   alternates: { canonical: "/" },
 };
 
-/** Revalidate hourly; Shopify webhooks can purge the "shopify" tag sooner. */
+/** Hourly; a Shopify webhook can purge the "shopify" tag sooner. */
 export const revalidate = 3600;
 
 export default async function HomePage() {
   const [catalogue, { settings }] = await Promise.all([loadCatalogue(), readShowroomSettings()]);
 
-  /* The owner decides what stands where, from the console. A product with no
-     override keeps the placement it came with. */
+  /* The owner decides what stands where, from the console. */
   const arranged = {
     ...catalogue,
     products: catalogue.products.map((p) => {
@@ -35,17 +37,18 @@ export default async function HomePage() {
     }),
   };
 
-  /* A featured piece leads the collection grid. */
+  /* A featured piece leads the grid. */
   const products = settings.featuredHandle
     ? [
         ...arranged.products.filter((p) => p.handle === settings.featuredHandle),
         ...arranged.products.filter((p) => p.handle !== settings.featuredHandle),
       ]
     : arranged.products;
+
   const shirts = products.filter((p) => p.type === "shirt");
   const trousers = products.filter((p) => p.type === "trouser");
 
-  /* Product structured data, so the collection is eligible for rich results. */
+  /* Structured data, generated from the catalogue and never from user input. */
   const itemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -73,109 +76,92 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        // Structured data is generated from the catalogue, never from user input.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
 
-      <Showroom catalogue={arranged} />
+      {/* ═══ the walk through the showroom ═══ */}
+      <ShowroomWalk catalogue={arranged} />
 
       <CatalogueNotice catalogue={arranged} />
 
-      {/* ── the collection ── */}
-      <section id="collection" className="nn-wrap py-24">
-        <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="nn-eyebrow">Ready to wear</p>
-            <h2 className="mt-3 text-title">The Foundations</h2>
-            <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
-              {products.length} pieces, made to be worn together. Start with a shirt and a
-              trouser; everything else in the collection will meet them.
-            </p>
-          </div>
-          <Link href="/collection" className="nn-btn nn-btn--quiet">
-            <span>View all</span>
+      {/* ═══ the collection ═══ */}
+      <Section
+        id="collection"
+        label="Ready to wear"
+        title="The Foundations"
+        lede={`${products.length} pieces, made to be worn together. Start with a shirt and a trouser; everything else in the collection will meet them.`}
+        action={
+          <Link href="/collection">
+            <GlassButton tone="quiet" size="sm">
+              View all
+            </GlassButton>
           </Link>
-        </div>
-
-        <div className="grid gap-x-6 gap-y-12 [grid-template-columns:repeat(auto-fill,minmax(min(248px,100%),1fr))]">
+        }
+      >
+        <div className="nn-grid">
           {products.map((product) => (
             <ProductCard key={product.handle} product={product} />
           ))}
         </div>
-      </section>
+      </Section>
 
-      <hr className="nn-rule nn-wrap" />
-
-      {/* ── one shirt, four ways ── */}
-      <section id="wardrobe" className="nn-wrap py-24">
-        <div className="mb-10">
-          <p className="nn-eyebrow">The wardrobe</p>
-          <h2 className="mt-3 text-title">One shirt, four ways</h2>
-          <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
-            Choose a shirt and see it against every trouser we make. This is the whole point
-            of a foundation collection: nothing in it fights anything else.
-          </p>
-        </div>
+      {/* ═══ the wardrobe ═══ */}
+      <Section
+        id="wardrobe"
+        label="The wardrobe"
+        title="One shirt, four ways"
+        lede="Choose a shirt and see it against every trouser we make. This is the whole point of a foundation collection: nothing in it fights anything else."
+      >
         <OutfitBuilder shirts={shirts} trousers={trousers} />
-      </section>
+      </Section>
 
-      <hr className="nn-rule nn-wrap" />
-
-      {/* ── the stylist ── */}
-      <section id="stylist" className="nn-wrap py-24">
+      {/* ═══ the stylist ═══ */}
+      <Section id="stylist" label="The stylist" title="An in-store stylist, on call">
         <StylistTeaser products={products} />
-      </section>
+      </Section>
 
-      <hr className="nn-rule nn-wrap" />
-
-      {/* ── find your fit ── */}
-      <section id="fit" className="nn-wrap py-24">
-        <div className="mb-10">
-          <p className="nn-eyebrow">Sizing</p>
-          <h2 className="mt-3 text-title">Find your fit</h2>
-          <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
-            Tell us your height, your weight and the waist of the jeans you wear. We work out
-            the rest from the finished measurements of the garment.
-          </p>
-        </div>
+      {/* ═══ the fit ═══ */}
+      <Section
+        id="fit"
+        label="Sizing"
+        title="Find your fit"
+        lede="Tell us your height, your weight and the waist of the jeans you wear. We work out the rest from the finished measurements of the garment — and tell you which numbers we estimated."
+      >
         <FitFinder products={products} />
-      </section>
+      </Section>
 
-      <hr className="nn-rule nn-wrap" />
-
-      {/* ── the house ── */}
-      <section id="story" className="nn-wrap py-24">
-        <p className="nn-eyebrow">The house</p>
-        <h2 className="mt-3 max-w-[28ch] text-title">
-          European in design, honest about origin
-        </h2>
-        <div className="mt-12 grid gap-10 md:grid-cols-3">
-          <div>
-            <h3 className="text-lead">Fabric, fit and finish first</h3>
-            <p className="mt-3 text-fine text-[var(--ink-soft)]">
-              The cloth is chosen before the colour and the pattern is corrected before the
-              range is signed off. A shirt that fits badly in a beautiful fabric is still a
-              shirt that fits badly.
+      {/* ═══ the house ═══ */}
+      <Section
+        id="house"
+        label="The house"
+        title="More than clothing, a lifestyle"
+        lede="European in design, honest about origin. Made for men and boys who would rather own eight good things than forty forgettable ones."
+      >
+        <div className="nn-columns">
+          <article>
+            <h3 className="nn-columns__title">Fabric, fit and finish first</h3>
+            <p className="nn-columns__body">
+              The cloth is chosen before the colour and the pattern is corrected before the range is
+              signed off. A shirt that fits badly in a beautiful fabric is still a shirt that fits
+              badly.
             </p>
-          </div>
-          <div>
-            <h3 className="text-lead">Fair prices, no permanent sale</h3>
-            <p className="mt-3 text-fine text-[var(--ink-soft)]">
-              One price, held. We would rather cut a piece from the range than discount it
-              until it means nothing.
+          </article>
+          <article>
+            <h3 className="nn-columns__title">Fair prices, no permanent sale</h3>
+            <p className="nn-columns__body">
+              One price, held. A house that discounts continuously has told you its first price was
+              not real. We would rather cut a piece from the range than discount it until it means
+              nothing.
             </p>
-          </div>
-          <div>
-            <h3 className="text-lead">Details</h3>
-            <p className="mt-3 text-fine text-[var(--ink-soft)]">
-              A woven label at the back neck, engraved buttons, a pressed crease that holds.
-              Turn a piece around in the showroom and you will find them.
+          </article>
+          <article>
+            <h3 className="nn-columns__title">Crafted for what comes next</h3>
+            <p className="nn-columns__body">
+              A woven label at the back neck, engraved buttons, a pressed crease that holds. Details
+              that cost more to make and are the difference between a garment and a product.
             </p>
-          </div>
+          </article>
         </div>
-      </section>
+      </Section>
     </>
   );
 }

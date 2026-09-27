@@ -818,3 +818,260 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE WALK
+   A tall container with the room stuck to the viewport inside it. The
+   page scrolls exactly as a page does — no scroll hijacking — so the
+   scrollbar, the keyboard, a trackpad and a screen reader all behave.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-walk { position: relative; }
+
+  .nn-walk__viewport {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    /* its own layer: the room repaints, the page above it does not */
+    contain: paint;
+  }
+
+  /* the scrim that keeps type legible whatever the room is doing */
+  .nn-walk__scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        76% 62% at 22% 42%,
+        color-mix(in srgb, var(--surface-void) 74%, transparent) 0%,
+        transparent 68%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-void) 58%, transparent) 0%,
+        transparent 34%,
+        transparent 62%,
+        color-mix(in srgb, var(--surface-void) 72%, transparent) 100%
+      );
+  }
+
+  /* ── the hero lockup ────────────────────────────────────────────
+     Centred and stacked exactly as the board sets it: mark, wordmark,
+     audience, tagline, then the way in.                          */
+  .nn-walk__hero {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 0;
+    padding: 6rem clamp(1.25rem, 5vw, 3rem) 8rem;
+    text-align: center;
+    pointer-events: none;
+  }
+  .nn-walk__hero > * { pointer-events: auto; }
+
+  .nn-walk__mark {
+    width: clamp(5.5rem, 13vw, 9rem);
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgb(0 0 0 / 0.5));
+  }
+
+  .nn-walk__wordmark {
+    margin-top: 1.9rem;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 7.4vw, 4.75rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: var(--tracking-wordmark);
+    text-transform: uppercase;
+    color: var(--ink-primary);
+  }
+
+  .nn-walk__audience {
+    margin-top: 1.15rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: 0.52em;
+    text-transform: uppercase;
+    color: var(--ink-secondary);
+  }
+
+  /* the rule between the lockup and the line, as the board has it */
+  .nn-walk__tagline {
+    position: relative;
+    margin-top: 2.6rem;
+    padding-top: 2.6rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    line-height: 1.9;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-primary);
+  }
+  .nn-walk__tagline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 1.6rem;
+    translate: -50% 0;
+    background: linear-gradient(180deg, transparent, var(--metal-body));
+  }
+
+  .nn-walk__discover {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 2.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--metal-body) 50%, transparent);
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-primary);
+    transition:
+      border-color var(--duration-hover) var(--ease-architect),
+      gap var(--duration-hover) var(--ease-architect);
+  }
+  .nn-walk__discover svg { width: 1.1rem; height: 1.1rem; }
+  .nn-walk__discover:hover { border-color: var(--metal-light); gap: 1.15rem; }
+
+  .nn-walk__escape {
+    position: absolute;
+    left: clamp(1.25rem, 5vw, 3rem);
+    bottom: clamp(1.25rem, 4vw, 2.25rem);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  /* on a phone the dock owns the bottom, so this moves above it */
+  @media (max-width: 767px) {
+    .nn-walk__escape { bottom: 5.25rem; }
+  }
+
+  /* ── the beats ─────────────────────────────────────────────────── */
+  .nn-walk__beat {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    padding: clamp(4rem, 12vh, 9rem) clamp(1.25rem, 5vw, 4.5rem);
+    /* alternating sides, so the walk has somewhere to look */
+    justify-items: start;
+  }
+  .nn-walk__beat:nth-child(odd) { justify-items: end; }
+  /* the first beat sits under the hero lockup, so it starts empty */
+  .nn-walk__beat[data-first="true"] { pointer-events: none; opacity: 0; }
+
+  .nn-walk__plate {
+    display: grid;
+    gap: 1.15rem;
+    width: min(34rem, 100%);
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+  }
+
+  .nn-walk__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    font-weight: 300;
+    line-height: 1.04;
+    letter-spacing: var(--tracking-title);
+    white-space: pre-line;
+    color: var(--ink-primary);
+  }
+
+  .nn-walk__body {
+    max-width: 44ch;
+    color: var(--ink-secondary);
+    font-size: var(--text-fine);
+  }
+
+  .nn-walk__reading {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--edge-hair);
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--metal-body);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-section {
+    position: relative;
+    padding-block: var(--space-bay);
+  }
+  /* a hairline between rooms */
+  .nn-section + .nn-section::before {
+    content: "";
+    position: absolute;
+    inset-inline: clamp(1.25rem, 4.5vw, 4.5rem);
+    top: 0;
+    height: 1px;
+    background: var(--edge-hair);
+  }
+
+  .nn-section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-gap);
+    margin-bottom: var(--space-room);
+  }
+  .nn-section__heading { display: grid; gap: 0.9rem; }
+  .nn-section__title {
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    font-weight: 300;
+    line-height: 1.04;
+    letter-spacing: var(--tracking-title);
+    color: var(--ink-primary);
+  }
+  .nn-section__lede {
+    max-width: 52ch;
+    color: var(--ink-secondary);
+  }
+  .nn-section__action { flex: 0 0 auto; }
+
+  /* the product grid */
+  .nn-grid {
+    display: grid;
+    gap: clamp(1.25rem, 2.6vw, 2.25rem) clamp(1rem, 2vw, 1.75rem);
+    grid-template-columns: repeat(auto-fill, minmax(min(15.5rem, 100%), 1fr));
+  }
+
+  /* three columns of prose */
+  .nn-columns {
+    display: grid;
+    gap: var(--space-room);
+    grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  }
+  .nn-columns__title {
+    font-family: var(--font-display);
+    font-size: var(--text-lead);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink-primary);
+  }
+  .nn-columns__body {
+    margin-top: 0.85rem;
+    color: var(--ink-secondary);
+    font-size: var(--text-fine);
+  }
+}
