@@ -58,6 +58,13 @@ export function CameraRig({
   /** Reused every frame — allocating a vector 60 times a second is pure waste. */
   const lookTarget = useRef(new THREE.Vector3());
 
+  /* The callback is held in a ref rather than listed as a dependency. It
+     usually arrives as an inline arrow, so depending on it would re-run the
+     effect below on every render — killing the entry move each time, and then
+     being blocked by introPlayed for good. */
+  const introDone = useRef(onIntroDone);
+  introDone.current = onIntroDone;
+
   /* the visitor's small look-around, from pointer or device tilt */
   useEffect(() => {
     if (reducedMotion) return;
@@ -81,7 +88,7 @@ export function CameraRig({
         fov: INTRO.to.fov,
       });
       introRunning.current = false;
-      onIntroDone?.();
+      introDone.current?.();
       return;
     }
 
@@ -94,14 +101,18 @@ export function CameraRig({
       ease: "power2.inOut",
       onComplete: () => {
         introRunning.current = false;
-        onIntroDone?.();
+        introDone.current?.();
       },
     });
 
     return () => {
       tween.current?.kill();
+      // Let a genuine remount play the entry again, rather than leaving the
+      // camera parked wherever the killed tween stopped.
+      introPlayed.current = false;
+      introRunning.current = intro;
     };
-  }, [intro, reducedMotion, onIntroDone]);
+  }, [intro, reducedMotion]);
 
   /* moving between viewpoints */
   useEffect(() => {

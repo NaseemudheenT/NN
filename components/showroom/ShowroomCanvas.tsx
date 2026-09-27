@@ -10,7 +10,7 @@
  * the 3D arrives and takes over.
  */
 
-import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { AdaptiveDpr, PerformanceMonitor, Preload } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
@@ -19,7 +19,7 @@ import type { Product } from "@/lib/catalog/types";
 import type { SkyState } from "@/lib/daytime";
 import { Scene } from "./Scene";
 import { CameraRig } from "./CameraRig";
-import { type Viewpoint } from "./viewpoints";
+import { INTRO, type Viewpoint } from "./viewpoints";
 import { rigFromSky } from "./lightingRig";
 
 export type Quality = "low" | "medium" | "high";
@@ -65,6 +65,16 @@ export default function ShowroomCanvas({
     setQuality((q) => (q === "low" ? "medium" : "high"));
   }, []);
 
+  const onIntroDone = useCallback(() => setIntroDone(true), []);
+
+  /* A safety net. The hotspots are how a visitor moves around the room, so they
+     must appear even if the entry move never reports finishing — a dropped
+     frame or a backgrounded tab must not leave someone stuck at the door. */
+  useEffect(() => {
+    const t = setTimeout(() => setIntroDone(true), (INTRO.duration + 1.5) * 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   const showEffects = quality !== "low" && !reducedMotion;
 
   return (
@@ -108,7 +118,7 @@ export default function ShowroomCanvas({
         viewpoint={viewpoint}
         intro={!reducedMotion}
         reducedMotion={reducedMotion}
-        onIntroDone={() => setIntroDone(true)}
+        onIntroDone={onIntroDone}
         lookAmount={selected ? 0.25 : 1}
       />
 

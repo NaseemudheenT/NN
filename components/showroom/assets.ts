@@ -43,6 +43,8 @@ export const ROOM_MODELS = {
   doorway: `${MODEL_ROOT}/fixtures/doorway.glb`,
   /** Brass picture lamps over the rails. */
   lamp: `${MODEL_ROOT}/fixtures/lamp.glb`,
+  /** The concierge behind the counter. */
+  concierge: `${MODEL_ROOT}/fixtures/concierge.glb`,
   /** NN embossed shopping bag, sits on the counter. */
   shoppingBag: `${MODEL_ROOT}/props/shopping-bag.glb`,
   /** Folded box with NN tissue paper. */

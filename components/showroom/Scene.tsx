@@ -26,6 +26,8 @@ import {
   WallSign,
 } from "./objects/Fixtures";
 import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
+import { Concierge } from "./objects/Concierge";
+import { openStylist } from "@/components/stylist/StylistDock";
 import { VIEWPOINTS, type Viewpoint } from "./viewpoints";
 import { rigFromSky } from "./lightingRig";
 
@@ -87,6 +89,8 @@ export function Scene({
 
       {/* ── fixtures ── */}
       <Counter />
+      {/* Someone to ask. Tapping them opens the same stylist as the dock. */}
+      <Concierge onAsk={openStylist} lampIntensity={rig.lampIntensity} />
       <ShoppingBag />
       <WallSign intensity={rig.signIntensity} />
       <Mirror />
@@ -180,7 +184,7 @@ export function Scene({
               <button
                 type="button"
                 onClick={() => onViewpoint(v.id)}
-                className="nn-hotspot"
+                className="nn-hotspot nn-hotspot--viewpoint"
                 aria-label={`Go to the ${v.label.toLowerCase()}. ${v.description}.`}
               >
                 <span className="nn-hotspot__ring" aria-hidden="true" />

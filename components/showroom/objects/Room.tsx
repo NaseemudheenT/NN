@@ -81,16 +81,24 @@ function FloorMonogram({ intensity = 1 }: { intensity?: number }) {
     [],
   );
 
+  // Two things decide whether an inlay in a floor can actually be read.
+  // It has to be far enough from the door that you are not standing on it —
+  // directly inside, it sits under the camera and foreshortens into a
+  // scribble. And it has to be turned across the approach: laid along the way
+  // you walk in, you read it edge-on and it is just a row of strokes. So the
+  // letters are laid flat, then turned a quarter turn to face the entrance.
   return (
-    <group position={[-4.5, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <MonogramMesh height={0.7} depth={0.006} bevel={0.34} material={brass} />
-      <mesh geometry={ring}>
-        <meshPhysicalMaterial
-          color={MATERIALS.brassBright.colour}
-          roughness={MATERIALS.brassBright.roughness}
-          metalness={1}
-        />
-      </mesh>
+    <group position={[-3.3, 0.003, 0]} rotation={[0, Math.PI / 2, 0]}>
+      <group rotation={[-Math.PI / 2, 0, 0]}>
+        <MonogramMesh height={0.7} depth={0.006} bevel={0.34} material={brass} />
+        <mesh geometry={ring}>
+          <meshPhysicalMaterial
+            color={MATERIALS.brassBright.colour}
+            roughness={MATERIALS.brassBright.roughness}
+            metalness={1}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }

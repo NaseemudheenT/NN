@@ -152,7 +152,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 82%, transparent) 0%, color-mix(in srgb, var(--bg) 58%, transparent) 38%, transparent 62%), linear-gradient(to right, color-mix(in srgb, var(--bg) 76%, transparent) 0%, transparent 58%), linear-gradient(to top, color-mix(in srgb, var(--bg) 72%, transparent) 0%, transparent 26%)",
+            "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 86%, transparent) 0%, color-mix(in srgb, var(--bg) 62%, transparent) 46%, transparent 78%), linear-gradient(to right, color-mix(in srgb, var(--bg) 78%, transparent) 0%, transparent 62%), linear-gradient(to top, color-mix(in srgb, var(--bg) 76%, transparent) 0%, transparent 30%)",
         }}
       />
 
@@ -191,13 +191,18 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
           </div>
         </div>
 
-        <div className="nn-wrap pointer-events-auto absolute inset-x-0 bottom-0 pb-5">
+        {/* extra clearance on a phone so the stylist dock does not sit on top
+            of the viewpoint nav */}
+        <div className="nn-wrap pointer-events-auto absolute inset-x-0 bottom-0 pb-20 sm:pb-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
             {enabled && canvasReady ? (
-              <nav aria-label="Showroom viewpoints" className="flex flex-wrap items-center gap-2">
+              <nav
+                aria-label="Showroom viewpoints"
+                className="-mx-1 flex max-w-full items-center gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
                 <button
                   type="button"
-                  className="nn-btn nn-btn--sm nn-btn--quiet"
+                  className="nn-btn nn-btn--sm nn-btn--quiet shrink-0"
                   onClick={() => step(-1)}
                   aria-label="Previous viewpoint"
                 >
@@ -209,7 +214,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
                     type="button"
                     onClick={() => goTo(v.id)}
                     aria-current={v.id === viewpointId ? "true" : undefined}
-                    className="nn-link px-2 text-eyebrow uppercase tracking-[0.16em]"
+                    className="nn-link shrink-0 whitespace-nowrap px-2 text-eyebrow uppercase tracking-[0.16em]"
                     data-active={v.id === viewpointId}
                   >
                     {v.label}
@@ -217,7 +222,7 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
                 ))}
                 <button
                   type="button"
-                  className="nn-btn nn-btn--sm nn-btn--quiet"
+                  className="nn-btn nn-btn--sm nn-btn--quiet shrink-0"
                   onClick={() => step(1)}
                   aria-label="Next viewpoint"
                 >

@@ -465,6 +465,14 @@
     100% { transform: scale(2.1); opacity: 0; }
   }
   .nn-hotspot__label { line-height: 1; }
+
+  /* On a phone the room is only a few hundred pixels across, and pins floating
+     in it land on top of the headline. The bottom bar already lists every
+     viewpoint, so the pins step aside and the concierge — who is the one thing
+     the bar does not offer — stays. */
+  @media (max-width: 639px) {
+    .nn-hotspot--viewpoint { display: none; }
+  }
 }
 
 @layer utilities {

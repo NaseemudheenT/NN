@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { Toaster } from "@/components/layout/Toaster";
 import { BagMount } from "@/components/shop/BagMount";
+import { StylistMount } from "@/components/stylist/StylistMount";
 import { env, shopifyReady } from "@/lib/env";
 import { readShowroomSettings } from "@/lib/supabase";
 
@@ -83,6 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main id="main">{children}</main>
             <Footer />
             <BagMount />
+            <StylistMount />
             <ConsentBanner />
             <Toaster />
           </BagProvider>

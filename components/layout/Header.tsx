@@ -123,7 +123,7 @@ export function Header() {
             ))}
           </ul>
           <div className="mt-4">
-            <ThemeSwitch />
+            <ThemeSwitch className="inline-flex" />
           </div>
         </nav>
       </div>

@@ -27,7 +27,9 @@ export function ThemeSwitch({ className = "" }: { className?: string }) {
 
   return (
     <div
-      className={`inline-flex items-center border border-[var(--line)] ${className}`}
+      /* No display utility of its own: a `hidden` passed in by a caller would
+         otherwise lose to it, and the control would never hide. */
+      className={`items-center border border-[var(--line)] ${className}`}
       role="group"
       aria-label="Showroom light"
     >
