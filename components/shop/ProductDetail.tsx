@@ -1,16 +1,24 @@
 "use client";
 
 /**
- * A single piece, in full.
+ * A single piece, presented.
  *
- * The garment can be turned around here, which is the point at which the woven
- * NN label at the back neck becomes visible — the same detail the showroom shows
- * in 3D. Turning it is a real transform on a real back view, not a crossfade
- * between two pictures.
+ * The garment stands on a lit plinth on the left; its identity, price and
+ * actions sit on the right. That is the layout of a showroom display, and it
+ * is also the layout a customer needs: the thing, then the decision.
+ *
+ * The piece turns. That is not decoration — turning it is how the woven NN
+ * label at the back neck becomes visible, and that label is one of the details
+ * the brand board is built on. A real back view, on a real transform, not a
+ * crossfade between two pictures.
+ *
+ * The product wins over the environment on this page. Whatever the showroom is
+ * doing, the garment is the brightest thing on screen.
  */
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
 import { GarmentArt } from "./GarmentArt";
@@ -18,6 +26,8 @@ import { SizePicker } from "./SizePicker";
 import { useBag } from "./BagProvider";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { track } from "@/components/layout/ConsentBanner";
+import { GlassButton, GlassPill } from "@/components/ui/glass/GlassButton";
+import { SPRING } from "@/lib/motion";
 
 export function ProductDetail({
   product,
@@ -31,66 +41,58 @@ export function ProductDetail({
   const { add, openBag } = useBag();
 
   const variant = product.variants.find((v) => v.size === size);
-  const soldOut = product.variants.every((v) => !v.available);
+  const inStock = product.variants.filter((v) => v.available);
+  const soldOut = inStock.length === 0;
 
   return (
-    <div className="nn-wrap grid gap-14 pb-16 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
-      {/* ── the garment ── */}
-      <div>
-        <div
-          className="nn-plate grid place-items-center p-[10%]"
-          style={{ background: "var(--paper)", perspective: "1200px" }}
-        >
-          <div
-            className="w-full transition-transform duration-[900ms] ease-[var(--ease-showroom)]"
-            style={{
-              transformStyle: "preserve-3d",
-              transform: turned ? "rotateY(180deg)" : "none",
-            }}
+    <div className="nn-product">
+      {/* ═══ the display ═══ */}
+      <div className="nn-product__display">
+        <div className="nn-product__plinth">
+          <span className="nn-product__light" aria-hidden="true" />
+
+          <motion.div
+            className="nn-product__turn"
+            animate={{ rotateY: turned ? 180 : 0 }}
+            transition={SPRING.heavy}
           >
             {/* front */}
-            <div style={{ backfaceVisibility: "hidden" }}>
+            <div className="nn-product__face">
               <GarmentArt product={product} className="w-full" />
             </div>
 
-            {/* back: the plain reverse, with the woven label at the neck */}
-            <div
-              className="absolute inset-0 grid place-items-center"
-              style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-            >
+            {/* back, with the woven label at the neck */}
+            <div className="nn-product__face nn-product__face--back">
               <div className="relative w-full">
                 <GarmentArt
-                  product={{ ...product, style: product.type === "shirt" ? "poplin" : product.style }}
-                  className="w-full opacity-95"
+                  product={{
+                    ...product,
+                    style: product.type === "shirt" ? "poplin" : product.style,
+                  }}
+                  className="w-full"
                 />
-                {/* the back-neck label */}
-                <div
-                  className="absolute left-1/2 top-[7%] flex -translate-x-1/2 items-center gap-1 px-1.5 py-1"
-                  style={{ background: "#efe9dd", border: "1px solid rgba(0,0,0,.18)" }}
-                >
+                <span className="nn-product__tag">
                   <LogoMark size={11} ring={false} shimmer={false} title={null} />
-                  <span
-                    className="text-[0.4rem] uppercase tracking-[0.2em]"
-                    style={{ color: "#9c7a1e" }}
-                  >
-                    Nero Noren
-                  </span>
-                </div>
+                  <span>Nero Noren</span>
+                </span>
               </div>
             </div>
-          </div>
+          </motion.div>
+
+          <span className="nn-product__shadow" aria-hidden="true" />
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-          <button
-            type="button"
+        <div className="nn-product__turnbar">
+          <GlassButton
+            tone="quiet"
+            size="sm"
             onClick={() => setTurned((t) => !t)}
-            className="nn-btn nn-btn--sm nn-btn--quiet"
             aria-pressed={turned}
+            magnetism={3}
           >
-            <span>{turned ? "Show the front" : "Turn it around"}</span>
-          </button>
-          <p className="text-[0.72rem] text-[var(--ink-faint)]">
+            {turned ? "Show the front" : "Turn it around"}
+          </GlassButton>
+          <p className="nn-product__hint">
             {turned
               ? "The woven NN label, stitched across the inside of the back neck."
               : "Turn it to see the back-neck label."}
@@ -98,23 +100,33 @@ export function ProductDetail({
         </div>
       </div>
 
-      {/* ── the details ── */}
-      <div>
-        <p className="nn-eyebrow">{product.colour}</p>
-        <h1 className="mt-3 text-title">{product.name}</h1>
-        <p className="nn-tabular mt-5 text-lead">
-          {formatMinor(variant?.priceMinor ?? product.priceMinor, product.currency)}
-        </p>
-        <p className="mt-5 max-w-[46ch] text-[var(--ink-soft)]">{product.description}</p>
+      {/* ═══ the identity ═══ */}
+      <div className="nn-product__identity">
+        <p className="nn-label nn-label--metal">{product.colour}</p>
+        <h1 className="nn-product__name">{product.name}</h1>
 
-        <div className="mt-9">
+        <div className="nn-product__price">
+          <span className="nn-tabular">
+            {formatMinor(variant?.priceMinor ?? product.priceMinor, product.currency)}
+          </span>
+          {soldOut ? (
+            <GlassPill>Sold out</GlassPill>
+          ) : (
+            <GlassPill>{inStock.length} sizes in stock</GlassPill>
+          )}
+        </div>
+
+        <p className="nn-product__description">{product.description}</p>
+
+        <div className="nn-product__sizes">
           <SizePicker product={product} value={size} onChange={setSize} />
         </div>
 
-        <div className="mt-7 flex flex-col gap-3 sm:max-w-sm">
-          <button
-            type="button"
-            className="nn-btn nn-btn--solid w-full"
+        <div className="nn-product__actions">
+          <GlassButton
+            tone="metal"
+            size="lg"
+            block
             disabled={soldOut || !size}
             onClick={() => {
               if (!size) return;
@@ -126,17 +138,18 @@ export function ProductDetail({
               openBag();
             }}
           >
-            <span>{soldOut ? "Sold out" : size ? "Add to bag" : "Choose a size"}</span>
-          </button>
-          <Link
-            href={`/trial-room?product=${product.handle}`}
-            className="nn-btn nn-btn--quiet w-full"
-          >
-            <span>Try it on</span>
+            {soldOut ? "Sold out" : size ? "Add to bag" : "Choose a size"}
+          </GlassButton>
+
+          <Link href={`/trial-room?product=${product.handle}`} className="block">
+            <GlassButton tone="quiet" size="lg" block>
+              Try it on
+            </GlassButton>
           </Link>
         </div>
 
-        <dl className="mt-11 flex flex-col divide-y border-t text-fine">
+        {/* ═══ the specification ═══ */}
+        <dl className="nn-product__spec">
           {[
             { term: "Fabric", detail: product.fabric },
             { term: "How it fits", detail: product.fitNotes },
@@ -145,32 +158,32 @@ export function ProductDetail({
           ]
             .filter((row) => row.detail)
             .map((row) => (
-              <div key={row.term} className="grid gap-1 py-5 sm:grid-cols-[9rem_1fr] sm:gap-6">
-                <dt className="nn-eyebrow">{row.term}</dt>
-                <dd className="m-0 text-[var(--ink-soft)]">{row.detail}</dd>
+              <div key={row.term} className="nn-product__specrow">
+                <dt className="nn-label">{row.term}</dt>
+                <dd>{row.detail}</dd>
               </div>
             ))}
-          <div className="grid gap-1 py-5 sm:grid-cols-[9rem_1fr] sm:gap-6">
-            <dt className="nn-eyebrow">Details</dt>
-            <dd className="m-0 text-[var(--ink-soft)]">
+
+          <div className="nn-product__specrow">
+            <dt className="nn-label">Details</dt>
+            <dd>
               Woven NN label at the back neck. NN engraved buttons.{" "}
               {product.type === "shirt"
                 ? "Single-needle side seams and a split yoke."
                 : "A pressed crease that holds, and a clean 17 cm hem."}
             </dd>
           </div>
-          <div className="grid gap-1 py-5 sm:grid-cols-[9rem_1fr] sm:gap-6">
-            <dt className="nn-eyebrow">Delivery</dt>
-            <dd className="m-0 text-[var(--ink-soft)]">
-              Delivered across India. Free size exchanges within 7 days.
-            </dd>
+
+          <div className="nn-product__specrow">
+            <dt className="nn-label">Delivery</dt>
+            <dd>Delivered across India. Free size exchanges within 7 days.</dd>
           </div>
         </dl>
 
         {source === "seed" ? (
-          <p className="mt-8 text-[0.72rem] text-[var(--ink-faint)]">
-            This price comes from the Collection 001 reference catalogue. Connect Shopify to
-            serve live prices and stock.
+          <p className="nn-product__note">
+            This price comes from the Collection 001 reference catalogue. Connect Shopify to serve
+            live prices and stock.
           </p>
         ) : null}
       </div>

@@ -1,10 +1,12 @@
-import { ShowroomPlateStatic } from "@/components/showroom/ShowroomPlateStatic";
+import type { ReactNode } from "react";
 
 /**
- * The band at the top of every page below the home page.
+ * The head of every page below the home page.
  *
- * Carries the living showroom light behind it, quietly, so moving between pages
- * feels like moving through one building rather than between documents.
+ * One component, so the label, the title and the lede sit in the same place on
+ * every route and moving between them feels like moving through one building
+ * rather than between documents. The atmosphere behind it is the layout's and
+ * persists across navigation, so this adds nothing of its own.
  */
 export function PageHeader({
   eyebrow,
@@ -15,17 +17,14 @@ export function PageHeader({
   eyebrow: string;
   title: string;
   lede?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden border-b">
-      <ShowroomPlateStatic />
-      <div className="nn-wrap relative pb-14 pt-32">
-        <p className="nn-eyebrow">{eyebrow}</p>
-        <h1 className="mt-3 max-w-[22ch] text-title">{title}</h1>
-        {lede ? (
-          <p className="mt-5 max-w-[52ch] text-[var(--ink-soft)]">{lede}</p>
-        ) : null}
+    <header className="nn-pagehead">
+      <div className="nn-wrap">
+        <p className="nn-label nn-label--metal">{eyebrow}</p>
+        <h1 className="nn-pagehead__title">{title}</h1>
+        {lede ? <p className="nn-pagehead__lede">{lede}</p> : null}
         {children}
       </div>
     </header>

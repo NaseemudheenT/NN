@@ -6,6 +6,8 @@ import { formatMinor } from "@/lib/money";
 import { cmToIn } from "@/lib/fit";
 import { ProductDetail } from "@/components/shop/ProductDetail";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { Section } from "@/components/layout/Section";
+import { GlassButton } from "@/components/ui/glass/GlassButton";
 import { env } from "@/lib/env";
 
 export const revalidate = 3600;
@@ -81,7 +83,7 @@ export default async function ProductPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="nn-wrap pt-28">
+      <div className="nn-wrap" style={{ paddingTop: "clamp(6.5rem, 12vh, 9rem)" }}>
         <nav aria-label="Breadcrumb" className="mb-8 text-fine">
           <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-[var(--ink-faint)]">
             <li>
@@ -103,12 +105,16 @@ export default async function ProductPage({
         </nav>
       </div>
 
-      <ProductDetail product={product} source={source} />
+      <div className="nn-wrap">
+        <ProductDetail product={product} source={source} />
+      </div>
 
       {/* the size chart, straight from the tech pack */}
-      <section className="nn-wrap py-20">
-        <h2 className="text-title">Measurements</h2>
-        <p className="mt-4 max-w-[54ch] text-[var(--ink-soft)]">
+      <Section
+        label="Measurements"
+        title={product.type === "shirt" ? "How it is cut" : "How it is sized"}
+      >
+        <p className="max-w-[54ch] text-[var(--ink-secondary)]">
           {product.type === "shirt"
             ? "The body measurements each size is cut to fit, and the finished measurements of the garment itself. The difference between them is the room you have."
             : "Trousers are sized by the waist of the jeans you already wear. The finished measurements below include the wearing ease at the waistband."}
@@ -172,32 +178,31 @@ export default async function ProductPage({
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href={`/trial-room?product=${product.handle}`} className="nn-btn nn-btn--gold">
-            <span>Try it on</span>
+          <Link href={`/trial-room?product=${product.handle}`}>
+            <GlassButton tone="metal" size="md">Try it on</GlassButton>
           </Link>
-          <Link href="/sizing" className="nn-btn nn-btn--quiet">
-            <span>How we size</span>
+          <Link href="/sizing">
+            <GlassButton tone="quiet" size="md">How we size</GlassButton>
           </Link>
         </div>
-      </section>
+      </Section>
 
       {/* what it is worn with */}
       {pairsWith.length ? (
-        <section className="nn-wrap border-t py-20">
-          <h2 className="text-title">Wear it with</h2>
-          <p className="mt-4 max-w-[48ch] text-[var(--ink-soft)]">
-            Everything in Collection 001 is cut to sit alongside everything else. These are the
-            pieces from the other half of the wardrobe.
-          </p>
-          <div className="mt-10 grid gap-x-6 gap-y-12 [grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))]">
+        <Section
+          label="The wardrobe"
+          title="Wear it with"
+          lede="Everything in Collection 001 is cut to sit alongside everything else. These are the pieces from the other half of the wardrobe."
+        >
+          <div className="nn-grid">
             {pairsWith.map((p) => (
               <ProductCard key={p.handle} product={p} />
             ))}
           </div>
-        </section>
+        </Section>
       ) : null}
 
-      <p className="nn-wrap pb-20 text-[0.72rem] text-[var(--ink-faint)]">
+      <p className="nn-wrap text-[var(--text-micro)] text-[var(--ink-tertiary)]" style={{ paddingBottom: "var(--space-hall)" }}>
         {formatMinor(product.priceMinor, product.currency)} includes GST. Free size exchanges
         within 7 days of delivery.
       </p>

@@ -1487,3 +1487,172 @@
     to   { transform: none; }
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE PRODUCT DISPLAY
+   The garment is the brightest thing on the page. Whatever the
+   showroom is doing behind it, the product wins here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-product {
+    display: grid;
+    gap: var(--space-room);
+    align-items: start;
+    padding-bottom: var(--space-bay);
+  }
+  @media (min-width: 960px) {
+    .nn-product {
+      grid-template-columns: 1.15fr 1fr;
+      gap: clamp(2.5rem, 5vw, 5rem);
+    }
+    /* the display stays with the customer as the specification scrolls */
+    .nn-product__display { position: sticky; top: 6.5rem; }
+  }
+
+  .nn-product__plinth {
+    --mx: 50%;
+    --my: 34%;
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+    padding: 12% 16%;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-raised) 54%, transparent) 0%,
+      var(--surface-raised) 40%,
+      var(--surface-inset) 100%
+    );
+    border: 1px solid var(--edge-hair);
+    overflow: hidden;
+    perspective: 1400px;
+  }
+
+  .nn-product__light {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      56% 44% at var(--mx) var(--my),
+      color-mix(in srgb, var(--light-warm) 18%, transparent),
+      transparent 74%
+    );
+  }
+
+  .nn-product__turn {
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .nn-product__face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .nn-product__face--back {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transform: rotateY(180deg);
+  }
+
+  /* the woven label at the back neck */
+  .nn-product__tag {
+    position: absolute;
+    left: 50%;
+    top: 7%;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    background: var(--color-nn-ivory);
+    border: 1px solid rgb(0 0 0 / 0.2);
+    font-family: var(--font-ui);
+    font-size: 0.4rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--metal-shadow);
+  }
+
+  .nn-product__shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 8%;
+    width: 52%;
+    height: 6%;
+    translate: -50% 0;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.68), transparent 76%);
+    filter: blur(8px);
+  }
+
+  .nn-product__turnbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.1rem;
+  }
+  .nn-product__hint {
+    flex: 1 1 14rem;
+    font-size: var(--text-micro);
+    color: var(--ink-tertiary);
+  }
+
+  /* ── the identity column ── */
+  .nn-product__name {
+    margin-top: 0.7rem;
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: var(--tracking-title);
+    color: var(--ink-primary);
+  }
+  .nn-product__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 1.2rem;
+    font-family: var(--font-display);
+    font-size: var(--text-sub);
+    color: var(--ink-primary);
+  }
+  .nn-product__description {
+    max-width: 46ch;
+    margin-top: 1.3rem;
+    color: var(--ink-secondary);
+  }
+  .nn-product__sizes { margin-top: 2.1rem; }
+  .nn-product__actions {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.8rem;
+    max-width: 24rem;
+  }
+
+  .nn-product__spec {
+    display: grid;
+    margin-top: 2.8rem;
+    border-top: 1px solid var(--edge-hair);
+  }
+  .nn-product__specrow {
+    display: grid;
+    gap: 0.35rem;
+    padding-block: 1.15rem;
+    border-bottom: 1px solid var(--edge-hair);
+    font-size: var(--text-fine);
+  }
+  @media (min-width: 560px) {
+    .nn-product__specrow { grid-template-columns: 9rem 1fr; gap: 1.5rem; }
+  }
+  .nn-product__specrow dd { margin: 0; color: var(--ink-secondary); }
+  .nn-product__note {
+    margin-top: 1.6rem;
+    font-size: var(--text-micro);
+    color: var(--ink-tertiary);
+  }
+}
