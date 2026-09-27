@@ -1479,13 +1479,13 @@
   }
   .nn-nav--hidden { transform: translateY(-100%); }
 
-  .nn-dock {
-    animation: nn-dock-in var(--duration-panel) var(--ease-material) 420ms both;
-  }
-  @keyframes nn-dock-in {
-    from { transform: translate3d(0, 24px, 0); }
-    to   { transform: none; }
-  }
+  /* No entrance animation. The dock is persistent chrome pinned to the
+     bottom edge, and `animation-fill-mode: both` applies the `from` state
+     during the delay — so a frozen timeline left it translated 24px down and
+     partly off the screen, taking the bag with it. Measured at 375px. An
+     entrance on something that is always present buys nothing and risks
+     exactly that. */
+  .nn-dock { transform: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
