@@ -40,3 +40,8 @@ coverage/
 *.blend
 *.blend1
 /public/models/_wip/
+.env*
+
+# Vercel appends `.env*` when it links a project, which would otherwise
+# re-ignore the example file. The negation has to come last to win.
+!.env.example
