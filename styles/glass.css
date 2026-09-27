@@ -1656,3 +1656,148 @@
     color: var(--ink-tertiary);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE OPERATIONS ROOM
+   The founder's console. Dense, quiet, and legible at a glance —
+   this is read at seven in the morning on a phone, so usability
+   outranks everything decorative.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-ops { padding-block: clamp(6.5rem, 12vh, 9rem) var(--space-hall); }
+
+  .nn-ops__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--edge-hair);
+  }
+  .nn-ops__title {
+    margin-top: 0.6rem;
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    font-weight: 300;
+    letter-spacing: var(--tracking-title);
+    color: var(--ink-primary);
+  }
+  .nn-ops__who {
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+  }
+
+  /* what the data cannot say, said first */
+  .nn-ops__gaps {
+    margin-top: var(--space-room);
+    padding: 1.4rem 1.6rem;
+    border-left: 2px solid var(--metal-body);
+    background: color-mix(in srgb, var(--metal-body) 6%, transparent);
+  }
+  .nn-ops__gaps ul { display: grid; gap: 0.6rem; margin: 0.9rem 0 0; padding: 0; list-style: none; }
+  .nn-ops__gaps li {
+    position: relative;
+    padding-left: 1.1rem;
+    font-size: var(--text-fine);
+    color: var(--ink-secondary);
+  }
+  .nn-ops__gaps li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.35rem;
+    height: 1px;
+    background: var(--metal-body);
+  }
+
+  /* the figures */
+  .nn-ops__metrics {
+    display: grid;
+    gap: 1px;
+    margin-top: var(--space-room);
+    grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+    background: var(--edge-hair);
+    border: 1px solid var(--edge-hair);
+  }
+  .nn-ops__metric {
+    padding: 1.35rem 1.4rem;
+    background: var(--surface-base);
+  }
+  .nn-ops__value {
+    margin-top: 0.7rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.4vw, 2.6rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: var(--tracking-title);
+    color: var(--ink-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  /* an unavailable figure must not look like a small one */
+  .nn-ops__value--none {
+    font-size: var(--text-lead);
+    color: var(--ink-tertiary);
+    font-style: italic;
+  }
+  .nn-ops__basis {
+    margin-top: 0.55rem;
+    font-size: var(--text-micro);
+    line-height: 1.5;
+    color: var(--ink-tertiary);
+  }
+
+  /* a bar that carries a number, for at-a-glance comparison */
+  .nn-ops__bar {
+    height: 2px;
+    margin-top: 0.9rem;
+    background: var(--edge-hair);
+    overflow: hidden;
+  }
+  .nn-ops__bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--metal-body), var(--metal-light));
+    transform-origin: left center;
+    transition: transform var(--duration-room) var(--ease-architect);
+  }
+
+  /* the table */
+  .nn-ops__table { width: 100%; min-width: 44rem; border-collapse: collapse; }
+  .nn-ops__table th,
+  .nn-ops__table td {
+    padding: 0.85rem 0.9rem;
+    border-bottom: 1px solid var(--edge-hair);
+    font-size: var(--text-fine);
+    text-align: right;
+  }
+  .nn-ops__table th:first-child,
+  .nn-ops__table td:first-child { text-align: left; }
+  .nn-ops__table thead th {
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+  }
+  .nn-ops__table tbody th { font-weight: 400; color: var(--ink-primary); }
+  .nn-ops__table td { color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+  .nn-ops__none { color: var(--ink-tertiary); }
+
+  /* the command centre */
+  .nn-ops__answer {
+    margin-top: 1.4rem;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    white-space: pre-wrap;
+    font-size: var(--text-fine);
+    line-height: 1.68;
+    color: var(--ink-secondary);
+  }
+  .nn-ops__answer strong { color: var(--ink-primary); }
+}

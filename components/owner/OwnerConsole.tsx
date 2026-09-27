@@ -359,28 +359,24 @@ export function OwnerConsole({
   /* ── signed in ── */
 
   return (
-    <div className="nn-wrap py-16">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-6">
+    <div className="nn-wrap nn-ops">
+      <header className="nn-ops__head">
         <div>
-          <p className="nn-eyebrow">Owner console</p>
-          <h1 className="mt-2 text-title">Nero Noren</h1>
+          <p className="nn-label nn-label--metal">Operations</p>
+          <h1 className="nn-ops__title">Nero Noren</h1>
         </div>
-        <p className="text-fine text-[var(--ink-faint)]">
+        <p className="nn-ops__who">
           {signedInAs} · last {data.windowDays} days
         </p>
-      </div>
+      </header>
 
       {/* what we cannot tell you, said first */}
       {data.gaps.length ? (
-        <section
-          className="mt-8 border p-5"
-          style={{ borderColor: "var(--accent)", background: "var(--surface)" }}
-          aria-label="Data gaps"
-        >
-          <h2 className="nn-eyebrow" style={{ color: "var(--accent)" }}>
+        <section className="nn-ops__gaps" aria-label="Data gaps">
+          <h2 className="nn-label nn-label--metal">
             What this dashboard cannot tell you yet
           </h2>
-          <ul className="mt-3 flex list-none flex-col gap-2 p-0 text-fine text-[var(--ink-soft)]">
+          <ul>
             {data.gaps.map((g) => (
               <li key={g}>{g}</li>
             ))}
@@ -390,27 +386,26 @@ export function OwnerConsole({
 
       {/* the figures */}
       <section className="mt-10" aria-label="Headline figures">
-        <div className="grid gap-px [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]"
-          style={{ background: "var(--line)", border: "1px solid var(--line)" }}
-        >
+        <div className="nn-ops__metrics">
           {data.metrics.map((m) => (
-            <div key={m.label} className="p-6" style={{ background: "var(--bg)" }}>
-              <p className="nn-eyebrow">{m.label}</p>
+            <div key={m.label} className="nn-ops__metric">
+              <p className="nn-label">{m.label}</p>
               {m.value === null ? (
                 <>
-                  <p className="mt-3 font-[family-name:var(--font-display)] text-[1.6rem] leading-none text-[var(--ink-faint)]">
-                    Not available
-                  </p>
-                  <p className="mt-2 text-[0.68rem] text-[var(--ink-faint)]">{m.unavailable}</p>
+                  <p className="nn-ops__value nn-ops__value--none">Not available</p>
+                  <p className="nn-ops__basis">{m.unavailable}</p>
                 </>
               ) : (
                 <>
-                  <p className="nn-tabular mt-3 font-[family-name:var(--font-display)] text-[2.2rem] leading-none">
-                    {render(m)}
-                  </p>
-                  {m.basis ? (
-                    <p className="mt-2 text-[0.68rem] text-[var(--ink-faint)]">{m.basis}</p>
+                  <p className="nn-ops__value">{render(m)}</p>
+                  {/* a rate also gets a bar, because a percentage is easier
+                      to judge against a line than against another number */}
+                  {m.kind === "percent" ? (
+                    <div className="nn-ops__bar" aria-hidden="true">
+                      <span style={{ transform: `scaleX(${Math.min(1, Math.max(0.01, m.value * 4))})` }} />
+                    </div>
                   ) : null}
+                  {m.basis ? <p className="nn-ops__basis">{m.basis}</p> : null}
                 </>
               )}
             </div>
@@ -422,38 +417,38 @@ export function OwnerConsole({
       <section className="mt-14" aria-label="Product performance">
         <h2 className="text-lead">By piece</h2>
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[46rem] border-collapse text-fine">
+          <table className="nn-ops__table">
             <thead>
               <tr>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-left">Piece</th>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-right">Sold</th>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-right">Revenue</th>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-right">Views</th>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-right">Added</th>
-                <th scope="col" className="nn-eyebrow border-b p-3 text-right">Add rate</th>
+                <th scope="col">Piece</th>
+                <th scope="col">Sold</th>
+                <th scope="col">Revenue</th>
+                <th scope="col">Views</th>
+                <th scope="col">Added</th>
+                <th scope="col">Add rate</th>
               </tr>
             </thead>
             <tbody>
               {data.products.map((p) => (
                 <tr key={p.handle}>
-                  <th scope="row" className="border-b p-3 text-left font-normal">
+                  <th scope="row" >
                     {p.title}
                   </th>
-                  <td className="nn-tabular border-b p-3 text-right">
-                    {p.unitsSold ?? <span className="text-[var(--ink-faint)]">—</span>}
+                  <td >
+                    {p.unitsSold ?? <span className="nn-ops__none">—</span>}
                   </td>
-                  <td className="nn-tabular border-b p-3 text-right">
+                  <td >
                     {p.revenueMinor === null ? (
-                      <span className="text-[var(--ink-faint)]">—</span>
+                      <span className="nn-ops__none">—</span>
                     ) : (
                       formatMinor(p.revenueMinor, data.currency)
                     )}
                   </td>
-                  <td className="nn-tabular border-b p-3 text-right">{p.views}</td>
-                  <td className="nn-tabular border-b p-3 text-right">{p.addsToBag}</td>
-                  <td className="nn-tabular border-b p-3 text-right">
+                  <td >{p.views}</td>
+                  <td >{p.addsToBag}</td>
+                  <td >
                     {p.addRate === null ? (
-                      <span className="text-[var(--ink-faint)]" title="Too few views to state a rate">
+                      <span className="nn-ops__none" title="Too few views to state a rate">
                         —
                       </span>
                     ) : (
@@ -635,11 +630,7 @@ export function OwnerConsole({
         </form>
 
         {insight || thinking ? (
-          <div
-            className="mt-6 whitespace-pre-wrap border p-6 text-fine"
-            style={{ background: "var(--surface)", borderColor: "var(--line)" }}
-            aria-live="polite"
-          >
+          <div className="nn-ops__answer glass glass--panel" aria-live="polite">
             {insight || "Reading the dashboard…"}
           </div>
         ) : null}
