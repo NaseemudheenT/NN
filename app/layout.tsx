@@ -9,6 +9,8 @@ import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { Toaster } from "@/components/layout/Toaster";
 import { BagMount } from "@/components/shop/BagMount";
 import { StylistMount } from "@/components/stylist/StylistMount";
+import { LogoReveal } from "@/components/brand/LogoReveal";
+import { PointerLight } from "@/components/layout/PointerLight";
 import { env, shopifyReady } from "@/lib/env";
 import { readShowroomSettings } from "@/lib/supabase";
 
@@ -77,6 +79,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${cormorant.variable} ${hanken.variable} antialiased`}>
         <ThemeProvider housePhase={settings.forcedPhase}>
           <BagProvider shopLive={shopLive}>
+            {/* the brand opening, once per session */}
+            <LogoReveal />
+            {/* one pointer listener, feeding every glass surface */}
+            <PointerLight />
+
             <a className="nn-skip" href="#main">
               Skip to content
             </a>
