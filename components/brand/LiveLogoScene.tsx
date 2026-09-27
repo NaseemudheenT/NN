@@ -1,0 +1,186 @@
+"use client";
+
+/**
+ * The NN monogram as a physical object.
+ *
+ * Two interlocked serif Ns in brushed gold, inside a thin gold ring. The idle
+ * animation is a showroom spotlight travelling across the metal: it is a real
+ * moving light, not an animated gradient, which is why the highlight bends
+ * around the bevels and catches the inside of the ring as it passes.
+ *
+ * On hover or tap the two Ns separate a little and settle back — a spring, so
+ * they overshoot slightly and come to rest, the way two real plates would.
+ * Dragging turns the whole thing.
+ */
+
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
+import * as THREE from "three";
+import { buildMonogramGeometry, monogramWidthFor } from "./monogramGeometry";
+import { N_HEIGHT, N_INTERLOCK_X } from "./monogram";
+
+const LETTER_HEIGHT = 1.0;
+
+function Monogram({ separation, spin }: { separation: number; spin: number }) {
+  const group = useRef<THREE.Group>(null);
+  const ring = useRef<THREE.Mesh>(null);
+  const spotlight = useRef<THREE.SpotLight>(null);
+  const target = useMemo(() => new THREE.Object3D(), []);
+
+  /* A single N, and the pair placed from the same geometry. */
+  const single = useMemo(
+    () =>
+      buildMonogramGeometry({
+        heightMeters: LETTER_HEIGHT,
+        depth: 0.18,
+        bevel: 0.16,
+        center: false,
+      }),
+    [],
+  );
+
+  const letterScale = LETTER_HEIGHT / N_HEIGHT;
+  const offset = N_INTERLOCK_X * letterScale;
+  const pairWidth = monogramWidthFor(LETTER_HEIGHT);
+
+  const ringGeometry = useMemo(
+    () => new THREE.TorusGeometry(pairWidth * 0.62, 0.016, 12, 128),
+    [pairWidth],
+  );
+
+  const gold = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color("#c9a43a"),
+        // Brushed, not polished: a mirror finish on a logo looks like plastic.
+        roughness: 0.26,
+        metalness: 1,
+        clearcoat: 0.25,
+        clearcoatRoughness: 0.4,
+      }),
+    [],
+  );
+
+  const goldBright = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color("#d9b85a"),
+        roughness: 0.14,
+        metalness: 1,
+      }),
+    [],
+  );
+
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
+
+    /* the travelling spotlight: a slow ellipse across the face of the metal */
+    if (spotlight.current) {
+      spotlight.current.position.set(
+        Math.sin(t * 0.34) * 2.6,
+        Math.cos(t * 0.27) * 1.4 + 0.8,
+        2.4,
+      );
+    }
+
+    /* the ring turns, very slowly */
+    if (ring.current) {
+      ring.current.rotation.z += delta * 0.06;
+    }
+
+    /* the drag, eased */
+    if (group.current) {
+      group.current.rotation.y += (spin - group.current.rotation.y) * Math.min(1, delta * 5);
+      // a little life even when nobody is touching it
+      group.current.rotation.x = Math.sin(t * 0.23) * 0.045;
+    }
+  });
+
+  return (
+    <group ref={group}>
+      <primitive object={target} position={[0, 0, 0]} />
+      <spotLight
+        ref={spotlight}
+        target={target}
+        color="#fff3d4"
+        intensity={26}
+        angle={0.7}
+        penumbra={0.9}
+        distance={12}
+        decay={1.4}
+      />
+
+      {/* the pair, centred on the group */}
+      <group position={[-pairWidth / 2 + 0.06, -LETTER_HEIGHT / 2, 0]}>
+        {/* the N behind, which the front one interlocks with */}
+        <mesh
+          geometry={single}
+          material={gold}
+          position={[offset + separation, 0, -0.06]}
+          castShadow
+        />
+        {/* the N in front */}
+        <mesh geometry={single} material={goldBright} position={[-separation, 0, 0.02]} castShadow />
+      </group>
+
+      {/* the thin ring */}
+      <mesh ref={ring} geometry={ringGeometry} material={gold} />
+    </group>
+  );
+}
+
+export default function LiveLogoScene({ reducedMotion }: { reducedMotion: boolean }) {
+  const [separation, setSeparation] = useState(0);
+  const [spin, setSpin] = useState(0);
+  const dragging = useRef<{ x: number; from: number } | null>(null);
+
+  /* hover and tap: the letters part, then settle */
+  const part = useCallback(() => {
+    if (reducedMotion) return;
+    setSeparation(0.09);
+    // Overshoot on the way back, so it settles rather than stopping dead.
+    setTimeout(() => setSeparation(-0.018), 260);
+    setTimeout(() => setSeparation(0), 520);
+  }, [reducedMotion]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragging.current = { x: e.clientX, from: spin };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - dragging.current.x;
+    setSpin(dragging.current.from + dx * 0.012);
+  };
+  const onPointerUp = () => {
+    dragging.current = null;
+  };
+
+  return (
+    <Canvas
+      className="absolute inset-0 cursor-grab active:cursor-grabbing"
+      dpr={[1, 2]}
+      camera={{ fov: 34, position: [0, 0, 5.4] }}
+      gl={{ antialias: true, alpha: true }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.1;
+      }}
+      onPointerEnter={part}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      {/* Enough light to read the metal: a key, a rim, and the environment the
+          brushed finish needs in order to look brushed. */}
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[3, 4, 5]} intensity={2.2} color="#fff6e2" />
+      <directionalLight position={[-4, -1, -3]} intensity={0.9} color="#8aa0c0" />
+      <Environment preset="studio" background={false} environmentIntensity={0.7} />
+
+      <Monogram separation={separation} spin={spin} />
+    </Canvas>
+  );
+}

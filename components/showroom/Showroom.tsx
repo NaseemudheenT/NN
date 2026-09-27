@@ -21,6 +21,7 @@ import { track } from "@/components/layout/ConsentBanner";
 import { DEFAULT_VIEWPOINT, VIEWPOINTS, viewpointById } from "./viewpoints";
 import { ProductPanel } from "./ProductPanel";
 import { ShowroomPlate } from "./ShowroomPlate";
+import { LiveLogo } from "@/components/brand/LiveLogo";
 import type { Quality } from "./ShowroomCanvas";
 
 /** three.js and friends, fetched only once we know we are going to use them. */
@@ -144,7 +145,8 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
 
       {/* ── chrome ── */}
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
-        <div className="nn-wrap pointer-events-auto pt-24">
+        <div className="nn-wrap pointer-events-auto grid items-start gap-10 pt-24 lg:grid-cols-[1fr_auto]">
+          <div>
           <p className="nn-eyebrow">
             {enabled && canvasReady ? viewpoint.label : "Collection 001 — The Foundations"}
           </p>
@@ -164,6 +166,13 @@ export function Showroom({ catalogue }: { catalogue: CatalogueResult }) {
             <Link className="nn-btn nn-btn--quiet" href="/stylist">
               <span>Ask the NN stylist</span>
             </Link>
+          </div>
+          </div>
+
+          {/* the monogram as a physical object — the piece of the prototype
+              everyone reached for first */}
+          <div className="hidden justify-self-end lg:block">
+            <LiveLogo size={300} />
           </div>
         </div>
 
