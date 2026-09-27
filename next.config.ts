@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // No Next.js badge in the corner. This is a storefront, not a demo.
+  devIndicators: false,
   // A stray package-lock.json in the home directory otherwise makes Next pick
   // the wrong tracing root, which bloats the deployment bundle.
   outputFileTracingRoot: import.meta.dirname,

@@ -1,0 +1,12 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "tailwindCSS.experimental.classRegex": [
+    ["className=\\{?[\"'`]([^\"'`]*)[\"'`]", "([a-zA-Z0-9\\-:\\[\\]\\/\\.%_]+)"]
+  ],
+  "files.exclude": { "**/.next": true, "**/node_modules": true },
+  "search.exclude": { "**/.next": true, "**/node_modules": true, "**/package-lock.json": true }
+}

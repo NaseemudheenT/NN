@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "models:manifest": "node scripts/models-manifest.mjs"
+    "models:manifest": "node scripts/models-manifest.mjs",
+    "ai:exam": "npx tsx ai/tests/exam.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
@@ -23,7 +24,8 @@
     "razorpay": "^2.9.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
