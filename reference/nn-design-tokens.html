@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NERO NOREN — design reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── NN design tokens ───────────────────────────────────────────── */
+:root{
+  --nn-black:#000000;  --nn-ivory:#EFE9DD;  --nn-charcoal:#3A3A3D;
+  --nn-stone:#B8AE9C;  --nn-taupe:#8A7B6A;  --nn-olive:#4F5443;
+  --nn-burgundy:#5C1F24; --nn-gold:#C9A43A;
+
+  --display:"Cormorant Garamond",ui-serif,Georgia,serif;
+  --ui:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,sans-serif;
+
+  /* light (ivory) theme — 06:00–16:59 */
+  --bg:var(--nn-ivory); --surface:#F6F2EA; --ink:#1A1A1C;
+  --ink-soft:var(--nn-charcoal); --line:rgba(58,58,61,.16); --accent:var(--nn-gold);
+
+  --step--1:clamp(.78rem,.76rem + .1vw,.85rem);
+  --step-0:clamp(.95rem,.92rem + .15vw,1.05rem);
+  --step-1:clamp(1.3rem,1.2rem + .5vw,1.6rem);
+  --step-2:clamp(1.9rem,1.6rem + 1.4vw,2.9rem);
+  --step-3:clamp(2.7rem,2rem + 3.4vw,5.4rem);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+[data-theme="evening"]{ --bg:#EAE2D4; --surface:#F2EADB; --accent:#D8B551; }
+[data-theme="dark"]{
+  --bg:var(--nn-black); --surface:#0B0B0C; --ink:var(--nn-ivory);
+  --ink-soft:var(--nn-stone); --line:rgba(239,233,221,.14); --accent:var(--nn-gold);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
+  font-size:var(--step-0);line-height:1.6;-webkit-font-smoothing:antialiased;
+  transition:background .8s var(--ease),color .8s var(--ease)}
+h1,h2,h3{font-family:var(--display);font-weight:300;letter-spacing:-.01em;line-height:1.05;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3rem)}
+.eyebrow{font-size:var(--step--1);letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink-soft);font-weight:500}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* ── header ─────────────────────────────────────────────────────── */
+header{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:68px}
+.mark{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:inherit}
+.mark svg{width:34px;height:34px}
+.mark .wordmark{font-family:var(--display);font-size:1.05rem;letter-spacing:.34em;text-transform:uppercase}
+nav ul{display:flex;gap:2rem;list-style:none;margin:0;padding:0}
+nav a{color:var(--ink-soft);text-decoration:none;font-size:var(--step--1);
+  letter-spacing:.1em;text-transform:uppercase;position:relative;padding-block:.4rem}
+nav a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;
+  background:var(--accent);transition:width .45s var(--ease)}
+nav a:hover{color:var(--ink)} nav a:hover::after{width:100%}
+
+/* ── hero: the showroom plate ───────────────────────────────────── */
+.hero{position:relative;min-height:88svh;display:grid;align-items:end;overflow:hidden}
+.hero-canvas{position:absolute;inset:0;
+  background:
+    radial-gradient(120% 80% at 18% 8%, color-mix(in srgb,var(--accent) 16%,transparent), transparent 62%),
+    radial-gradient(90% 70% at 82% 24%, color-mix(in srgb,var(--nn-taupe) 26%,transparent), transparent 66%),
+    linear-gradient(180deg,var(--surface),var(--bg));}
+.hero-canvas::after{ /* arched window light, stands in for the 3D scene */
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 118px,
+    color-mix(in srgb,var(--accent) 7%,transparent) 118px 152px);
+  mask:radial-gradient(80% 95% at 50% 0%,#000 30%,transparent 78%);}
+.hero-inner{position:relative;padding-block:clamp(3rem,8vh,7rem)}
+.hero h1{font-size:var(--step-3);max-width:20ch}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p{max-width:46ch;color:var(--ink-soft);margin:1.4rem 0 2.2rem}
+.cta-row{display:flex;flex-wrap:wrap;gap:.9rem}
+
+/* ── buttons ────────────────────────────────────────────────────── */
+.btn{--pad:1rem 2.1rem;display:inline-flex;align-items:center;gap:.6rem;
+  padding:var(--pad);border:1px solid var(--ink);border-radius:0;background:transparent;
+  color:var(--ink);font:500 var(--step--1)/1 var(--ui);letter-spacing:.14em;
+  text-transform:uppercase;text-decoration:none;cursor:pointer;
+  transition:background .5s var(--ease),color .5s var(--ease),border-color .5s var(--ease),
+             transform .5s var(--ease)}
+.btn:hover{background:var(--ink);color:var(--bg);transform:translateY(-2px)}
+.btn--gold{border-color:var(--accent);color:var(--accent)}
+.btn--gold:hover{background:var(--accent);color:var(--nn-black)}
+.btn--quiet{border-color:var(--line);color:var(--ink-soft)}
+
+/* ── collection grid ────────────────────────────────────────────── */
+section{padding-block:clamp(4rem,10vh,8rem)}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;
+  gap:2rem;margin-bottom:2.6rem;flex-wrap:wrap}
+.sec-head h2{font-size:var(--step-2)}
+.grid{display:grid;gap:clamp(1rem,2.4vw,2rem);
+  grid-template-columns:repeat(auto-fill,minmax(248px,1fr))}
+.card{position:relative;text-decoration:none;color:inherit;isolation:isolate}
+.card .plate{aspect-ratio:3/4;background:var(--surface);border:1px solid var(--line);
+  overflow:hidden;position:relative;transition:transform .7s var(--ease),
+  box-shadow .7s var(--ease),border-color .7s var(--ease)}
+.card .plate::before{ /* garment stand-in: folded cloth gradient */
+  content:"";position:absolute;inset:14%;
+  background:linear-gradient(150deg,var(--sw,var(--nn-stone)),
+    color-mix(in srgb,var(--sw,var(--nn-stone)) 62%,var(--nn-charcoal)));
+  box-shadow:inset 0 0 60px rgba(0,0,0,.22);
+  transition:transform .9s var(--ease)}
+.card:hover .plate{transform:translateY(-6px);border-color:var(--accent);
+  box-shadow:0 26px 60px -30px rgba(0,0,0,.45)}
+.card:hover .plate::before{transform:scale(1.05) rotate(-.6deg)}
+.card .meta{display:flex;justify-content:space-between;gap:1rem;padding-top:1rem}
+.card .name{font-family:var(--display);font-size:var(--step-1)}
+.card .colour{font-size:var(--step--1);color:var(--ink-soft);letter-spacing:.08em}
+.card .price{font-size:var(--step--1);color:var(--ink-soft);font-variant-numeric:tabular-nums}
+
+/* ── token / type specimens ─────────────────────────────────────── */
+.swatches{display:grid;gap:1px;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+  background:var(--line);border:1px solid var(--line)}
+.sw{background:var(--bg);padding:1rem}
+.sw i{display:block;height:64px;margin-bottom:.7rem}
+.sw b{display:block;font-size:var(--step--1);font-weight:500}
+.sw code{font-size:.72rem;color:var(--ink-soft);letter-spacing:.06em}
+.phases{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.phase{border:1px solid var(--line);padding:1.2rem}
+.phase b{font-family:var(--display);font-size:var(--step-1);font-weight:400;display:block}
+.phase span{font-size:var(--step--1);color:var(--ink-soft)}
+
+footer{border-top:1px solid var(--line);padding-block:3rem;color:var(--ink-soft);
+  font-size:var(--step--1)}
+.themebar{position:fixed;right:1rem;bottom:1rem;z-index:40;display:flex;gap:.4rem;
+  background:color-mix(in srgb,var(--bg) 90%,transparent);border:1px solid var(--line);padding:.4rem}
+.themebar button{font:500 .68rem/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;
+  padding:.55rem .8rem;border:0;background:transparent;color:var(--ink-soft);cursor:pointer}
+.themebar button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-theme="light">
+
+<header>
+  <div class="wrap bar">
+    <a class="mark" href="#">
+      <!-- NN monogram: two interlocked serif Ns in a thin gold ring -->
+      <svg viewBox="0 0 64 64" aria-label="NERO NOREN">
+        <circle cx="32" cy="32" r="30" fill="none" stroke="var(--accent)" stroke-width="1"/>
+        <g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square">
+          <path d="M19 43V22l14 18V22"/>
+          <path d="M31 43V22l14 18V22" opacity=".55"/>
+        </g>
+      </svg>
+      <span class="wordmark">Nero Noren</span>
+    </a>
+    <nav><ul>
+      <li><a href="#">Showroom</a></li>
+      <li><a href="#collection">Collection</a></li>
+      <li><a href="#">Trial room</a></li>
+      <li><a href="#">Stylist</a></li>
+      <li><a href="#">Bag</a></li>
+    </ul></nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="hero-canvas" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Collection 001 — The Foundations</p>
+      <h1>The art of <em>dressing well.</em></h1>
+      <p>A European showroom, open at every hour. Walk the floor, turn a garment to
+         read its label, and find your size before you buy.</p>
+      <div class="cta-row">
+        <a class="btn btn--gold" href="#">Enter the showroom</a>
+        <a class="btn btn--quiet" href="#collection">Shop in 2D</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="collection"><div class="wrap">
+    <div class="sec-head">
+      <div><p class="eyebrow">Ready to wear</p><h2>Collection 001</h2></div>
+      <a class="btn btn--quiet" href="#">View all</a>
+    </div>
+    <div class="grid">
+      <a class="card" href="#"><div class="plate" style="--sw:#F7F4EE"></div>
+        <div class="meta"><div><div class="name">The Oxford</div><div class="colour">Bianco</div></div>
+        <div class="price">₹4,900</div></div></a>
+      <a class="card" href="#"><div class="plate" style="--sw:#A8BBCE"></div>
+        <div class="meta"><div><div class="name">The Oxford</div><div class="colour">Azure</div></div>
+        <div class="price">₹4,900</div></div></a>
+      <a class="card" href="#"><div class="plate" style="--sw:#E4DCCB"></div>
+        <div class="meta"><div><div class="name">The Poplin</div><div class="colour">Écru</div></div>
+        <div class="price">₹4,400</div></div></a>
+      <a class="card" href="#"><div class="plate" style="--sw:#2E3D52"></div>
+        <div class="meta"><div><div class="name">The Stripe</div><div class="colour">Marine</div></div>
+        <div class="price">₹4,600</div></div></a>
+      <a class="card" href="#"><div class="plate" style="--sw:#B8AE9C"></div>
+        <div class="meta"><div><div class="name">The Tailored Trouser</div><div class="colour">Sable</div></div>
+        <div class="price">₹6,200</div></div></a>
+      <a class="card" href="#"><div class="plate" style="--sw:#8A8578"></div>
+        <div class="meta"><div><div class="name">The Pleated Trouser</div><div class="colour">Pierre</div></div>
+        <div class="price">₹6,600</div></div></a>
+    </div>
+  </div></section>
+
+  <hr class="rule">
+
+  <section><div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow">Design tokens</p><h2>Palette</h2></div></div>
+    <div class="swatches">
+      <div class="sw"><i style="background:#000"></i><b>Matte black</b><code>#000000</code></div>
+      <div class="sw"><i style="background:#EFE9DD"></i><b>Ivory</b><code>#EFE9DD</code></div>
+      <div class="sw"><i style="background:#3A3A3D"></i><b>Charcoal</b><code>#3A3A3D</code></div>
+      <div class="sw"><i style="background:#B8AE9C"></i><b>Stone</b><code>#B8AE9C</code></div>
+      <div class="sw"><i style="background:#8A7B6A"></i><b>Taupe</b><code>#8A7B6A</code></div>
+      <div class="sw"><i style="background:#4F5443"></i><b>Olive</b><code>#4F5443</code></div>
+      <div class="sw"><i style="background:#5C1F24"></i><b>Burgundy</b><code>#5C1F24</code></div>
+      <div class="sw"><i style="background:#C9A43A"></i><b>NN gold</b><code>#C9A43A</code></div>
+    </div>
+  </div></section>
+
+  <section><div class="wrap">
+    <div class="sec-head"><div><p class="eyebrow">Showroom</p><h2>Time of day</h2></div></div>
+    <div class="phases">
+      <div class="phase"><b>Morning</b><span>06:00–11:59 · cool soft daylight, long gentle shadows · light theme</span></div>
+      <div class="phase"><b>Afternoon</b><span>12:00–16:59 · bright neutral daylight, crisp shadows · light theme</span></div>
+      <div class="phase"><b>Evening</b><span>17:00–19:29 · warm golden hour, lamps switch on · transitional</span></div>
+      <div class="phase"><b>Night</b><span>19:30–05:59 · dark windows, warm lamp pools, gold glows · dark theme</span></div>
+    </div>
+  </div></section>
+</main>
+
+<footer><div class="wrap">
+  NERO NOREN Private Limited · The art of dressing well.
+</div></footer>
+
+<div class="themebar" role="group" aria-label="Theme">
+  <button data-t="light" aria-pressed="true">Light</button>
+  <button data-t="evening" aria-pressed="false">Evening</button>
+  <button data-t="dark" aria-pressed="false">Dark</button>
+</div>
+
+<script>
+  document.querySelectorAll('.themebar button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.body.dataset.theme=b.dataset.t;
+      document.querySelectorAll('.themebar button').forEach(function(o){
+        o.setAttribute('aria-pressed',String(o===b));});
+    });
+  });
+</script>
+</body>
+</html>

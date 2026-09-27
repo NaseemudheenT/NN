@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NERO NOREN · The art of dressing well</title>
+<meta name="description" content="Nero Noren. European-inspired menswear. Collection 001, The Foundations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EFE9DD; --surface:#E6DFD1; --paper:#DDD5C5; --ink:#0A0A0A; --muted:#5E574C;
+  --line:rgba(10,10,10,.14); --gold:#9C7A1E; --gold-soft:#B8942E; --olive:#4F5443; --burgundy:#5C1F24;
+  --btn-bg:#0A0A0A; --btn-ink:#EFE9DD;
+  --serif:"Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans:"Hanken Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#141311; --paper:#1C1B18; --ink:#EFE9DD; --muted:#A39C8F;
+    --line:rgba(239,233,221,.14); --gold:#C9A43A; --gold-soft:#D9B85A;
+    --btn-bg:#EFE9DD; --btn-ink:#000000; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#141311; --paper:#1C1B18; --ink:#EFE9DD; --muted:#A39C8F;
+  --line:rgba(239,233,221,.14); --gold:#C9A43A; --gold-soft:#D9B85A;
+  --btn-bg:#EFE9DD; --btn-ink:#000000; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img,svg,canvas{max-width:100%}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{width:min(1240px,100% - 40px);margin-inline:auto}
+.serif{font-family:var(--serif)}
+h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;letter-spacing:-.01em}
+p{margin:0}
+
+/* Header */
+header.site{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:34px;height:34px}
+.wordmark{font-family:var(--serif);font-size:20px;letter-spacing:.32em;font-weight:500;white-space:nowrap}
+nav.links{display:flex;gap:28px;font-size:14px}
+nav.links a{text-decoration:none;color:var(--muted);transition:color .2s}
+nav.links a:hover{color:var(--ink)}
+.bag-btn{display:flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;font-size:14px}
+.bag-count{min-width:20px;height:20px;border-radius:10px;background:var(--gold);color:#000;font-size:12px;font-weight:600;display:inline-grid;place-items:center;padding:0 6px}
+@media (max-width:820px){nav.links{display:none}.wordmark{font-size:16px;letter-spacing:.24em}}
+
+/* Hero */
+.hero{position:relative;min-height:calc(100svh - 64px);display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:24px;padding-block:40px}
+.hero h1{font-size:clamp(52px,8.4vw,128px);line-height:.92;font-weight:400}
+.hero h1 span{display:block}
+.hero h1 .indent{padding-left:.9em;font-style:italic}
+.hero .lede{margin-top:28px;max-width:40ch;color:var(--muted);font-size:18px}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+.btn{appearance:none;border:1px solid var(--ink);background:var(--btn-bg);color:var(--btn-ink);padding:14px 26px;border-radius:999px;cursor:pointer;font-size:15px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.stage{position:relative;aspect-ratio:1/1;width:100%;max-width:620px;justify-self:center;cursor:grab;touch-action:pan-y}
+.stage:active{cursor:grabbing}
+.stage canvas{display:block;width:100%!important;height:100%!important}
+.stage .fallback{position:absolute;inset:12%;display:none}
+.stage.no-gl .fallback{display:block}
+.stage-caption{position:absolute;left:0;right:0;bottom:2%;text-align:center;font-size:13px;color:var(--muted)}
+.hero-foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding-top:18px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+@media (max-width:900px){.hero{grid-template-columns:1fr;min-height:auto;padding-top:12px}.stage{order:-1;max-width:420px}}
+
+/* Sections */
+section.block{padding-block:clamp(72px,10vw,128px);border-top:1px solid var(--line)}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:end;margin-bottom:48px}
+.sec-head h2{font-size:clamp(40px,5.6vw,76px);line-height:1}
+.sec-head p{color:var(--muted);max-width:46ch;justify-self:end;font-size:17px}
+@media (max-width:820px){.sec-head{grid-template-columns:1fr}.sec-head p{justify-self:start}}
+
+/* Collection */
+.filters{display:flex;gap:6px;margin-bottom:28px;border:1px solid var(--line);border-radius:999px;padding:4px;width:max-content}
+.filters button{border:0;background:none;padding:8px 18px;border-radius:999px;cursor:pointer;font-size:14px;color:var(--muted)}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 20px}
+@media (max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:700px){.grid{grid-template-columns:repeat(2,1fr);gap:22px 12px}}
+.card{background:none;border:0;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:12px}
+.card .art{aspect-ratio:4/5;background:var(--paper);border-radius:4px;display:grid;place-items:center;overflow:hidden;position:relative}
+.card .art svg{width:72%;height:auto;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.card:hover .art svg{transform:translateY(-4px) scale(1.03)}
+.card .meta{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.card .name{font-family:var(--serif);font-size:22px;line-height:1.1}
+.card .colour{color:var(--muted);font-size:14px}
+.card .price{font-size:14px;white-space:nowrap}
+.card[hidden]{display:none}
+
+/* Builder */
+.builder-pick{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px}
+.chip{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:none;border-radius:999px;padding:8px 16px 8px 8px;cursor:pointer;font-size:14px}
+.chip .sw{width:24px;height:24px;border-radius:50%;border:1px solid var(--line)}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--surface)}
+.outfits{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:900px){.outfits{grid-template-columns:repeat(2,1fr)}}
+.outfit{background:var(--surface);border-radius:4px;padding:20px 16px 18px;display:flex;flex-direction:column;gap:14px}
+.outfit svg{width:62%;margin-inline:auto;height:auto}
+.outfit h3{font-size:20px}
+.outfit .occ{color:var(--muted);font-size:14px}
+.outfit .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto}
+.linkbtn{background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:4px;font-size:14px}
+
+/* Stylist */
+.stylist{display:grid;grid-template-columns:.8fr 1.2fr;gap:40px}
+@media (max-width:900px){.stylist{grid-template-columns:1fr}}
+.stylist-intro h2{font-size:clamp(40px,5.6vw,76px);line-height:1}
+.stylist-intro p{color:var(--muted);margin-top:20px;max-width:40ch;font-size:17px}
+.stylist-intro .status{margin-top:18px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--olive)}
+:root[data-theme="dark"] .dot.on{background:#8E9A6E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .dot.on{background:#8E9A6E}}
+.chat{border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;height:560px;background:var(--surface)}
+.log{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:18px}
+.msg{max-width:88%;font-size:15.5px}
+.msg.user{align-self:flex-end;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:18px 18px 4px 18px}
+.msg.ai{align-self:flex-start}
+.msg.ai .who{font-family:var(--serif);font-size:15px;color:var(--gold);margin-bottom:4px}
+.msg.ai .text{white-space:pre-wrap}
+.recs{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.rec{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 12px 6px 6px;cursor:pointer;font-size:14px;text-align:left}
+.rec svg{width:34px;height:40px;background:var(--paper);border-radius:3px;padding:3px}
+.suggest{display:flex;gap:8px;flex-wrap:wrap;padding:0 24px 14px}
+.suggest button{border:1px solid var(--line);background:none;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;color:var(--muted)}
+.suggest button:hover{color:var(--ink);border-color:var(--ink)}
+.composer{display:flex;gap:8px;border-top:1px solid var(--line);padding:12px}
+.composer input{flex:1;border:0;background:transparent;padding:10px 12px;font-size:15px;min-width:0}
+.composer input:focus{outline:none}
+.composer .btn{padding:10px 20px}
+.typing{color:var(--muted);font-style:italic}
+
+/* Fit */
+.fit{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+@media (max-width:900px){.fit{grid-template-columns:1fr}}
+.finder{background:var(--surface);border-radius:6px;padding:28px;display:flex;flex-direction:column;gap:18px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:12px;font-size:16px;color:var(--ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--bg);padding:11px;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.result{border-top:1px solid var(--line);padding-top:18px;display:none}
+.result.show{display:block}
+.result .big{font-family:var(--serif);font-size:44px;line-height:1}
+.result .small{color:var(--muted);font-size:14px;margin-top:8px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:420px}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--muted);font-size:13px}
+caption{text-align:left;font-family:var(--serif);font-size:24px;padding-bottom:10px}
+.tables{display:flex;flex-direction:column;gap:36px}
+
+/* Story */
+.story{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+@media (max-width:900px){.story{grid-template-columns:1fr}}
+.story blockquote{margin:0;font-family:var(--serif);font-size:clamp(34px,4.4vw,58px);line-height:1.08;font-weight:400}
+.story .cols{display:grid;gap:28px}
+.story h3{font-size:24px;margin-bottom:6px}
+.story .cols p{color:var(--muted);max-width:52ch;line-height:1.7}
+
+/* Footer */
+footer{border-top:1px solid var(--line);padding-block:64px 40px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+@media (max-width:820px){.foot-grid{grid-template-columns:1fr}}
+.news{display:flex;gap:8px;margin-top:16px;max-width:420px}
+.news input{flex:1;min-width:0;border:1px solid var(--line);background:transparent;border-radius:999px;padding:12px 18px}
+footer h4{font-weight:500;font-size:14px;margin:0 0 12px;color:var(--muted)}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:15px}
+footer ul a{text-decoration:none}
+.fine{margin-top:56px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.theme-toggle{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--muted)}
+
+/* Drawers */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .3s;z-index:60}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--bg);z-index:70;transform:translateX(100%);transition:transform .38s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);border-left:1px solid var(--line)}
+.drawer.open{transform:none}
+@media (prefers-reduced-motion: reduce){.drawer,.scrim{transition:none}}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}
+.drawer-head h2{font-size:26px}
+.x{background:none;border:0;font-size:26px;cursor:pointer;line-height:1;padding:4px 8px}
+.drawer-body{flex:1;overflow-y:auto;padding:24px}
+.pd-art{background:var(--paper);border-radius:4px;aspect-ratio:1/1;display:grid;place-items:center;margin-bottom:22px}
+.pd-art svg{width:62%}
+.pd-name{font-size:36px;line-height:1}
+.pd-colour{color:var(--muted);margin-top:6px}
+.pd-price{margin-top:14px;font-size:18px}
+.pd-note{margin-top:16px;color:var(--muted);line-height:1.7}
+.sizes{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.sizes button{min-width:54px;border:1px solid var(--line);background:none;border-radius:4px;padding:10px 12px;cursor:pointer}
+.sizes button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pd-hint{font-size:13px;color:var(--muted);margin-top:10px}
+.pairs{margin-top:28px;border-top:1px solid var(--line);padding-top:20px}
+.pairs h3{font-size:20px;margin-bottom:12px}
+.pairs .recs{margin-top:0}
+.drawer-foot{border-top:1px solid var(--line);padding:18px 24px;display:flex;flex-direction:column;gap:12px}
+.drawer-foot .btn{justify-content:center;width:100%}
+.line-item{display:grid;grid-template-columns:72px 1fr auto;gap:14px;padding-block:16px;border-bottom:1px solid var(--line);align-items:center}
+.line-item .thumb{background:var(--paper);border-radius:3px;aspect-ratio:4/5;display:grid;place-items:center}
+.line-item .thumb svg{width:74%}
+.line-item .li-name{font-family:var(--serif);font-size:19px;line-height:1.1}
+.line-item .li-sub{font-size:13px;color:var(--muted)}
+.qty{display:flex;align-items:center;gap:6px;margin-top:8px}
+.qty button{width:28px;height:28px;border:1px solid var(--line);background:none;border-radius:50%;cursor:pointer;line-height:1}
+.subtotal{display:flex;justify-content:space-between;font-size:17px}
+.empty{color:var(--muted);text-align:center;padding:60px 10px}
+.empty p{margin-bottom:18px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;opacity:0;transition:all .3s;z-index:90;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Nero Noren home">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="none" stroke="var(--gold)" stroke-width="1.2"/><text x="20" y="25.5" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="16" fill="var(--gold)" letter-spacing="1">NN</text></svg>
+      <span class="wordmark">NERO NOREN</span>
+    </a>
+    <nav class="links" aria-label="Main">
+      <a href="#collection">Collection 001</a>
+      <a href="#wardrobe">Wardrobe</a>
+      <a href="#stylist">Stylist</a>
+      <a href="#fit">Fit</a>
+      <a href="#story">Story</a>
+    </nav>
+    <button class="bag-btn" id="openBag" aria-label="Open bag">Bag <span class="bag-count" id="bagCount">0</span></button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <h1><span>The art</span><span class="indent">of dressing</span><span>well.</span></h1>
+      <p class="lede">European-inspired menswear, cut for Indian life. Eight considered pieces that work together, season after season.</p>
+      <div class="cta-row">
+        <a class="btn" href="#collection">Shop Collection 001</a>
+        <a class="btn ghost" href="#stylist">Ask the NN stylist</a>
+      </div>
+    </div>
+    <div class="stage" id="stage" aria-label="The Nero Noren monogram button in 3D. Drag to turn it.">
+      <svg class="fallback" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92" fill="#0e0d0c" stroke="var(--gold)" stroke-width="5"/><text x="100" y="122" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="68" fill="var(--gold)">NN</text></svg>
+      <p class="stage-caption">Drag to turn the NN button</p>
+    </div>
+    <div class="hero-foot">
+      <span>Collection 001, The Foundations</span>
+      <span>Online first. Delivered across India.</span>
+    </div>
+  </div>
+
+  <section class="block" id="collection">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>The Foundations</h2>
+        <p>Collection 001 is a wardrobe system, not eight separate products. Every shirt is designed to sit with every trouser.</p>
+      </div>
+      <div class="filters" role="group" aria-label="Filter collection">
+        <button aria-pressed="true" data-filter="all">All eight</button>
+        <button aria-pressed="false" data-filter="shirt">Shirts</button>
+        <button aria-pressed="false" data-filter="trouser">Trousers</button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="block" id="wardrobe">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>One shirt, four ways</h2>
+        <p>Pick a shirt and see it with every trouser in the collection. Add the whole outfit to your bag in one step.</p>
+      </div>
+      <div class="builder-pick" id="shirtPick" role="group" aria-label="Choose a shirt"></div>
+      <div class="outfits" id="outfits"></div>
+    </div>
+  </section>
+
+  <section class="block" id="stylist">
+    <div class="wrap stylist">
+      <div class="stylist-intro">
+        <h2>Your NN stylist</h2>
+        <p>Tell it where you're going, what you already own or what you're unsure about. It answers from the real collection and suggests pieces you can add straight to your bag.</p>
+        <p class="status"><span class="dot" id="aiDot"></span><span id="aiStatus">Connecting the stylist</span></p>
+      </div>
+      <div class="chat">
+        <div class="log" id="log" aria-live="polite"></div>
+        <div class="suggest" id="suggest">
+          <button>What should I wear to a first day at the office?</button>
+          <button>I have a wedding reception next month</button>
+          <button>Which trouser goes with the Stripe?</button>
+          <button>I'm 5'9" and slim. What size am I?</button>
+        </div>
+        <form class="composer" id="composer" onsubmit="return false">
+          <label class="sr" for="ask">Ask the stylist</label>
+          <input id="ask" autocomplete="off" placeholder="Ask about an occasion, fit or pairing">
+          <button class="btn" id="send" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="fit">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Find your fit</h2>
+        <p>Enter a few measurements and we'll suggest a size for each piece. Measurements are based on our launch fit block.</p>
+      </div>
+      <div class="fit">
+        <div class="finder">
+          <div class="two">
+            <label class="field">Height (cm)<input id="fh" type="number" inputmode="numeric" min="140" max="210" placeholder="175"></label>
+            <label class="field">Weight (kg)<input id="fw" type="number" inputmode="numeric" min="40" max="160" placeholder="70"></label>
+          </div>
+          <label class="field">Usual jeans waist (inches)
+            <select id="fwaist"><option value="">I'm not sure</option><option>28</option><option>30</option><option>32</option><option>34</option><option>36</option><option>38</option></select>
+          </label>
+          <div class="field">How do you like your shirts to fit?
+            <div class="seg" role="group" id="fpref">
+              <button type="button" aria-pressed="false" data-v="-1">Close</button>
+              <button type="button" aria-pressed="true" data-v="0">Regular</button>
+              <button type="button" aria-pressed="false" data-v="1">Easy</button>
+            </div>
+          </div>
+          <button class="btn" id="findSize" type="button" style="align-self:flex-start">Suggest my size</button>
+          <div class="result" id="fitResult" aria-live="polite"></div>
+        </div>
+        <div class="tables">
+          <div class="table-wrap">
+            <table>
+              <caption>Shirts</caption>
+              <thead><tr><th>Size</th><th>Collar (in)</th><th>Body chest (in)</th><th>Sleeve (in)</th></tr></thead>
+              <tbody><tr><td>S</td><td>15</td><td>36–38</td><td>33</td></tr><tr><td>M</td><td>15.5</td><td>38–40</td><td>34</td></tr><tr><td>L</td><td>16</td><td>40–42</td><td>34.5</td></tr><tr><td>XL</td><td>16.5</td><td>42–44</td><td>35</td></tr><tr><td>XXL</td><td>17.5</td><td>44–47</td><td>35.5</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption>Trousers</caption>
+              <thead><tr><th>Size</th><th>Waist (in)</th><th>Hip (in)</th><th>Inseam (in)</th></tr></thead>
+              <tbody><tr><td>28</td><td>28–29</td><td>36</td><td>31</td></tr><tr><td>30</td><td>30–31</td><td>38</td><td>31</td></tr><tr><td>32</td><td>32–33</td><td>40</td><td>32</td></tr><tr><td>34</td><td>34–35</td><td>42</td><td>32</td></tr><tr><td>36</td><td>36–37</td><td>44</td><td>32</td></tr><tr><td>38</td><td>38–39</td><td>46</td><td>32</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="story">
+    <div class="wrap story">
+      <blockquote>Considered menswear that stays relevant long after the trend has moved on.</blockquote>
+      <div class="cols">
+        <div><h3>European in design, honest about origin</h3><p>Our design language comes from European tailoring: clean collars, calm colour, trousers with a proper crease. Where each piece is made is written on its label and its page, always.</p></div>
+        <div><h3>Fabric, fit and finish first</h3><p>Every garment is approved against a golden sample and checked for shrinkage, colourfastness and seam quality before it reaches you.</p></div>
+        <div><h3>Fair prices, no permanent sale</h3><p>We price for quality and value, not for a discount you're expected to wait for. When we do run an offer, it has a reason and an end date.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="wordmark">NERO NOREN</div>
+        <p style="color:var(--muted);margin-top:12px;max-width:40ch">Hear about new pieces and restocks first. One email when there's something worth your time.</p>
+        <form class="news" id="news" onsubmit="return false">
+          <label class="sr" for="email">Email address</label>
+          <input id="email" type="email" placeholder="Your email" autocomplete="email">
+          <button class="btn" type="submit">Join</button>
+        </form>
+      </div>
+      <div><h4>Shop</h4><ul><li><a href="#collection">Collection 001</a></li><li><a href="#wardrobe">Build an outfit</a></li><li><a href="#fit">Size guide</a></li></ul></div>
+      <div><h4>Help</h4><ul><li><a href="#stylist">Ask the stylist</a></li><li><a href="#story">About NN</a></li><li><a href="mailto:care@neronoren.com">care@neronoren.com</a></li></ul></div>
+    </div>
+    <div class="fine">
+      <span>© 2026 NERO NOREN Private Limited. Pre-launch preview: prices and specifications are indicative.</span>
+      <button class="theme-toggle" id="themeToggle" type="button">Switch to light</button>
+    </div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="pd" aria-hidden="true" aria-labelledby="pdTitle" role="dialog">
+  <div class="drawer-head"><h2 id="pdTitle">Details</h2><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="drawer-body" id="pdBody"></div>
+  <div class="drawer-foot"><button class="btn" id="pdAdd">Add to bag</button></div>
+</aside>
+
+<aside class="drawer" id="bag" aria-hidden="true" aria-labelledby="bagTitle" role="dialog">
+  <div class="drawer-head"><h2 id="bagTitle">Your bag</h2><button class="x" data-close aria-label="Close">×</button></div>
+  <div class="drawer-body" id="bagBody"></div>
+  <div class="drawer-foot" id="bagFoot"></div>
+</aside>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- Catalogue ---------- */
+const PRODUCTS = [
+  {id:"oxford-bianco", name:"The Oxford", colour:"Bianco", type:"shirt", hex:"#F4F2ED", price:2890, style:"oxford",
+   note:"Oxford-weave cotton with a button-down collar and a regular fit. The shirt the rest of the wardrobe is built around."},
+  {id:"oxford-azure", name:"The Oxford", colour:"Azure", type:"shirt", hex:"#A9C0D8", price:2890, style:"oxford",
+   note:"The same Oxford in a soft sky blue. Reads smart with charcoal, relaxed with sable."},
+  {id:"poplin-ecru", name:"The Poplin", colour:"Écru", type:"shirt", hex:"#E4D9C3", price:2690, style:"poplin",
+   note:"Smooth cotton poplin with a spread collar. Crisp enough for a meeting, soft enough for dinner."},
+  {id:"stripe-marine", name:"The Stripe", colour:"Marine", type:"shirt", hex:"#F3F2EE", stripe:"#22304F", price:2990, style:"poplin",
+   note:"A fine marine stripe on a white ground with a spread collar. Works with every trouser in the collection."},
+  {id:"tailored-sable", name:"The Tailored Trouser", colour:"Sable", type:"trouser", hex:"#BDA785", price:3290, style:"flat",
+   note:"Flat front, mid rise and a tapered leg with a pressed crease. A warm sand tone for daylight."},
+  {id:"tailored-charcoal", name:"The Tailored Trouser", colour:"Charcoal", type:"trouser", hex:"#3A3A3D", price:3290, style:"flat",
+   note:"Flat front, mid rise and a tapered leg. The most formal trouser in the collection."},
+  {id:"tailored-marine", name:"The Tailored Trouser", colour:"Marine", type:"trouser", hex:"#25314C", price:3290, style:"flat",
+   note:"Flat front, mid rise and a tapered leg in deep navy. Easy to travel in, easy to dress up."},
+  {id:"pleated-pierre", name:"The Pleated Trouser", colour:"Pierre", type:"trouser", hex:"#9E978C", price:3590, style:"pleat",
+   note:"A single forward pleat gives room through the thigh, tapered to a clean hem. Stone grey that suits every shirt."}
+];
+const OCCASION = {
+  "tailored-sable":"Weekends, brunch, daylight events",
+  "tailored-charcoal":"Office days and evenings out",
+  "tailored-marine":"Travel and client meetings",
+  "pleated-pierre":"Dinners, receptions and celebrations"
+};
+const SIZES = {shirt:["S","M","L","XL","XXL"], trouser:["28","30","32","34","36","38"]};
+const byId = id => PRODUCTS.find(p=>p.id===id);
+const inr = n => "₹" + n.toLocaleString("en-IN");
+const fullName = p => `${p.name}, ${p.colour}`;
+
+/* ---------- Garment drawings ---------- */
+let uid = 0;
+function shirtSVG(p){
+  const id = "s"+(uid++);
+  const collar = p.style==="oxford"
+    ? `<path d="M80 20 L100 46 L120 20 L113 15 L100 31 L87 15 Z" fill="${p.hex}" stroke="rgba(0,0,0,.28)" stroke-width="1.2"/><circle cx="88" cy="34" r="2" fill="rgba(0,0,0,.35)"/><circle cx="112" cy="34" r="2" fill="rgba(0,0,0,.35)"/>`
+    : `<path d="M78 21 L100 44 L122 21 L116 13 L100 29 L84 13 Z" fill="${p.hex}" stroke="rgba(0,0,0,.28)" stroke-width="1.2"/>`;
+  const stripes = p.stripe ? `<pattern id="${id}p" width="7" height="10" patternUnits="userSpaceOnUse"><rect width="7" height="10" fill="${p.hex}"/><rect width="1.6" height="10" fill="${p.stripe}"/></pattern>` : "";
+  const fill = p.stripe ? `url(#${id}p)` : p.hex;
+  return `<svg viewBox="0 0 200 232" aria-hidden="true"><defs>${stripes}<linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".10"/><stop offset=".45" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient></defs>
+  <path d="M62 28 L82 18 L100 26 L118 18 L138 28 L174 48 L190 122 L167 128 L157 82 L158 222 L42 222 L43 82 L33 128 L10 122 L26 48 Z" fill="${fill}" stroke="rgba(0,0,0,.28)" stroke-width="1.2"/>
+  <path d="M62 28 L82 18 L100 26 L118 18 L138 28 L174 48 L190 122 L167 128 L157 82 L158 222 L42 222 L43 82 L33 128 L10 122 L26 48 Z" fill="url(#${id}g)"/>
+  <path d="M100 44 V222" stroke="rgba(0,0,0,.22)" stroke-width="1"/>
+  ${[64,94,124,154,184,210].map(y=>`<circle cx="100" cy="${y}" r="2.3" fill="rgba(255,255,255,.75)" stroke="rgba(0,0,0,.3)" stroke-width=".6"/>`).join("")}
+  ${p.style==="oxford"?`<path d="M122 66 h20 v22 h-20 z" fill="none" stroke="rgba(0,0,0,.2)"/>`:""}
+  <path d="M26 48 L43 82 M174 48 L157 82" stroke="rgba(0,0,0,.14)"/>
+  ${collar}</svg>`;
+}
+function trouserSVG(p, tall){
+  const id = "t"+(uid++);
+  const pleat = p.style==="pleat" ? `<path d="M76 37 L78 70 M124 37 L122 70" stroke="rgba(0,0,0,.3)" stroke-width="1.2"/>` : "";
+  return `<svg viewBox="0 0 200 ${tall?240:240}" aria-hidden="true"><defs><linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".14"/><stop offset=".5" stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient></defs>
+  <path d="M54 22 H146 L152 232 H108 L100 92 L92 232 H48 Z" fill="${p.hex}" stroke="rgba(0,0,0,.28)" stroke-width="1.2"/>
+  <path d="M54 22 H146 L152 232 H108 L100 92 L92 232 H48 Z" fill="url(#${id}g)"/>
+  <rect x="54" y="22" width="92" height="15" fill="${p.hex}" stroke="rgba(0,0,0,.3)" stroke-width="1.2"/>
+  <rect x="54" y="22" width="92" height="15" fill="rgba(0,0,0,.08)"/>
+  ${[66,90,110,134].map(x=>`<rect x="${x-2}" y="20" width="4" height="19" fill="${p.hex}" stroke="rgba(0,0,0,.25)" stroke-width=".8"/>`).join("")}
+  <path d="M100 37 V78" stroke="rgba(0,0,0,.28)"/><circle cx="100" cy="29.5" r="2.2" fill="rgba(0,0,0,.35)"/>
+  <path d="M70 37 L70 232 M130 37 L130 232" stroke="rgba(255,255,255,.12)"/>
+  <path d="M62 38 Q70 54 80 48 M138 38 Q130 54 120 48" fill="none" stroke="rgba(0,0,0,.25)"/>
+  ${pleat}</svg>`;
+}
+const art = p => p.type==="shirt" ? shirtSVG(p) : trouserSVG(p);
+function outfitSVG(s,t){
+  return `<svg viewBox="0 0 200 420" aria-hidden="true"><g transform="translate(0,0)">${shirtSVG(s).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</g><g transform="translate(0,180)">${trouserSVG(t).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</g></svg>`;
+}
+
+/* ---------- Collection grid ---------- */
+const grid = document.getElementById("grid");
+grid.innerHTML = PRODUCTS.map(p=>`
+  <button class="card" data-id="${p.id}" data-type="${p.type}" aria-label="${fullName(p)}, ${inr(p.price)}">
+    <div class="art">${art(p)}</div>
+    <div>
+      <div class="meta"><span class="name">${p.name}</span><span class="price">${inr(p.price)}</span></div>
+      <div class="colour">${p.colour}</div>
+    </div>
+  </button>`).join("");
+grid.addEventListener("click", e=>{const c=e.target.closest(".card"); if(c) openProduct(c.dataset.id);});
+document.querySelectorAll(".filters button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".filters button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  const f=b.dataset.filter;
+  grid.querySelectorAll(".card").forEach(c=>c.hidden = !(f==="all"||c.dataset.type===f));
+}));
+
+/* ---------- Wardrobe builder ---------- */
+const shirts = PRODUCTS.filter(p=>p.type==="shirt"), trousers = PRODUCTS.filter(p=>p.type==="trouser");
+let pickedShirt = shirts[0].id;
+const shirtPick = document.getElementById("shirtPick"), outfitsEl = document.getElementById("outfits");
+function renderBuilder(){
+  shirtPick.innerHTML = shirts.map(s=>`<button class="chip" data-id="${s.id}" aria-pressed="${s.id===pickedShirt}"><span class="sw" style="background:${s.stripe?`repeating-linear-gradient(90deg,${s.stripe} 0 2px,${s.hex} 2px 7px)`:s.hex}"></span>${s.name.replace("The ","")} ${s.colour}</button>`).join("");
+  const s = byId(pickedShirt);
+  outfitsEl.innerHTML = trousers.map(t=>`
+    <article class="outfit">
+      ${outfitSVG(s,t)}
+      <div><h3>With ${t.name.replace("The ","").toLowerCase()} in ${t.colour}</h3><p class="occ">${OCCASION[t.id]}</p></div>
+      <div class="row"><span>${inr(s.price+t.price)}</span><button class="linkbtn" data-outfit="${t.id}">Add outfit</button></div>
+    </article>`).join("");
+}
+shirtPick.addEventListener("click",e=>{const c=e.target.closest(".chip"); if(c){pickedShirt=c.dataset.id; renderBuilder();}});
+outfitsEl.addEventListener("click",e=>{
+  const b=e.target.closest("[data-outfit]"); if(!b) return;
+  pendingOutfit = [pickedShirt, b.dataset.outfit];
+  openOutfitSizes();
+});
+renderBuilder();
+
+/* ---------- Bag (saved on this device) ---------- */
+let bag = [];
+try{ bag = JSON.parse(localStorage.getItem("nn-bag")||"[]"); if(!Array.isArray(bag)) bag=[]; }catch(e){ bag=[]; }
+bag = bag.filter(i=>byId(i.id));
+function saveBag(){ try{ localStorage.setItem("nn-bag", JSON.stringify(bag)); }catch(e){} renderBag(); }
+function addToBag(id,size,qty=1){
+  const f = bag.find(i=>i.id===id && i.size===size);
+  if(f) f.qty+=qty; else bag.push({id,size,qty});
+  saveBag();
+}
+function renderBag(){
+  const count = bag.reduce((a,i)=>a+i.qty,0);
+  document.getElementById("bagCount").textContent = count;
+  const body = document.getElementById("bagBody"), foot = document.getElementById("bagFoot");
+  if(!bag.length){
+    body.innerHTML = `<div class="empty"><p>Your bag is empty. Start with the Oxford in Bianco, it goes with everything.</p><button class="btn" data-goto="#collection">Shop Collection 001</button></div>`;
+    foot.innerHTML = ""; foot.style.display="none"; return;
+  }
+  foot.style.display="";
+  body.innerHTML = bag.map((i,idx)=>{const p=byId(i.id); return `
+    <div class="line-item">
+      <div class="thumb">${art(p)}</div>
+      <div><div class="li-name">${p.name}</div><div class="li-sub">${p.colour}, size ${i.size}</div>
+        <div class="qty"><button data-dec="${idx}" aria-label="Remove one">−</button><span>${i.qty}</span><button data-inc="${idx}" aria-label="Add one">+</button></div></div>
+      <div>${inr(p.price*i.qty)}</div>
+    </div>`;}).join("");
+  const sub = bag.reduce((a,i)=>a+byId(i.id).price*i.qty,0);
+  foot.innerHTML = `<div class="subtotal"><span>Subtotal</span><span>${inr(sub)}</span></div>
+    <p style="font-size:13px;color:var(--muted)">Shipping and taxes are shown at checkout. Your bag is saved on this device.</p>
+    <button class="btn" id="checkout">Checkout</button>`;
+}
+document.getElementById("bagBody").addEventListener("click",e=>{
+  const inc=e.target.closest("[data-inc]"), dec=e.target.closest("[data-dec]"), go=e.target.closest("[data-goto]");
+  if(inc){bag[+inc.dataset.inc].qty++; saveBag();}
+  if(dec){const i=+dec.dataset.dec; bag[i].qty--; if(bag[i].qty<=0) bag.splice(i,1); saveBag();}
+  if(go){closeAll(); location.hash=go.dataset.goto;}
+});
+document.getElementById("bagFoot").addEventListener("click",e=>{
+  if(e.target.id==="checkout") toast("Checkout opens at launch. Your bag stays saved until then.");
+});
+
+/* ---------- Drawers ---------- */
+const scrim = document.getElementById("scrim");
+let lastFocus=null;
+function openDrawer(el){ lastFocus=document.activeElement; closeAll(true); el.classList.add("open"); el.setAttribute("aria-hidden","false"); scrim.classList.add("open"); setTimeout(()=>el.querySelector(".x").focus(),50); }
+function closeAll(keepFocus){ document.querySelectorAll(".drawer").forEach(d=>{d.classList.remove("open");d.setAttribute("aria-hidden","true");}); scrim.classList.remove("open"); if(!keepFocus && lastFocus) lastFocus.focus(); }
+scrim.addEventListener("click",()=>closeAll());
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeAll()));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeAll(); });
+document.getElementById("openBag").addEventListener("click",()=>{ renderBag(); openDrawer(document.getElementById("bag")); });
+
+/* ---------- Product detail ---------- */
+let pdMode = null, pdSize = null, pendingOutfit = null;
+const pd = document.getElementById("pd"), pdBody = document.getElementById("pdBody"), pdAdd = document.getElementById("pdAdd");
+function sizeButtons(type, sel, key){ return `<div class="sizes" role="group" aria-label="Size" data-key="${key}">${SIZES[type].map(s=>`<button type="button" data-size="${s}" aria-pressed="${s===sel}">${s}</button>`).join("")}</div>`; }
+function openProduct(id){
+  const p = byId(id); pdMode={kind:"one", id}; pdSize=null;
+  const pairs = PRODUCTS.filter(x=>x.type!==p.type).slice(0,4);
+  pdBody.innerHTML = `<div class="pd-art">${art(p)}</div>
+    <h3 class="pd-name">${p.name}</h3><p class="pd-colour">${p.colour}</p><p class="pd-price">${inr(p.price)}</p>
+    <p class="pd-note">${p.note}</p>
+    ${sizeButtons(p.type,null,"one")}
+    <p class="pd-hint">Not sure? <a href="#fit" data-fitlink>Find your size</a> or ask the stylist.</p>
+    <div class="pairs"><h3>Wear it with</h3><div class="recs">${pairs.map(recHTML).join("")}</div></div>`;
+  pdAdd.textContent = "Add to bag";
+  document.getElementById("pdTitle").textContent = p.type==="shirt"?"Shirt":"Trouser";
+  openDrawer(pd);
+}
+function openOutfitSizes(){
+  const [sid,tid] = pendingOutfit, s=byId(sid), t=byId(tid);
+  pdMode={kind:"outfit", sid, tid, sizes:{s:null,t:null}};
+  pdBody.innerHTML = `<div class="pd-art">${outfitSVG(s,t)}</div>
+    <h3 class="pd-name" style="font-size:30px">${fullName(s)}</h3><p class="pd-colour">with ${fullName(t)}</p>
+    <p class="pd-price">${inr(s.price+t.price)}</p>
+    <p class="pd-note" style="margin-top:22px">Shirt size</p>${sizeButtons("shirt",null,"s")}
+    <p class="pd-note">Trouser size</p>${sizeButtons("trouser",null,"t")}`;
+  document.getElementById("pdTitle").textContent = "Outfit";
+  pdAdd.textContent = "Add outfit to bag";
+  openDrawer(pd);
+}
+function recHTML(p){ return `<button class="rec" data-rec="${p.id}">${art(p)}<span>${p.name.replace("The ","")}<br><span style="color:var(--muted)">${p.colour}</span></span></button>`; }
+pdBody.addEventListener("click",e=>{
+  const sb=e.target.closest("[data-size]");
+  if(sb){ const g=sb.parentElement; g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb));
+    if(pdMode.kind==="one") pdSize=sb.dataset.size; else pdMode.sizes[g.dataset.key]=sb.dataset.size; }
+  const r=e.target.closest("[data-rec]"); if(r) openProduct(r.dataset.rec);
+  if(e.target.closest("[data-fitlink]")){ e.preventDefault(); closeAll(); document.getElementById("fit").scrollIntoView(); }
+});
+pdAdd.addEventListener("click",()=>{
+  if(pdMode.kind==="one"){
+    if(!pdSize){ toast("Choose a size first"); return; }
+    addToBag(pdMode.id,pdSize); toast(`${fullName(byId(pdMode.id))} added to your bag`);
+  } else {
+    if(!pdMode.sizes.s || !pdMode.sizes.t){ toast("Choose a shirt size and a trouser size"); return; }
+    addToBag(pdMode.sid,pdMode.sizes.s); addToBag(pdMode.tid,pdMode.sizes.t); toast("Outfit added to your bag");
+  }
+  closeAll();
+});
+
+/* ---------- Toast ---------- */
+let tt; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),2600); }
+
+/* ---------- Size finder ---------- */
+let pref = 0;
+document.getElementById("fpref").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; pref=+b.dataset.v; b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));});
+function suggestSizes(h,w,waist,pr){
+  const bmiish = w / Math.pow(h/100,2);
+  let idx = w<58?0: w<68?1: w<79?2: w<91?3:4;
+  if(h>=185 && idx<2) idx++;
+  if(bmiish<19.5 && idx>0 && pr<=0) idx--;
+  idx = Math.max(0,Math.min(4, idx + (pr>0 && bmiish>22 ? 1 : 0)));
+  let tr = waist ? waist : String(Math.min(38,Math.max(28, Math.round((w*0.37+6)/2)*2)));
+  return {shirt:SIZES.shirt[idx], trouser:tr};
+}
+document.getElementById("findSize").addEventListener("click",()=>{
+  const h=+document.getElementById("fh").value, w=+document.getElementById("fw").value, waist=document.getElementById("fwaist").value;
+  const out=document.getElementById("fitResult");
+  if(!(h>=140&&h<=210) || !(w>=40&&w<=160)){ out.classList.add("show"); out.innerHTML=`<p class="small">Enter a height between 140 and 210 cm and a weight between 40 and 160 kg.</p>`; return; }
+  const r=suggestSizes(h,w,waist,pref);
+  out.classList.add("show");
+  out.innerHTML=`<div class="two"><div><div class="small" style="margin:0 0 6px">Shirts</div><div class="big">${r.shirt}</div></div><div><div class="small" style="margin:0 0 6px">Trousers</div><div class="big">${r.trouser}</div></div></div>
+  <p class="small">${waist?"Trouser size matches your usual jeans waist.":"Trouser size is estimated. Your usual jeans waist gives a more accurate answer."} Free size exchanges within 7 days of delivery.</p>`;
+});
+
+/* ---------- AI stylist ---------- */
+const log=document.getElementById("log"), ask=document.getElementById("ask"), send=document.getElementById("send");
+const history=[]; let sample=null, busy=false, ctrl=null;
+function addMsg(role, text, recs){
+  const d=document.createElement("div"); d.className="msg "+role;
+  if(role==="ai"){ d.innerHTML=`<div class="who">NN stylist</div><div class="text"></div>`; d.querySelector(".text").textContent=text;
+    if(recs&&recs.length){ const r=document.createElement("div"); r.className="recs"; r.innerHTML=recs.map(id=>byId(id)).filter(Boolean).map(recHTML).join(""); d.appendChild(r); } }
+  else d.textContent=text;
+  log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
+}
+log.addEventListener("click",e=>{const r=e.target.closest("[data-rec]"); if(r) openProduct(r.dataset.rec);});
+addMsg("ai","Hello. I can help you choose from Collection 001, plan an outfit for an occasion, or work out your size. What are you dressing for?");
+
+const CATALOGUE = PRODUCTS.map(p=>({id:p.id, name:fullName(p), type:p.type, price_inr:p.price, description:p.note, best_for: OCCASION[p.id]||"pairs with every trouser"}));
+function buildPrompt(q){
+  const convo = history.slice(-8).map(m=>(m.role==="user"?"Customer: ":"Stylist: ")+m.text).join("\n");
+  return `You are the NN stylist for NERO NOREN, an Indian, online-first, European-inspired menswear brand. Voice: calm, precise, warm, never pushy, no hype words, no emojis. Collection 001 "The Foundations" has exactly these 8 products (never invent others, never invent discounts, fabrics or delivery promises beyond what's listed):
+${JSON.stringify(CATALOGUE)}
+Sizes: shirts S, M, L, XL, XXL (chest S 36-38in, M 38-40, L 40-42, XL 42-44, XXL 44-47). Trousers waist 28 to 38 in even sizes, matching the customer's usual jeans waist. For size questions give a best estimate and suggest the Find your fit tool on the page for accuracy.
+If a question is outside clothing, politely bring it back to what you can help with.
+Conversation so far:
+${convo}
+Customer: ${q}
+Reply ONLY with JSON, no markdown: {"reply": "2 to 4 short sentences", "products": ["up to 3 product ids from the list that you recommend, or empty"]}`;
+}
+function localStylist(q){
+  const s=q.toLowerCase();
+  if(/size|fit|tall|slim|kg|cm|waist|"|feet|ft/.test(s)) return {reply:"For a slim build around 5'9\", most men are a size M in our shirts and a 30 or 32 in trousers. Use Find your fit below with your height, weight and usual jeans waist for a closer answer.", products:["oxford-bianco","tailored-charcoal"]};
+  if(/wedding|reception|party|dinner|festive|celebrat/.test(s)) return {reply:"For a reception, the Poplin in Écru with the Pleated Trouser in Pierre looks considered without trying too hard. The pleat gives ease through the evening.", products:["poplin-ecru","pleated-pierre"]};
+  if(/office|work|interview|meeting|first day/.test(s)) return {reply:"Start with the Oxford in Bianco and the Tailored Trouser in Charcoal. It's the most reliable combination in the collection and works in any office.", products:["oxford-bianco","tailored-charcoal"]};
+  if(/stripe/.test(s)) return {reply:"The Stripe works with every trouser we make. Marine keeps it tonal and sharp, Sable makes it lighter for the day.", products:["stripe-marine","tailored-marine","tailored-sable"]};
+  if(/weekend|casual|brunch|travel|holiday/.test(s)) return {reply:"The Oxford in Azure with the Tailored Trouser in Sable is easy and bright for daytime, and it travels well.", products:["oxford-azure","tailored-sable"]};
+  return {reply:"A good first pair is the Oxford in Bianco with the Tailored Trouser in Marine. Tell me the occasion and I'll narrow it down.", products:["oxford-bianco","tailored-marine"]};
+}
+async function askStylist(q){
+  if(busy||!q.trim()) return;
+  busy=true; send.disabled=true;
+  addMsg("user",q); history.push({role:"user",text:q});
+  const pending=addMsg("ai","Thinking about it"); pending.querySelector(".text").classList.add("typing");
+  let res=null;
+  if(sample){
+    try{ ctrl=new AbortController(); res = await sample.json(buildPrompt(q), {signal:ctrl.signal, cache:false});
+      if(!res || typeof res.reply!=="string") throw new Error("shape");
+      res.products = Array.isArray(res.products)? res.products.filter(id=>byId(id)).slice(0,3) : [];
+    }catch(err){
+      if(err && err.code==="not_granted"){ sample=null; setAI(false,"Stylist running in offline mode"); }
+      else if(err && err.code==="rate_limited"){ setAI(true,"The stylist is busy, answering from the style guide"); }
+      res=null;
+    }
+  }
+  if(!res) res=localStylist(q);
+  pending.remove(); addMsg("ai",res.reply,res.products); history.push({role:"ai",text:res.reply});
+  busy=false; send.disabled=false;
+}
+document.getElementById("composer").addEventListener("submit",()=>{const q=ask.value; ask.value=""; askStylist(q);});
+document.getElementById("suggest").addEventListener("click",e=>{const b=e.target.closest("button"); if(b) askStylist(b.textContent);});
+function setAI(on,label){ document.getElementById("aiDot").classList.toggle("on",on); document.getElementById("aiStatus").textContent=label; }
+(async()=>{
+  try{ if(window.claude && typeof window.claude.use==="function"){ sample = await window.claude.use("sample"); } }catch(e){ sample=null; }
+  setAI(!!sample, sample ? "AI stylist live" : "Stylist running in offline mode");
+})();
+
+/* ---------- Newsletter (device only in preview) ---------- */
+document.getElementById("news").addEventListener("submit",()=>{
+  const v=document.getElementById("email").value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(v)){ toast("Enter a valid email address"); return; }
+  try{ localStorage.setItem("nn-news", v); }catch(e){}
+  document.getElementById("email").value=""; toast("You're on the list");
+});
+
+/* ---------- Theme ---------- */
+const tBtn=document.getElementById("themeToggle");
+function currentDark(){ const a=document.documentElement.dataset.theme; return a ? a==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
+function syncThemeLabel(){ tBtn.textContent = currentDark() ? "Switch to light" : "Switch to dark"; }
+try{ const t=localStorage.getItem("nn-theme"); if(t) document.documentElement.dataset.theme=t; }catch(e){}
+syncThemeLabel();
+tBtn.addEventListener("click",()=>{ const next=currentDark()?"light":"dark"; document.documentElement.dataset.theme=next; try{localStorage.setItem("nn-theme",next);}catch(e){} syncThemeLabel(); });
+renderBag();
+
+/* ---------- 3D hero: the NN monogram button ---------- */
+(function(){
+  const stage=document.getElementById("stage");
+  if(!window.THREE){ stage.classList.add("no-gl"); return; }
+  let renderer;
+  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); }catch(e){ stage.classList.add("no-gl"); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+  stage.prepend(renderer.domElement);
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(30,1,0.1,100); camera.position.set(0,0,8.4);
+
+  // Studio lighting environment built in code (no external files)
+  const pm=new THREE.PMREMGenerator(renderer);
+  const env=new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(24,24,24), new THREE.MeshBasicMaterial({color:0x0c0c0c, side:THREE.BackSide})));
+  function softbox(w,h,x,y,z,i,tint){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:new THREE.Color(tint||0xffffff).multiplyScalar(i), side:THREE.DoubleSide})); m.position.set(x,y,z); m.lookAt(0,0,0); env.add(m); }
+  softbox(10,3,-6,6,5,5); softbox(3,9,8,0,4,3,0xfff1d6); softbox(12,2,0,-8,1,1.2); softbox(6,6,0,3,-9,2); softbox(2,2,-3,-2,8,2.5);
+  scene.environment=pm.fromScene(env,0.03).texture;
+
+  const button=new THREE.Group();
+  // Horn body (lathe profile)
+  const prof=[[0,0.13],[0.7,0.14],[1.15,0.17],[1.38,0.22],[1.5,0.25],[1.62,0.2],[1.68,0.06],[1.66,-0.1],[1.55,-0.17],[0,-0.17]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const bodyGeo=new THREE.LatheGeometry(prof,128);
+  const horn=new THREE.MeshPhysicalMaterial({color:0x0d0c0b, roughness:0.38, metalness:0.05, clearcoat:1, clearcoatRoughness:0.12});
+  const body=new THREE.Mesh(bodyGeo,horn); body.rotation.x=Math.PI/2; button.add(body);
+  const gold=new THREE.MeshStandardMaterial({color:0xd8b24a, metalness:1, roughness:0.26});
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.055,24,200),gold); rim.position.z=0.25; button.add(rim);
+  const rim2=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.018,16,200),gold); rim2.position.z=0.18; button.add(rim2);
+
+  // Build an N from extruded shapes
+  function rect(x,y,w,h){ const s=new THREE.Shape(); s.moveTo(x,y); s.lineTo(x+w,y); s.lineTo(x+w,y+h); s.lineTo(x,y+h); s.closePath(); return s; }
+  function makeN(){
+    const W=0.78,H=1.08,t=0.085,d=0.2, shapes=[];
+    shapes.push(rect(0,0,t,H));            // thin left stem
+    shapes.push(rect(W-t,0,t,H));          // thin right stem
+    const diag=new THREE.Shape(); diag.moveTo(0,H); diag.lineTo(d,H); diag.lineTo(W,0); diag.lineTo(W-d,0); diag.closePath(); shapes.push(diag); // thick diagonal
+    shapes.push(rect(-0.1,H-0.035,0.27,0.035)); shapes.push(rect(-0.1,0,0.28,0.035)); // left serifs
+    shapes.push(rect(W-0.17,H-0.035,0.27,0.035)); // right serif
+    const g=new THREE.Group();
+    shapes.forEach(s=>{ const geo=new THREE.ExtrudeGeometry(s,{depth:0.07,bevelEnabled:true,bevelThickness:0.012,bevelSize:0.008,bevelSegments:2,curveSegments:4}); g.add(new THREE.Mesh(geo,gold)); });
+    return g;
+  }
+  const mono=new THREE.Group();
+  const n1=makeN(); n1.position.set(-0.66,-0.36,0);
+  const n2=makeN(); n2.position.set(-0.16,-0.72,0.012);
+  mono.add(n1,n2); mono.position.set(0,0.02,0.15); mono.scale.setScalar(1.02);
+  // recentre composite
+  mono.children.forEach(c=>{c.position.x+=0.04; c.position.y+=0.12;});
+  button.add(mono);
+  button.rotation.set(-0.22,0.35,0);
+  scene.add(button);
+
+  function resize(){ const r=stage.getBoundingClientRect(); const s=Math.max(10,Math.min(r.width,r.height||r.width)); renderer.setSize(r.width,r.width,false); camera.aspect=1; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(stage); resize();
+
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let dragging=false, lx=0, ly=0, vy=0, vx=0, ty=0.35, tx=-0.22, spin=0;
+  stage.addEventListener("pointerdown",e=>{dragging=true; lx=e.clientX; ly=e.clientY; stage.setPointerCapture(e.pointerId);});
+  stage.addEventListener("pointermove",e=>{
+    if(dragging){ vy=(e.clientX-lx)*0.012; vx=(e.clientY-ly)*0.006; spin+=vy; tx=Math.max(-0.7,Math.min(0.7,tx+vx)); lx=e.clientX; ly=e.clientY; if(reduce) draw(); }
+  });
+  const end=()=>{dragging=false;}; stage.addEventListener("pointerup",end); stage.addEventListener("pointercancel",end);
+
+  let visible=true;
+  new IntersectionObserver(es=>{visible=es[0].isIntersecting;}).observe(stage);
+  const clock=new THREE.Clock();
+  function draw(){ button.rotation.y=ty+spin; button.rotation.x=tx; renderer.render(scene,camera); }
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!visible) return;
+    const t=clock.getElapsedTime();
+    if(!dragging){ vy*=0.94; spin+=vy; }
+    ty = 0.35*Math.sin(t*0.35);
+    button.position.y = Math.sin(t*0.8)*0.05;
+    draw();
+  }
+  if(reduce){ draw(); } else loop();
+})();
+</script>
+</body>
+</html>
