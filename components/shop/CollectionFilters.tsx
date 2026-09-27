@@ -11,6 +11,7 @@
 import { useMemo, useState } from "react";
 import type { Product } from "@/lib/catalog/types";
 import { ProductCard } from "./ProductCard";
+import { GlassPill } from "@/components/ui/glass/GlassButton";
 
 type Filter = "all" | "shirt" | "trouser";
 type Sort = "curated" | "price-asc" | "price-desc";
@@ -49,27 +50,18 @@ export function CollectionFilters({ products }: { products: Product[] }) {
 
   return (
     <>
-      <div className="mb-10 flex flex-wrap items-center justify-between gap-5 border-b pb-5">
+      <div className="nn-filters">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter the collection">
-          {FILTERS.filter((f) => f.value === "all" || counts[f.value] > 0).map((f) => {
-            const on = filter === f.value;
-            return (
-              <button
-                key={f.value}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setFilter(f.value)}
-                className="border px-4 py-2 text-eyebrow uppercase tracking-[0.14em] transition-colors duration-500"
-                style={{
-                  borderColor: on ? "var(--btn-bg)" : "var(--line)",
-                  background: on ? "var(--btn-bg)" : "transparent",
-                  color: on ? "var(--btn-ink)" : "var(--ink-soft)",
-                }}
-              >
-                {f.label}
-              </button>
-            );
-          })}
+          {FILTERS.filter((f) => f.value === "all" || counts[f.value] > 0).map((f) => (
+            <GlassPill
+              key={f.value}
+              tone="metal"
+              active={filter === f.value}
+              onClick={() => setFilter(f.value)}
+            >
+              {f.label}
+            </GlassPill>
+          ))}
         </div>
 
         <div className="flex items-center gap-3">
@@ -98,7 +90,7 @@ export function CollectionFilters({ products }: { products: Product[] }) {
       {shown.length === 0 ? (
         <p className="text-[var(--ink-soft)]">Nothing in the collection matches that just now.</p>
       ) : (
-        <div className="grid gap-x-6 gap-y-12 [grid-template-columns:repeat(auto-fill,minmax(min(248px,100%),1fr))]">
+        <div className="nn-grid">
           {shown.map((p) => (
             <ProductCard key={p.handle} product={p} />
           ))}
