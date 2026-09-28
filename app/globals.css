@@ -1,26 +1,424 @@
 @import "tailwindcss";
 
+/* ============================================================
+   NERO NOREN — design tokens
+   Source of truth: NN Luxury Brand Identity Board.
+   Palette, typography and material language derive from it.
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Brand constants (never change with phase) --- */
+  --nn-black: #0a0a0a;
+  --nn-ink: #050505;
+  --nn-ivory: #f7f5ef;
+  --nn-ivory-warm: #efe9dd;
+  --nn-charcoal: #2e2e2e;
+  --nn-stone: #b7b1a7;
+  --nn-taupe: #6d5e52;
+  --nn-olive: #4f5443;
+  --nn-burgundy: #4a1f34;
+  --nn-brass: #c9a43a;
+  --nn-brass-light: #e2c87a;
+
+  /* --- Spatial scale --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* --- Radius: architectural, restrained --- */
+  --r-xs: 2px;
+  --r-sm: 3px;
+  --r-md: 4px;
+  --r-lg: 6px;
+  --r-pill: 999px;
+
+  /* --- Motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-glass: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 640ms;
+  --dur-cinematic: 1200ms;
+
+  /* --- Z-index system --- */
+  --z-atmosphere: 0;
+  --z-showroom: 1;
+  --z-content: 10;
+  --z-nav: 60;
+  --z-sheet: 70;
+  --z-modal: 80;
+  --z-orb: 90;
+  --z-loader: 100;
+}
+
+/* ============================================================
+   PHASE THEMES
+   The showroom follows the visitor's own clock.
+   day  → limestone + daylight through tall windows
+   dusk → warm transitional, lamps coming up
+   night→ deep black, brass pools of light
+   ============================================================ */
+
+:root,
+[data-phase="morning"],
+[data-phase="afternoon"] {
+  --bg: #e8e4da;
+  --bg-deep: #dcd7cb;
+  --bg-elev: #f2efe7;
+  --ink: #131313;
+  --ink-soft: #4a4742;
+  --ink-faint: #85807a;
+  --line: rgba(19, 19, 19, 0.14);
+  --line-soft: rgba(19, 19, 19, 0.07);
+  --accent: #8a6d20;
+  --accent-ink: #f7f5ef;
+  --glass-bg: rgba(252, 251, 247, 0.55);
+  --glass-line: rgba(19, 19, 19, 0.1);
+  --glass-hi: rgba(255, 255, 255, 0.75);
+  --glass-blur: 22px;
+  --shadow-lift: 0 18px 50px -24px rgba(30, 26, 18, 0.45);
+  --shadow-press: 0 4px 14px -6px rgba(30, 26, 18, 0.4);
+  --grain-opacity: 0.16;
+  color-scheme: light;
+}
+
+[data-phase="evening"] {
+  --bg: #d9cfbe;
+  --bg-deep: #c3b6a0;
+  --bg-elev: #ece2d1;
+  --ink: #1a1613;
+  --ink-soft: #524a40;
+  --ink-faint: #8b8071;
+  --line: rgba(26, 22, 19, 0.16);
+  --line-soft: rgba(26, 22, 19, 0.08);
+  --accent: #9a7420;
+  --accent-ink: #faf7ef;
+  --glass-bg: rgba(250, 245, 234, 0.5);
+  --glass-line: rgba(26, 22, 19, 0.12);
+  --glass-hi: rgba(255, 250, 236, 0.7);
+  --glass-blur: 24px;
+  --shadow-lift: 0 20px 56px -24px rgba(58, 40, 16, 0.5);
+  --shadow-press: 0 4px 14px -6px rgba(58, 40, 16, 0.45);
+  --grain-opacity: 0.18;
+  color-scheme: light;
+}
+
+[data-phase="night"] {
+  --bg: #0a0a0a;
+  --bg-deep: #050505;
+  --bg-elev: #151412;
+  --ink: #f7f5ef;
+  --ink-soft: #b7b1a7;
+  --ink-faint: #7d776e;
+  --line: rgba(247, 245, 239, 0.14);
+  --line-soft: rgba(247, 245, 239, 0.07);
+  --accent: #c9a43a;
+  --accent-ink: #0a0a0a;
+  --glass-bg: rgba(22, 21, 19, 0.5);
+  --glass-line: rgba(247, 245, 239, 0.12);
+  --glass-hi: rgba(255, 252, 240, 0.16);
+  --glass-blur: 26px;
+  --shadow-lift: 0 24px 64px -28px rgba(0, 0, 0, 0.85);
+  --shadow-press: 0 6px 18px -8px rgba(0, 0, 0, 0.8);
+  --grain-opacity: 0.22;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-elev: var(--bg-elev);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-brass: var(--nn-brass);
+  --color-stone: var(--nn-stone);
+  --color-taupe: var(--nn-taupe);
+  --color-olive: var(--nn-olive);
+  --color-burgundy: var(--nn-burgundy);
+  --color-ivory: var(--nn-ivory);
+  --color-nnblack: var(--nn-black);
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-hanken), "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+
+  --breakpoint-xs: 26.875rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================
+   BASE
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+  transition: background-color 1600ms var(--ease-in-out), color 1600ms var(--ease-in-out);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Architectural focus ring — visible, never decorative */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 3px solid var(--bg-deep);
+  border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ============================================================
+   TYPOGRAPHY — European editorial + precise technical metadata
+   ============================================================ */
+
+.nn-display {
+  font-family: var(--font-display);
+  font-weight: 300;
+  line-height: 0.94;
+  letter-spacing: -0.015em;
+}
+
+.nn-wordmark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.nn-meta {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.nn-label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nn-body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.005em;
+  max-width: 62ch;
+}
+
+.nn-rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+}
+
+/* ============================================================
+   LIQUID GLASS — architectural glass, not translucent boxes
+   ============================================================ */
+
+.nn-glass {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--shadow-lift);
+  isolation: isolate;
+}
+
+/* Edge light: the top rim catches showroom light like real glass */
+.nn-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--glass-hi) 0%,
+    transparent 22%,
+    transparent 78%,
+    color-mix(in srgb, var(--glass-hi) 40%, transparent) 100%
+  );
+  opacity: 0.85;
+  z-index: -1;
+}
+
+/* Refraction sweep: follows the pointer, driven by --mx/--my */
+.nn-glass-live::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-glass);
+  background: radial-gradient(
+    22rem 22rem at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--glass-hi) 70%, transparent),
+    transparent 62%
+  );
+  z-index: -1;
+}
+.nn-glass-live:hover::after,
+.nn-glass-live:focus-within::after {
+  opacity: 1;
+}
+
+/* ============================================================
+   ATMOSPHERE — film grain over the whole world
+   ============================================================ */
+
+.nn-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 55;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: overlay;
+  background-image: var(--nn-grain-url);
+  background-size: 180px 180px;
+}
+
+/* ============================================================
+   REVEALS — CSS-driven so they work before hydration
+   ============================================================ */
+
+@keyframes nn-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.25rem, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes nn-wipe {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes nn-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes nn-sheen {
+  0% {
+    background-position: -140% 0;
+  }
+  100% {
+    background-position: 240% 0;
+  }
+}
+
+.nn-rise {
+  animation: nn-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.nn-sheen {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--accent) 45%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: nn-sheen 3.6s var(--ease-in-out) 0.4s both;
+}
+
+/* ============================================================
+   REDUCED MOTION — content stays, movement goes
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .nn-rise,
+  .nn-sheen {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
