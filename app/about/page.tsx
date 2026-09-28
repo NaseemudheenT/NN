@@ -1,74 +1,104 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Prose } from "@/components/layout/Prose";
+import { PageHeader, Section } from "@/components/layout/PageHeader";
+import { Reveal } from "@/components/motion/Reveal";
+import { LiveMonogram } from "@/components/brand/Monogram";
+import { GlassButton } from "@/components/ui/glass/Glass";
+import { SECONDARY_TAGLINE, TAGLINE } from "@/lib/tokens";
 
 export const metadata: Metadata = {
-  title: "About Nero Noren",
+  title: "The house",
   description:
-    "NERO NOREN Private Limited: European-inspired menswear, cut for Indian life, made and sold online first.",
-  alternates: { canonical: "/about" },
+    "Nero Noren is an online-first menswear house for men and boys. Timeless style builds character.",
 };
+
+const PRINCIPLES = [
+  {
+    n: "01",
+    t: "One collection, worn together",
+    b: "Every piece is chosen so it works with the others. A shirt that only goes with one trouser is a shirt that does not get worn.",
+  },
+  {
+    n: "02",
+    t: "Men and boys, the same standard",
+    b: "A boy's blazer is not a toy. It is cut from the same cloth, to the same standard, at a smaller scale.",
+  },
+  {
+    n: "03",
+    t: "Say what the cloth is",
+    b: "Fabric, weight, fit and care are published plainly. No claims about origin or heritage that we cannot stand behind.",
+  },
+  {
+    n: "04",
+    t: "The garment is the point",
+    b: "The showroom, the light and the motion exist to present the clothes. When any of it competes with the clothes, it goes.",
+  },
+];
 
 export default function AboutPage() {
   return (
     <>
       <PageHeader
         eyebrow="The house"
-        title="European in design, honest about origin"
-        lede="Nero Noren is an online-first menswear house. The design language is European. The clothes are made in India, for Indian life, and we say so."
+        title={["Nero Noren"]}
+        lede={`${TAGLINE}. An online-first house for men and boys, built to last longer than a season.`}
       />
-      <Prose>
-        <h2>What we are</h2>
-        <p>
-          Nero Noren Private Limited makes a small, deliberate range of menswear and sells it
-          directly. There is no shop to walk into yet, which is why we built one you can walk
-          through — the showroom on this site is the shop, and it is lit by the time of day where
-          you are standing.
-        </p>
-        <p>
-          The founder is Naseemudheen. The first range, Collection 001, is called The Foundations
-          because that is what it is: the shirts and trousers a wardrobe is built on, cut so that
-          every piece meets every other piece.
-        </p>
 
-        <h2>Fabric, fit and finish first</h2>
-        <p>
-          The cloth is chosen before the colour, and the pattern is corrected before the range is
-          signed off. A shirt that fits badly in a beautiful fabric is still a shirt that fits
-          badly. We would rather cut a piece from the range than ship one we are not sure of.
-        </p>
+      <Section className="pb-24 md:pb-32">
+        <div className="grid gap-16 md:grid-cols-[0.85fr_1.15fr] md:gap-24">
+          <Reveal>
+            <LiveMonogram className="h-16 w-auto text-accent" />
+            <p className="nn-meta mt-6 text-ink-faint">{SECONDARY_TAGLINE}</p>
+          </Reveal>
+          <Reveal delay={0.1} className="space-y-6">
+            <p className="nn-body text-base text-ink-soft">
+              The mark is two serif N&apos;s, interlocked. It is stamped on the neck label, cast
+              into the buttons, embossed on the bag and set into the floor of the showroom at the
+              threshold. It is the same drawing at every size, because a house should look like
+              itself everywhere.
+            </p>
+            <p className="nn-body text-base text-ink-soft">
+              We begin online. That is a practical decision, not a modest one: it means the money
+              goes into cloth and cut rather than rent, and it means the room a customer walks into
+              has to be built rather than leased. So we built one — the showroom on this site is
+              drawn in code, lit by the hour of your own clock, and the clothes hang in it.
+            </p>
+            <p className="nn-body text-base text-ink-soft">
+              Collection 001 is called The Foundations because that is what it is: the shirt the
+              wardrobe is built around, and the trouser that goes with all of it. Everything that
+              comes after has to earn its place beside them.
+            </p>
+          </Reveal>
+        </div>
+      </Section>
 
-        <h2>Fair prices, no permanent sale</h2>
-        <p>
-          One price, held. A brand that discounts continuously has told you its first price was
-          not real. We would rather be honest about what a piece costs and stand behind it.
-        </p>
+      <Section className="border-t border-line py-20 md:py-28">
+        <p className="nn-meta text-ink-faint">How we work</p>
+        <ul className="mt-12 grid gap-px border border-line bg-line sm:grid-cols-2">
+          {PRINCIPLES.map((p, i) => (
+            <Reveal key={p.n} as="li" delay={i * 0.06} className="bg-bg p-8 md:p-10">
+              <span className="font-display text-3xl font-light text-accent">{p.n}</span>
+              <h2 className="mt-4 font-display text-2xl font-light text-ink">{p.t}</h2>
+              <p className="nn-body mt-3 text-[0.9rem] text-ink-soft">{p.b}</p>
+            </Reveal>
+          ))}
+        </ul>
+      </Section>
 
-        <h2>Honest about origin</h2>
-        <p>
-          The design references are European — the cut of the Oxford, the rise of the trouser,
-          the restraint. The garments are made in India. We will not imply otherwise, use an
-          Italian-sounding phrase we have not earned, or print a city on a label that nothing
-          has ever been near.
-        </p>
-
-        <h2>Details</h2>
-        <p>
-          A woven label at the back neck. NN engraved buttons. A pressed crease that holds. Single
-          needle side seams on the shirts. These cost more to make and they are the difference
-          between a garment and a product.
-        </p>
-
-        <h2>The company</h2>
-        <dl>
-          <dt>Registered name</dt>
-          <dd>Nero Noren Private Limited</dd>
-          <dt>Founder</dt>
-          <dd>Naseemudheen</dd>
-          <dt>Trade</dt>
-          <dd>Online-first menswear, delivered across India</dd>
-        </dl>
-      </Prose>
+      <Section className="border-t border-line py-24 text-center md:py-32">
+        <Reveal>
+          <h2 className="nn-display mx-auto max-w-2xl text-[clamp(2rem,5vw,3.4rem)] text-ink">
+            {TAGLINE}
+          </h2>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <GlassButton href="/collection" variant="solid" size="lg">
+              Collection 001
+            </GlassButton>
+            <GlassButton href="/" variant="quiet" size="lg">
+              Walk the showroom
+            </GlassButton>
+          </div>
+        </Reveal>
+      </Section>
     </>
   );
 }

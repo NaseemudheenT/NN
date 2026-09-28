@@ -1,192 +1,290 @@
 "use client";
 
-/**
- * A single piece, presented.
- *
- * The garment stands on a lit plinth on the left; its identity, price and
- * actions sit on the right. That is the layout of a showroom display, and it
- * is also the layout a customer needs: the thing, then the decision.
- *
- * The piece turns. That is not decoration — turning it is how the woven NN
- * label at the back neck becomes visible, and that label is one of the details
- * the brand board is built on. A real back view, on a real transform, not a
- * crossfade between two pictures.
- *
- * The product wins over the environment on this page. Whatever the showroom is
- * doing, the garment is the brightest thing on screen.
- */
-
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import type { Product } from "@/lib/catalog/types";
-import { formatMinor } from "@/lib/money";
-import { GarmentArt } from "./GarmentArt";
-import { SizePicker } from "./SizePicker";
-import { useBag } from "./BagProvider";
-import { LogoMark } from "@/components/brand/LogoMark";
-import { track } from "@/components/layout/ConsentBanner";
-import { GlassButton, GlassPill } from "@/components/ui/glass/GlassButton";
-import { SPRING } from "@/lib/motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { GlassButton } from "@/components/ui/glass/Glass";
+import { ProductCard } from "./ProductCard";
+import { Reveal, RevealLines } from "@/components/motion/Reveal";
+import { useBag, formatMoney } from "@/lib/bag";
+import { MOTION } from "@/lib/tokens";
+import type { Product } from "@/lib/types";
+
+/* ------------------------------------------------------------------ */
+/* Inspection: the garment, up close                                   */
+/* ------------------------------------------------------------------ */
+
+function Inspector({ product }: { product: Product }) {
+  const [index, setIndex] = useState(0);
+  const [zoom, setZoom] = useState(false);
+  const [origin, setOrigin] = useState("50% 50%");
+  const images = product.images;
+  const current = images[index];
+
+  return (
+    <div className="lg:sticky lg:top-28">
+      <div
+        className="group relative aspect-4/5 w-full overflow-hidden border border-line"
+        style={{
+          background: current
+            ? undefined
+            : `linear-gradient(168deg, ${product.swatch} 0%, color-mix(in srgb, ${product.swatch} 55%, #000) 100%)`,
+        }}
+        onPointerMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setOrigin(
+            `${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`,
+          );
+        }}
+        onPointerLeave={() => setZoom(false)}
+      >
+        {current ? (
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={current.url}
+              src={current.url}
+              alt={current.alt}
+              className="h-full w-full object-cover"
+              style={{ transformOrigin: origin }}
+              initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
+              animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)", scale: zoom ? 1.9 : 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: MOTION.ease }}
+              onClick={() => setZoom((z) => !z)}
+            />
+          </AnimatePresence>
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-4 p-10 text-center">
+            <span className="nn-meta text-ivory/70">Photography to come</span>
+            <p className="nn-body max-w-xs text-[0.8rem] text-ivory/60">
+              This piece is shown in its colourway. The studio images live in the store and appear
+              here once it is connected.
+            </p>
+          </div>
+        )}
+
+        {current && (
+          <button
+            type="button"
+            onClick={() => setZoom((z) => !z)}
+            className="nn-glass nn-label absolute bottom-4 right-4 rounded-full px-4 py-2.5 text-ink opacity-0 transition-opacity duration-300 group-hover:opacity-100 focus-visible:opacity-100"
+          >
+            {zoom ? "Step back" : "Look closer"}
+          </button>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="mt-3 flex gap-2">
+          {images.map((img, i) => (
+            <button
+              key={img.url}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`View image ${i + 1}`}
+              aria-current={i === index}
+              className={`h-20 w-16 border transition-colors duration-300 ${
+                i === index ? "border-accent" : "border-line hover:border-ink/40"
+              }`}
+              style={{ background: `center/cover no-repeat url(${img.url})` }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 
 export function ProductDetail({
   product,
-  source,
+  related,
 }: {
   product: Product;
-  source: "shopify" | "seed";
+  related: Product[];
 }) {
   const [size, setSize] = useState<string | null>(null);
-  const [turned, setTurned] = useState(false);
-  const { add, openBag } = useBag();
+  const [error, setError] = useState<string | null>(null);
+  const add = useBag((s) => s.add);
 
-  const variant = product.variants.find((v) => v.size === size);
-  const inStock = product.variants.filter((v) => v.available);
-  const soldOut = inStock.length === 0;
+  const variantFor = (s: string) => product.variants.find((v) => v.size === s);
+  const soldOut = (s: string) => {
+    const v = variantFor(s);
+    return v ? !v.available : false;
+  };
+
+  function addToBag() {
+    if (!size) {
+      setError("Choose a size first.");
+      return;
+    }
+    setError(null);
+    const variant = variantFor(size);
+    add({
+      variantId: variant?.id ?? `${product.handle}:${size}`,
+      handle: product.handle,
+      title: product.title,
+      colour: product.colour,
+      size,
+      quantity: 1,
+      price: variant?.price ?? product.price,
+      image: product.images[0]?.url ?? null,
+    });
+  }
 
   return (
-    <div className="nn-product">
-      {/* ═══ the display ═══ */}
-      <div className="nn-product__display">
-        <div className="nn-product__plinth">
-          <span className="nn-product__light" aria-hidden="true" />
+    <>
+      <article className="relative z-10 px-5 pt-28 sm:px-8 md:pt-40">
+        <div className="mx-auto max-w-[84rem]">
+          <nav aria-label="Breadcrumb" className="nn-meta mb-8 text-ink-faint">
+            <Link href="/collection" className="transition-colors hover:text-ink">
+              Collection 001
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-ink">{product.title}</span>
+          </nav>
 
-          <motion.div
-            className="nn-product__turn"
-            animate={{ rotateY: turned ? 180 : 0 }}
-            transition={SPRING.heavy}
-          >
-            {/* front */}
-            <div className="nn-product__face">
-              <GarmentArt product={product} className="w-full" />
-            </div>
+          <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
+            <Inspector product={product} />
 
-            {/* back, with the woven label at the neck */}
-            <div className="nn-product__face nn-product__face--back">
-              <div className="relative w-full">
-                <GarmentArt
-                  product={{
-                    ...product,
-                    style: product.type === "shirt" ? "poplin" : product.style,
-                  }}
-                  className="w-full"
-                />
-                <span className="nn-product__tag">
-                  <LogoMark size={11} ring={false} shimmer={false} title={null} />
-                  <span>Nero Noren</span>
-                </span>
+            <div>
+              <p className="nn-meta text-ink-faint">{product.colour}</p>
+              <h1 className="nn-display mt-4 text-[clamp(2.2rem,5.5vw,3.6rem)] text-ink">
+                <RevealLines lines={[product.title]} />
+              </h1>
+
+              <p className="mt-5 font-display text-2xl font-light text-ink">
+                {formatMoney(product.price) ?? (
+                  <span className="text-ink-faint">Price held in the store</span>
+                )}
+              </p>
+
+              <p className="nn-body mt-7 text-[0.95rem] text-ink-soft">{product.description}</p>
+
+              {/* sizes */}
+              <div className="mt-10">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="nn-label text-ink">Size</h2>
+                  <Link href="/sizing" className="nn-meta text-ink-faint underline-offset-4 hover:text-ink hover:underline">
+                    Size guide
+                  </Link>
+                </div>
+                <div className="mt-3.5 flex flex-wrap gap-2">
+                  {product.sizes.map((s) => {
+                    const out = soldOut(s);
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={out}
+                        onClick={() => {
+                          setSize(s);
+                          setError(null);
+                        }}
+                        aria-pressed={size === s}
+                        className={`nn-label min-w-14 border px-4 py-3 transition-all duration-300 [transition-timing-function:var(--ease-out)] ${
+                          size === s
+                            ? "border-ink bg-ink text-bg"
+                            : out
+                              ? "cursor-not-allowed border-line text-ink-faint line-through"
+                              : "border-line text-ink-soft hover:border-ink hover:text-ink"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+                <AnimatePresence>
+                  {error && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="nn-meta mt-3 text-accent"
+                      role="alert"
+                    >
+                      {error}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          </motion.div>
 
-          <span className="nn-product__shadow" aria-hidden="true" />
-        </div>
-
-        <div className="nn-product__turnbar">
-          <GlassButton
-            tone="quiet"
-            size="sm"
-            onClick={() => setTurned((t) => !t)}
-            aria-pressed={turned}
-            magnetism={3}
-          >
-            {turned ? "Show the front" : "Turn it around"}
-          </GlassButton>
-          <p className="nn-product__hint">
-            {turned
-              ? "The woven NN label, stitched across the inside of the back neck."
-              : "Turn it to see the back-neck label."}
-          </p>
-        </div>
-      </div>
-
-      {/* ═══ the identity ═══ */}
-      <div className="nn-product__identity">
-        <p className="nn-label nn-label--metal">{product.colour}</p>
-        <h1 className="nn-product__name">{product.name}</h1>
-
-        <div className="nn-product__price">
-          <span className="nn-tabular">
-            {formatMinor(variant?.priceMinor ?? product.priceMinor, product.currency)}
-          </span>
-          {soldOut ? (
-            <GlassPill>Sold out</GlassPill>
-          ) : (
-            <GlassPill>{inStock.length} sizes in stock</GlassPill>
-          )}
-        </div>
-
-        <p className="nn-product__description">{product.description}</p>
-
-        <div className="nn-product__sizes">
-          <SizePicker product={product} value={size} onChange={setSize} />
-        </div>
-
-        <div className="nn-product__actions">
-          <GlassButton
-            tone="metal"
-            size="lg"
-            block
-            disabled={soldOut || !size}
-            onClick={() => {
-              if (!size) return;
-              add(
-                { handle: product.handle, size, quantity: 1, variantId: variant?.id },
-                `${product.name}, ${product.colour}, size ${size},`,
-              );
-              track("add_to_bag", { handle: product.handle, size });
-              openBag();
-            }}
-          >
-            {soldOut ? "Sold out" : size ? "Add to bag" : "Choose a size"}
-          </GlassButton>
-
-          <Link href={`/trial-room?product=${product.handle}`} className="block">
-            <GlassButton tone="quiet" size="lg" block>
-              Try it on
-            </GlassButton>
-          </Link>
-        </div>
-
-        {/* ═══ the specification ═══ */}
-        <dl className="nn-product__spec">
-          {[
-            { term: "Fabric", detail: product.fabric },
-            { term: "How it fits", detail: product.fitNotes },
-            { term: "Best for", detail: product.bestFor },
-            { term: "Care", detail: product.care },
-          ]
-            .filter((row) => row.detail)
-            .map((row) => (
-              <div key={row.term} className="nn-product__specrow">
-                <dt className="nn-label">{row.term}</dt>
-                <dd>{row.detail}</dd>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <GlassButton variant="solid" size="lg" onClick={addToBag}>
+                  Add to bag
+                </GlassButton>
+                <GlassButton
+                  href={`/trial-room?piece=${product.handle}`}
+                  variant="glass"
+                  size="lg"
+                >
+                  Try it in the fitting room
+                </GlassButton>
               </div>
-            ))}
 
-          <div className="nn-product__specrow">
-            <dt className="nn-label">Details</dt>
-            <dd>
-              Woven NN label at the back neck. NN engraved buttons.{" "}
-              {product.type === "shirt"
-                ? "Single-needle side seams and a split yoke."
-                : "A pressed crease that holds, and a clean 17 cm hem."}
-            </dd>
+              {/* the garment's facts */}
+              <dl className="mt-12 border-t border-line">
+                {[
+                  ["Cloth", product.fabric],
+                  ["Fit", product.fit],
+                  ["Colourway", product.colour],
+                ]
+                  .filter(([, v]) => v)
+                  .map(([k, v]) => (
+                    <div key={k} className="grid grid-cols-[7rem_1fr] gap-4 border-b border-line py-4">
+                      <dt className="nn-meta text-ink-faint">{k}</dt>
+                      <dd className="nn-body text-[0.875rem] text-ink">{v}</dd>
+                    </div>
+                  ))}
+                {product.care.length > 0 && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-4 border-b border-line py-4">
+                    <dt className="nn-meta text-ink-faint">Care</dt>
+                    <dd>
+                      <ul className="space-y-1.5">
+                        {product.care.map((c) => (
+                          <li key={c} className="nn-body text-[0.875rem] text-ink">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
+                <div className="grid grid-cols-[7rem_1fr] gap-4 border-b border-line py-4">
+                  <dt className="nn-meta text-ink-faint">Delivery</dt>
+                  <dd className="nn-body text-[0.875rem] text-ink">
+                    <Link href="/delivery" className="underline-offset-4 hover:underline">
+                      Delivery and returns
+                    </Link>
+                  </dd>
+                </div>
+              </dl>
+            </div>
           </div>
+        </div>
+      </article>
 
-          <div className="nn-product__specrow">
-            <dt className="nn-label">Delivery</dt>
-            <dd>Delivered across India. Free size exchanges within 7 days.</dd>
+      {related.length > 0 && (
+        <section className="relative z-10 mt-28 border-t border-line px-5 py-20 sm:px-8 md:mt-40">
+          <div className="mx-auto max-w-[84rem]">
+            <Reveal>
+              <p className="nn-meta text-ink-faint">Worn with</p>
+              <h2 className="nn-display mt-3 text-[clamp(1.8rem,4vw,2.6rem)] text-ink">
+                The rest of the floor
+              </h2>
+            </Reveal>
+            <ul className="mt-10 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((p, i) => (
+                <Reveal key={p.id} as="li" delay={i * 0.05} className="bg-bg">
+                  <ProductCard product={p} />
+                </Reveal>
+              ))}
+            </ul>
           </div>
-        </dl>
-
-        {source === "seed" ? (
-          <p className="nn-product__note">
-            This price comes from the Collection 001 reference catalogue. Connect Shopify to serve
-            live prices and stock.
-          </p>
-        ) : null}
-      </div>
-    </div>
+        </section>
+      )}
+    </>
   );
 }

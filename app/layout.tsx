@@ -1,110 +1,82 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
-
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { BagProvider } from "@/components/shop/BagProvider";
-import { LiveAtmosphere } from "@/components/atmosphere/LiveAtmosphere";
-import { ShowroomEntry } from "@/components/atmosphere/ShowroomEntry";
-import { PointerLight } from "@/components/motion/PointerLight";
-import { GlassNav } from "@/components/ui/navigation/GlassNav";
-import { GlassDock } from "@/components/ui/navigation/GlassDock";
-import { Footer } from "@/components/layout/Footer";
-import { ConsentBanner } from "@/components/layout/ConsentBanner";
-import { Toaster } from "@/components/layout/Toaster";
-import { BagMount } from "@/components/shop/BagMount";
-import { StylistMount } from "@/components/stylist/StylistMount";
-import { env, shopifyReady } from "@/lib/env";
-import { readShowroomSettings } from "@/lib/supabase";
+import { AppShell } from "@/components/layout/AppShell";
+import { getCatalog } from "@/lib/shopify";
+import { env } from "@/lib/env";
+import { TAGLINE } from "@/lib/tokens";
 
 const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
   display: "swap",
 });
 
 const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
-  variable: "--font-hanken",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.siteUrl),
+  metadataBase: new URL(env.siteUrl()),
   title: {
-    default: "Nero Noren — timeless style builds character",
-    template: "%s — Nero Noren",
+    default: "Nero Noren — Men & Boys",
+    template: "%s · Nero Noren",
   },
-  description:
-    "European-inspired menswear for men and boys, cut for Indian life. Walk the Nero Noren showroom, find your fit, and buy.",
-  applicationName: "Nero Noren",
-  keywords: ["Nero Noren", "menswear", "men and boys", "Oxford shirt", "tailored trousers", "Collection 001"],
-  authors: [{ name: "Nero Noren Private Limited" }],
+  description: `${TAGLINE}. The Nero Noren digital showroom: Collection 001, the trial room and the house stylist.`,
   openGraph: {
     type: "website",
     siteName: "Nero Noren",
-    title: "Nero Noren — timeless style builds character",
-    description:
-      "European-inspired menswear for men and boys. Walk the showroom, find your fit, and buy.",
-    locale: "en_IN",
+    title: "Nero Noren — Men & Boys",
+    description: `${TAGLINE}.`,
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
-  alternates: { canonical: "/" },
 };
 
 export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e8e4da" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0a0a",
-  colorScheme: "dark light",
   viewportFit: "cover",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const shopLive = shopifyReady();
-  // The owner can pin a time of day for everyone from the console.
-  const { settings } = await readShowroomSettings();
+/**
+ * The phase is written to <html> before paint so the first frame is already
+ * the right hour of the showroom — no flash of the wrong light.
+ */
+const PHASE_BOOT = `(function(){try{var o=localStorage.getItem("nn.phase");var q=new URLSearchParams(location.search).get("phase");var p=q||o;if(!p){var h=new Date().getHours();p=h>=6&&h<12?"morning":h>=12&&h<17?"afternoon":h>=17&&h<20?"evening":"night";}document.documentElement.dataset.phase=p;}catch(e){document.documentElement.dataset.phase="night";}})();`;
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const catalog = await getCatalog();
 
   return (
-    <html lang="en-IN" data-theme="night" suppressHydrationWarning>
-      <body className={`${cormorant.variable} ${hanken.variable} antialiased`}>
-        <ThemeProvider housePhase={settings.forcedPhase}>
-          <BagProvider shopLive={shopLive}>
-            {/* ── the app shell ──────────────────────────────────────
-                The atmosphere sits behind everything and outside the
-                page, so it survives navigation: moving between routes
-                should feel like walking between areas of one building,
-                and that is only true if the light does not restart at
-                every door.                                         */}
-            <LiveAtmosphere />
-
-            {/* one pointer listener, feeding every glass surface */}
-            <PointerLight />
-
-            <a className="nn-skip" href="#main">
-              Skip to content
-            </a>
-
-            <GlassNav />
-
-            <main id="main">{children}</main>
-
-            <Footer />
-
-            <GlassDock />
-            <BagMount />
-            <StylistMount />
-            <ConsentBanner />
-            <Toaster />
-
-            {/* last in the tree, first on the screen */}
-            <ShowroomEntry />
-          </BagProvider>
-        </ThemeProvider>
+    <html
+      lang="en"
+      className={`${cormorant.variable} ${hanken.variable} h-full`}
+      data-phase="night"
+      // The boot script below sets the real phase before paint; the server
+      // cannot know the visitor's clock, so this one attribute is expected
+      // to differ until hydration.
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: PHASE_BOOT }} />
+      </head>
+      <body className="flex min-h-full flex-col">
+        <a
+          href="#main"
+          className="nn-label sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:rounded-sm focus:bg-ink focus:px-4 focus:py-3 focus:text-bg"
+        >
+          Skip to content
+        </a>
+        <AppShell catalog={catalog}>{children}</AppShell>
       </body>
     </html>
   );

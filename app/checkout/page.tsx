@@ -1,25 +1,19 @@
 import type { Metadata } from "next";
-import { loadCatalogue } from "@/lib/catalog";
-import { razorpayReady } from "@/lib/env";
-import { Checkout } from "@/components/checkout/Checkout";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageHeader, Section } from "@/components/layout/PageHeader";
+import { Checkout } from "@/components/shop/Checkout";
 
 export const metadata: Metadata = {
   title: "Checkout",
-  description: "Complete your Nero Noren order.",
   robots: { index: false, follow: false },
 };
 
-export default async function CheckoutPage() {
-  const { products } = await loadCatalogue();
+export default function CheckoutPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Checkout"
-        title="Almost there"
-        lede="Your details, then payment through Razorpay. Nothing is charged until you complete it."
-      />
-      <Checkout products={products} razorpayLive={razorpayReady()} />
+      <PageHeader eyebrow="Checkout" title={["Where it", "should go"]} />
+      <Section className="pb-28 md:pb-40">
+        <Checkout />
+      </Section>
     </>
   );
 }

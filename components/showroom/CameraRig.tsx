@@ -1,180 +1,98 @@
 "use client";
 
-/**
- * The camera.
- *
- * Moves between fixed viewpoints on a GSAP timeline, easing position, target
- * and focal length together so a move reads as a camera being carried rather
- * than a value being interpolated. A small amount of hand-held drift keeps the
- * held shot alive; a visitor can also look around by a few degrees, which is
- * enough to feel present without letting anyone walk through the walls.
- *
- * With reduced motion the intro is skipped entirely and every move is a cut.
- */
-
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import gsap from "gsap";
-import { INTRO, type Viewpoint } from "./viewpoints";
+import { VIEWPOINTS } from "@/lib/tokens";
 
-interface CameraRigProps {
-  viewpoint: Viewpoint;
-  /** Play the one-time entry move. */
-  intro: boolean;
-  reducedMotion: boolean;
-  onIntroDone?: () => void;
-  /** 0–1 how much the visitor may look around. */
-  lookAmount?: number;
+const pos = new THREE.Vector3();
+const tgt = new THREE.Vector3();
+const wantPos = new THREE.Vector3();
+const wantTgt = new THREE.Vector3();
+const aPos = new THREE.Vector3();
+const bPos = new THREE.Vector3();
+const aTgt = new THREE.Vector3();
+const bTgt = new THREE.Vector3();
+
+function smoothstep(t: number) {
+  const x = Math.min(Math.max(t, 0), 1);
+  return x * x * (3 - 2 * x);
 }
 
+/**
+ * One camera controller for the whole site.
+ *
+ * On the home page scroll walks the camera along a fixed route through the
+ * showroom. Elsewhere it settles on a named viewpoint. Movement is always
+ * critically damped — it accelerates and decelerates, and never snaps.
+ */
 export function CameraRig({
-  viewpoint,
-  intro,
+  mode,
+  viewpointId,
+  scrollRef,
   reducedMotion,
-  onIntroDone,
-  lookAmount = 1,
-}: CameraRigProps) {
-  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const size = useThree((s) => s.size);
+  pointerParallax = true,
+  intro = false,
+}: {
+  mode: "scroll" | "viewpoint";
+  viewpointId?: string;
+  scrollRef?: React.RefObject<number>;
+  reducedMotion: boolean;
+  pointerParallax?: boolean;
+  intro?: boolean;
+}) {
+  const { camera, size } = useThree();
+  const started = useRef(false);
+  const introT = useRef(0);
 
-  /** The animated values. GSAP writes here; useFrame reads. */
-  const rig = useRef({
-    x: INTRO.from.position[0],
-    y: INTRO.from.position[1],
-    z: INTRO.from.position[2],
-    tx: INTRO.to.target[0],
-    ty: INTRO.to.target[1],
-    tz: INTRO.to.target[2],
-    fov: INTRO.from.fov,
-  });
-
-  const look = useRef({ x: 0, y: 0 });
-  const pointer = useRef({ x: 0, y: 0 });
-  const introPlayed = useRef(false);
-  /** True while the entry move owns the camera, so nothing else tweens it. */
-  const introRunning = useRef(intro);
-  const tween = useRef<gsap.core.Tween | gsap.core.Timeline | null>(null);
-  /** Reused every frame — allocating a vector 60 times a second is pure waste. */
-  const lookTarget = useRef(new THREE.Vector3());
-
-  /* The callback is held in a ref rather than listed as a dependency. It
-     usually arrives as an inline arrow, so depending on it would re-run the
-     effect below on every render — killing the entry move each time, and then
-     being blocked by introPlayed for good. */
-  const introDone = useRef(onIntroDone);
-  introDone.current = onIntroDone;
-
-  /* the visitor's small look-around, from pointer or device tilt */
-  useEffect(() => {
-    if (reducedMotion) return;
-    const onPointer = (e: PointerEvent) => {
-      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
-    };
-    window.addEventListener("pointermove", onPointer, { passive: true });
-    return () => window.removeEventListener("pointermove", onPointer);
-  }, [reducedMotion]);
-
-  /* the entry move, once */
-  useEffect(() => {
-    if (!intro || introPlayed.current) return;
-    introPlayed.current = true;
-
-    if (reducedMotion) {
-      Object.assign(rig.current, {
-        x: INTRO.to.position[0], y: INTRO.to.position[1], z: INTRO.to.position[2],
-        tx: INTRO.to.target[0], ty: INTRO.to.target[1], tz: INTRO.to.target[2],
-        fov: INTRO.to.fov,
-      });
-      introRunning.current = false;
-      introDone.current?.();
-      return;
+  useFrame((state, delta) => {
+    if (!started.current) {
+      started.current = true;
+      // The entrance: further out and lower, so the first move is a step inside.
+      const start = intro && !reducedMotion ? [0, 1.45, 14.5] : VIEWPOINTS[0].position;
+      camera.position.set(start[0], start[1], start[2]);
+      pos.copy(camera.position);
+      tgt.set(0, 1.5, 0);
     }
 
-    tween.current = gsap.to(rig.current, {
-      x: INTRO.to.position[0],
-      y: INTRO.to.position[1],
-      z: INTRO.to.position[2],
-      fov: INTRO.to.fov,
-      duration: INTRO.duration,
-      ease: "power2.inOut",
-      onComplete: () => {
-        introRunning.current = false;
-        introDone.current?.();
-      },
-    });
+    const dt = Math.min(delta, 0.05);
+    introT.current = Math.min(introT.current + dt, 6);
 
-    return () => {
-      tween.current?.kill();
-      // Let a genuine remount play the entry again, rather than leaving the
-      // camera parked wherever the killed tween stopped.
-      introPlayed.current = false;
-      introRunning.current = intro;
-    };
-  }, [intro, reducedMotion]);
-
-  /* moving between viewpoints */
-  useEffect(() => {
-    // The entry move owns the camera until it finishes; without this the
-    // viewpoint tween would start on mount and cut the intro short.
-    if (introRunning.current) return;
-
-    const [x, y, z] = viewpoint.position;
-    const [tx, ty, tz] = viewpoint.target;
-
-    if (reducedMotion) {
-      Object.assign(rig.current, { x, y, z, tx, ty, tz, fov: viewpoint.fov });
-      return;
+    if (mode === "scroll" && scrollRef) {
+      const p = Math.min(Math.max(scrollRef.current ?? 0, 0), 1);
+      const seg = p * (VIEWPOINTS.length - 1);
+      const i = Math.min(Math.floor(seg), VIEWPOINTS.length - 2);
+      const f = smoothstep(seg - i);
+      const a = VIEWPOINTS[i];
+      const b = VIEWPOINTS[i + 1];
+      aPos.set(...a.position);
+      bPos.set(...b.position);
+      aTgt.set(...a.target);
+      bTgt.set(...b.target);
+      wantPos.copy(aPos).lerp(bPos, f);
+      wantTgt.copy(aTgt).lerp(bTgt, f);
+    } else {
+      const v = VIEWPOINTS.find((x) => x.id === viewpointId) ?? VIEWPOINTS[1];
+      wantPos.set(...v.position);
+      wantTgt.set(...v.target);
     }
 
-    tween.current?.kill();
-    tween.current = gsap.to(rig.current, {
-      x, y, z, tx, ty, tz,
-      fov: viewpoint.fov,
-      duration: 1.75,
-      ease: "power3.inOut",
-    });
-
-    return () => {
-      tween.current?.kill();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewpoint.id, reducedMotion]);
-
-  /* apply, every frame */
-  useFrame((_, delta) => {
-    const r = rig.current;
-    const k = Math.min(1, delta * 4);
-
-    // ease the look-around toward the pointer
-    look.current.x += (pointer.current.x * 0.22 * lookAmount - look.current.x) * k;
-    look.current.y += (pointer.current.y * 0.12 * lookAmount - look.current.y) * k;
-
-    camera.position.set(r.x, r.y, r.z);
-
-    // A gentle hand-held drift. Amplitude is a couple of centimetres: enough to
-    // stop the held shot feeling like a screenshot, small enough not to be seen
-    // as movement.
-    const t = performance.now() / 1000;
-    camera.position.x += Math.sin(t * 0.31) * 0.012;
-    camera.position.y += Math.sin(t * 0.47 + 1.2) * 0.008;
-
-    lookTarget.current.set(
-      r.tx + look.current.x * 1.6,
-      r.ty - look.current.y * 0.9,
-      r.tz,
-    );
-    camera.lookAt(lookTarget.current);
-
-    // A narrow phone needs a wider lens to show the same amount of room.
-    const aspect = size.width / Math.max(1, size.height);
-    const portraitCompensation = aspect < 0.9 ? (0.9 - aspect) * 26 : 0;
-    const fov = r.fov + portraitCompensation;
-    if (Math.abs(camera.fov - fov) > 0.01) {
-      camera.fov = fov;
-      camera.updateProjectionMatrix();
+    // Pointer parallax: a head turn, not a camera swing.
+    if (pointerParallax && !reducedMotion && size.width > 768) {
+      wantPos.x += state.pointer.x * 0.26;
+      wantPos.y += state.pointer.y * 0.14;
+      wantTgt.x += state.pointer.x * 0.5;
+      wantTgt.y += state.pointer.y * 0.22;
     }
+
+    // Slower settle during the entrance, then responsive.
+    const lambda = reducedMotion ? 30 : introT.current < 3.2 ? 0.85 : 2.6;
+    const k = 1 - Math.exp(-lambda * dt);
+
+    pos.lerp(wantPos, k);
+    tgt.lerp(wantTgt, k);
+    camera.position.copy(pos);
+    camera.lookAt(tgt);
   });
 
   return null;
