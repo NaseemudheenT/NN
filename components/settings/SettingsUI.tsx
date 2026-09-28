@@ -263,7 +263,7 @@ export function SettingsUI() {
       </Group>
 
       <p className="nn-set-footnote" style={{ textAlign: "center" }}>
-        Nero Noren Private Limited · The art of dressing well.
+        Nero Noren Private Limited · Timeless style builds character.
       </p>
     </div>
   );

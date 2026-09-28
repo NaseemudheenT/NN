@@ -2,18 +2,21 @@ import { ImageResponse } from "next/og";
 import { N_INTERLOCK_X, N_PATH } from "@/components/brand/monogram";
 
 export const runtime = "edge";
-export const alt = "Nero Noren — the art of dressing well";
+export const alt = "Nero Noren — timeless style builds character";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 /**
  * The share card, drawn rather than uploaded.
  *
- * Generated from the same monogram geometry as the site's own logo, so the card
- * can never fall out of step with the brand — and no image file has to be kept
- * in sync by hand.
+ * Generated from the same monogram geometry as the site's own mark, so the
+ * card can never drift from the brand — and no image file has to be kept in
+ * sync by hand. Laid out as the board lays out the lockup: mark, wordmark,
+ * audience, rule, line.
  */
 export default async function Image() {
+  const markWidth = N_INTERLOCK_X + 84;
+
   return new ImageResponse(
     (
       <div
@@ -22,54 +25,80 @@ export default async function Image() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#000000",
-          color: "#efe9dd",
-          padding: "72px 84px",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0a0a0a",
+          color: "#f7f5ef",
           fontFamily: "Georgia, serif",
         }}
       >
-        {/* the gold sweep a showroom lamp would throw */}
+        {/* the single lamp the gold catches */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(120% 80% at 18% 0%, rgba(201,164,58,0.26), transparent 62%), radial-gradient(90% 70% at 88% 30%, rgba(138,123,106,0.22), transparent 66%)",
+              "radial-gradient(52% 44% at 50% 40%, rgba(180,145,58,0.20), transparent 70%)",
           }}
         />
 
-        <div style={{ display: "flex", alignItems: "center", gap: 26, position: "relative" }}>
-          <svg width="76" height="76" viewBox="0 0 136 100">
-            <g fill="#c9a43a">
-              <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} opacity="0.62" />
-              <path d={N_PATH} />
-            </g>
-          </svg>
-          <span style={{ fontSize: 30, letterSpacing: 14, textTransform: "uppercase" }}>
-            Nero Noren
-          </span>
-        </div>
+        <svg width="150" height="107" viewBox={`0 0 ${markWidth} 100`} style={{ position: "relative" }}>
+          <defs>
+            <linearGradient id="og-metal" x1="0" y1="0" x2="1" y2="0.42">
+              <stop offset="0%" stopColor="#6e561c" />
+              <stop offset="34%" stopColor="#b4913a" />
+              <stop offset="50%" stopColor="#e8cd82" />
+              <stop offset="68%" stopColor="#b4913a" />
+              <stop offset="100%" stopColor="#6e561c" />
+            </linearGradient>
+          </defs>
+          <g fill="url(#og-metal)">
+            <path d={N_PATH} />
+            <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} />
+          </g>
+        </svg>
 
-        <div style={{ position: "relative", display: "flex", flexDirection: "column" }}>
-          <span style={{ fontSize: 96, lineHeight: 1.02 }}>The art</span>
-          <span style={{ fontSize: 96, lineHeight: 1.02, color: "#c9a43a", fontStyle: "italic" }}>
-            of dressing well.
-          </span>
+        <div
+          style={{
+            position: "relative",
+            marginTop: 42,
+            fontSize: 78,
+            letterSpacing: 26,
+            textTransform: "uppercase",
+          }}
+        >
+          Nero Noren
         </div>
 
         <div
           style={{
             position: "relative",
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 24,
-            color: "#b8ae9c",
-            letterSpacing: 3,
+            marginTop: 20,
+            fontSize: 20,
+            letterSpacing: 16,
+            textTransform: "uppercase",
+            color: "#b7b1a7",
           }}
         >
-          <span>Collection 001 — The Foundations</span>
-          <span>Online first. Delivered across India.</span>
+          Men &amp; Boys
+        </div>
+
+        <div style={{ position: "relative", marginTop: 44, width: 1, height: 34, background: "#b4913a" }} />
+
+        <div
+          style={{
+            position: "relative",
+            marginTop: 30,
+            fontSize: 22,
+            letterSpacing: 11,
+            textTransform: "uppercase",
+            textAlign: "center",
+            lineHeight: 1.7,
+          }}
+        >
+          Timeless style
+          <br />
+          builds character
         </div>
       </div>
     ),

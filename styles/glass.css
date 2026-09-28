@@ -1801,3 +1801,90 @@
   }
   .nn-ops__answer strong { color: var(--ink-primary); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE FOOTER
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .nn-footer {
+    position: relative;
+    margin-top: var(--space-hall);
+    padding-block: var(--space-bay) var(--space-room);
+    border-top: 1px solid var(--edge-hair);
+    background: color-mix(in srgb, var(--surface-void) 72%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    /* clear the dock on a phone */
+    padding-bottom: calc(var(--space-room) + 4.5rem);
+  }
+  @media (min-width: 768px) {
+    .nn-footer { padding-bottom: var(--space-room); }
+  }
+
+  .nn-footer__top {
+    display: grid;
+    gap: var(--space-room);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) {
+    .nn-footer__top { grid-template-columns: repeat(3, 1fr); }
+    .nn-footer__brand { grid-column: 1 / -1; }
+  }
+  @media (min-width: 1040px) {
+    .nn-footer__top { grid-template-columns: 1.5fr repeat(3, 1fr); }
+    .nn-footer__brand { grid-column: auto; }
+  }
+
+  .nn-footer__wordmark {
+    margin-top: 1.15rem;
+    font-size: 1.05rem;
+    color: var(--ink-primary);
+  }
+  .nn-footer__audience {
+    margin-top: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.56rem;
+    font-weight: 500;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+  }
+  .nn-footer__line {
+    margin-top: 1.5rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--metal-body);
+  }
+  .nn-footer__blurb {
+    max-width: 34ch;
+    margin-top: 1.1rem;
+    font-size: var(--text-fine);
+    color: var(--ink-secondary);
+  }
+
+  .nn-footer__column ul {
+    display: grid;
+    gap: 0.35rem;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nn-footer__column .nn-link { font-size: var(--text-fine); }
+
+  .nn-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: var(--space-bay);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--edge-hair);
+    font-size: var(--text-micro);
+    color: var(--ink-tertiary);
+  }
+}

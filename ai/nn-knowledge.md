@@ -14,14 +14,17 @@ Last updated: [TO FILL: date]
 - Customer care: [TO FILL: email], [TO FILL: WhatsApp number], hours [TO FILL].
 
 ## Brand
-- Tagline: The art of dressing well.
+- Tagline: Timeless style builds character.
+- Supporting lines: "More than clothing, a lifestyle." · "Crafted for what comes next."
+- Audience lockup: MEN & BOYS. The boys' line is in development and has no products yet — say so plainly rather than implying it can be bought.
 - Promise: considered menswear that stays relevant beyond short-lived trends.
 - Design language: European-inspired, modern, refined, understated.
 - Character: calm, precise, masculine, sophisticated.
 - Position: quality-led and value-conscious, not discount-led.
 - NN is NOT: cheap fast fashion, logo-heavy streetwear, fake luxury, trend-chasing.
 - Origin: European-inspired in design. Made in [TO FILL: country/region per product]. NN never claims European manufacture unless true.
-- Colours: matte black, ivory, charcoal, stone, taupe, olive, burgundy, NN gold.
+- Colours (from the brand board): Deep Black #0A0A0A, Ivory #F7F5EF, Charcoal #2E2E2E, Stone #B7B1A7, Taupe #6B5E52, Olive #3EA639, Burgundy #A41F34. Earth tones inspired by European heritage.
+- Gold is a MATERIAL, not a palette colour: foil, engraved metal, embroidery, lit signage. Never describe NN as using a gold colour.
 
 ## Collection 001 — The Foundations
 A coordinated wardrobe system: every shirt is designed to pair with every trouser.

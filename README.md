@@ -1,11 +1,11 @@
 # NERO NOREN
 
 The official website of NERO NOREN — an online-first, European-inspired menswear
-brand from India. The home page **is** a 3D showroom: customers walk through it,
+house for men and boys, from India. The home page **is** a 3D showroom: customers walk through it,
 see garments on the rails and mannequins, try pieces in a trial room, ask an AI
 stylist, and buy.
 
-> *The art of dressing well.*
+> *Timeless style builds character.*
 
 ---
 
