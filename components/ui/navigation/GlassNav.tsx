@@ -27,6 +27,7 @@ import { DURATION, EASE, SPRING } from "@/lib/motion";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { GlassIconButton } from "@/components/ui/glass/GlassButton";
 import { useBag } from "@/components/shop/BagProvider";
+import { Soundscape } from "@/components/audio/Soundscape";
 
 const LINKS = [
   { href: "/collection", label: "Men" },
@@ -112,6 +113,11 @@ export function GlassNav() {
 
           {/* ── actions ── */}
           <div className="nn-nav__actions">
+            {/* The room's own sound. Deliberately the quietest thing in the
+                header: eight hairlines, and the only control the soundscape
+                has anywhere on the site. */}
+            <Soundscape />
+
             <GlassIconButton
               label={`Bag, ${count} ${count === 1 ? "item" : "items"}`}
               tone="quiet"

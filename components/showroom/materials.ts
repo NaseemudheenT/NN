@@ -38,6 +38,12 @@ export const MATERIALS = {
   marbleBorder: { colour: "#1d1d20", roughness: 0.18, metalness: 0 },
   /** Honed travertine, kept for window sills and thresholds. */
   travertine: { colour: "#2a2620", roughness: 0.72, metalness: 0 },
+  /* ── Carrara ────────────────────────────────────────────────────
+     The white marble the Nero Marquina is banded and bordered with.
+     Two marbles is the classic European floor: the dark field reads
+     as depth, the light band draws the geometry of the room.      */
+  carrara: { colour: "#d8d6cf", roughness: 0.16, metalness: 0 },
+  carraraVein: { colour: "#b9b7b0", roughness: 0.2, metalness: 0 },
 
   /* ── the walls ──────────────────────────────────────────────────
      Deep charcoal plaster in daylight, near black at night. Dark
@@ -45,6 +51,19 @@ export const MATERIALS = {
      yellow.                                                        */
   plaster: { colour: "#252423", roughness: 0.92, metalness: 0 },
   plasterNight: { colour: "#111112", roughness: 0.92, metalness: 0 },
+  /* ── European limestone ─────────────────────────────────────────
+     The dressed stone of the pilasters and the entrance reveal. Pale,
+     almost chalky, and completely matte: limestone has no specular
+     to speak of, which is exactly why polished metal set against it
+     reads as expensive.                                            */
+  limestone: { colour: "#6f6a5f", roughness: 0.94, metalness: 0 },
+  limestoneNight: { colour: "#3b3830", roughness: 0.94, metalness: 0 },
+  /* ── matte architectural concrete ───────────────────────────────
+     Board-formed panels between the pilasters, razor-sharp at every
+     joint. Slightly cooler than the limestone so the two read as
+     different materials rather than two shades of one.             */
+  concrete: { colour: "#34353a", roughness: 0.97, metalness: 0 },
+  concreteNight: { colour: "#1a1b1f", roughness: 0.97, metalness: 0 },
   /** Coffered ceiling, a touch lighter so the room does not close in. */
   ceiling: { colour: "#1b1b1d", roughness: 0.95, metalness: 0 },
 
@@ -60,10 +79,19 @@ export const MATERIALS = {
      fittings and the inlay. NN gold, at two finishes.              */
   brass: { colour: "#c9a43a", roughness: 0.26, metalness: 1 },
   brassBright: { colour: "#e0c063", roughness: 0.10, metalness: 1 },
+  /* ── brushed champagne-gold steel ───────────────────────────────
+     The house fitting metal: the garment rails, the hangers, the
+     door furniture. Brushed rather than polished, so it holds a soft
+     directional highlight instead of a hard one — the difference
+     between a rail that looks machined and one that looks plated. */
+  champagne: { colour: "#c5a059", roughness: 0.32, metalness: 1 },
+  champagneBright: { colour: "#d8bb7e", roughness: 0.18, metalness: 1 },
   /** Antique bronze, for the mirror frame. */
   bronze: { colour: "#6b5431", roughness: 0.34, metalness: 1 },
   /** Blackened steel, for the window frames. */
   steel: { colour: "#16161a", roughness: 0.38, metalness: 1 },
+  /** Brushed stainless, for the entrance portal. Cooler than champagne. */
+  brushedSteel: { colour: "#8f9299", roughness: 0.34, metalness: 1 },
 
   /* ── glass ──────────────────────────────────────────────────── */
   glass: {
@@ -76,6 +104,19 @@ export const MATERIALS = {
     transmission: 0.93,
   },
   mirror: { colour: "#f4f5f4", roughness: 0.015, metalness: 1 },
+  /* ── smoked glass ───────────────────────────────────────────────
+     The entrance doors. Dark enough that the showroom is a suggestion
+     from the pavement rather than a display, which is the whole point
+     of a smoked door: you have to come in to see.                  */
+  smokedGlass: {
+    colour: "#20222a",
+    roughness: 0.05,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.55,
+    ior: 1.52,
+    transmission: 0.62,
+  },
 
   /* ── the forms ──────────────────────────────────────────────────
      Matte black mannequins. Against a black floor they need a lift in

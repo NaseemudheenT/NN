@@ -22,15 +22,22 @@ const DEG = 180 / Math.PI;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/* ── the NN phase table (CLAUDE.md) ─────────────────────────────────
-   06:00–11:59 morning · 12:00–16:59 afternoon
-   17:00–19:29 evening · 19:30–05:59 night                          */
+/* ── the NN phase table ─────────────────────────────────────────────
+   06:00–11:59 morning  — crisp European morning light through the windows
+   12:00–16:59 afternoon — warm, balanced architectural daylight
+   17:00–20:59 evening   — golden hour, long amber shadows on the marble
+   21:00–05:59 night     — the lounge: obsidian shadow, gold on the garments
+
+   The visitor never chooses between these. The room is simply lit by
+   whatever hour it is where they are standing.                       */
+
+export const PHASE_BOUNDARIES_MIN = [6 * 60, 12 * 60, 17 * 60, 21 * 60, 24 * 60] as const;
 
 export function phaseFromClock(hours: number, minutes = 0): DayPhase {
   const m = hours * 60 + minutes;
   if (m >= 6 * 60 && m < 12 * 60) return "morning";
   if (m >= 12 * 60 && m < 17 * 60) return "afternoon";
-  if (m >= 17 * 60 && m < 19 * 60 + 30) return "evening";
+  if (m >= 17 * 60 && m < 21 * 60) return "evening";
   return "night";
 }
 
@@ -48,9 +55,9 @@ export function themeForPhase(phase: DayPhase): ThemeName {
 
 /** Minutes until the next phase boundary — used to re-arm the phase timer. */
 export function msUntilNextPhase(d: Date = new Date()): number {
-  const boundaries = [6 * 60, 12 * 60, 17 * 60, 19 * 60 + 30, 24 * 60];
+  const boundaries = PHASE_BOUNDARIES_MIN;
   const now = d.getHours() * 60 + d.getMinutes();
-  const next = boundaries.find((b) => b > now) ?? 24 * 60;
+  const next = boundaries.find((b: number) => b > now) ?? 24 * 60;
   const minutes = next - now;
   return minutes * 60_000 - d.getSeconds() * 1000 - d.getMilliseconds();
 }
@@ -366,7 +373,7 @@ export function phaseOverrideFromSearch(search: string): DayPhase | null {
 /** A representative clock time for a forced phase, so lighting still derives. */
 export function clockForPhase(phase: DayPhase, base: Date = new Date()): Date {
   const d = new Date(base);
-  const hour = { morning: 9, afternoon: 14, evening: 18, night: 22 }[phase];
+  const hour = { morning: 9, afternoon: 14, evening: 19, night: 23 }[phase];
   d.setHours(hour, 15, 0, 0);
   return d;
 }

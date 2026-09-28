@@ -1,12 +1,17 @@
 "use client";
 
 /**
- * NERO NOREN — theme and time of day.
+ * NERO NOREN — the chrono-atmospheric engine.
  *
- * Three modes: "auto" (default), "day", "night". In auto the
- * theme follows the visitor's own clock via the NN phase table, and re-arms a
- * timer at each phase boundary so a browser left open at 19:29 goes dark by
- * itself. An explicit choice is remembered in localStorage and always wins.
+ * There is no theme control anywhere in the interface, and there never should
+ * be. A showroom does not offer its customers a light switch: the room is lit
+ * by whatever hour it is outside, and the only honest digital equivalent is to
+ * read the visitor's own clock and light the room to match.
+ *
+ * The engine re-arms a timer at each phase boundary, so a browser left open at
+ * 20:59 dims into the night lounge by itself, and ticks every minute in
+ * between so the sun keeps moving. Every change is a slow cross-fade measured
+ * in minutes — see --chrono-fade in tokens.css — so nothing ever flashes.
  *
  * The provider also publishes the full sky state — sun direction, colour
  * temperature, beam strength, lamp level — because the 3D showroom lights
@@ -19,7 +24,6 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -35,11 +39,9 @@ import {
   themeForPhase,
   type DayPhase,
   type SkyState,
-  type ThemeMode,
   type ThemeName,
 } from "@/lib/daytime";
 
-const STORAGE_KEY = "nn-theme-mode";
 const DEFAULT_LATITUDE = 20;
 
 /**
@@ -60,9 +62,7 @@ const DEFAULT_LATITUDE = 20;
 const SSR_REFERENCE = new Date("2026-01-01T21:00:00Z");
 
 interface ThemeContextValue {
-  mode: ThemeMode;
-  setMode: (mode: ThemeMode) => void;
-  /** The theme actually applied right now. */
+  /** The theme actually applied right now. Derived, never chosen. */
   theme: ThemeName;
   /** The phase of the visitor's day, or the forced phase in test mode. */
   phase: DayPhase;
@@ -94,7 +94,6 @@ export function ThemeProvider({
   children: React.ReactNode;
   housePhase?: DayPhase | null;
 }) {
-  const [mode, setModeState] = useState<ThemeMode>("auto");
   /* null until mounted, so the server and the first client render agree */
   const [now, setNow] = useState<Date | null>(null);
   const [override, setOverride] = useState<DayPhase | null>(null);
@@ -102,16 +101,8 @@ export function ThemeProvider({
   const [hydrated, setHydrated] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* read the stored preference and the ?phase= test override */
+  /* the ?phase= test override, for QA only — never surfaced in the interface */
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === "auto" || stored === "day" || stored === "night") {
-        setModeState(stored);
-      }
-    } catch {
-      /* private browsing can throw on access; auto is a fine default */
-    }
     setOverride(phaseOverrideFromSearch(window.location.search));
     // the real clock takes over here, after hydration has matched
     setNow(new Date());
@@ -127,8 +118,10 @@ export function ThemeProvider({
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  /* re-arm a timer at each phase boundary, and tick every 5 minutes so the
-     sun keeps moving for the 3D scene without burning battery */
+  /* Re-arm at each phase boundary, and tick every minute in between so the
+     sun crawls across the room instead of stepping. A minute of wall clock is
+     a quarter of a degree of sun: far below the threshold of noticing, which
+     is exactly the point. */
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
@@ -137,7 +130,7 @@ export function ThemeProvider({
       if (cancelled) return;
       const d = new Date();
       const toBoundary = msUntilNextPhase(d);
-      const wait = Math.min(toBoundary + 500, 5 * 60_000);
+      const wait = Math.min(toBoundary + 500, 60_000);
       timer.current = setTimeout(() => {
         setNow(new Date());
         schedule();
@@ -159,28 +152,16 @@ export function ThemeProvider({
     return forced ? clockForPhase(forced, base) : base;
   }, [forced, now]);
 
-  const autoPhase = useMemo(() => phaseFromDate(effectiveDate), [effectiveDate]);
+  const phase: DayPhase = useMemo(() => phaseFromDate(effectiveDate), [effectiveDate]);
 
-  /* an explicit light/dark choice pins the phase's lighting to that end of the
-     day, so the room and the interface never disagree */
-  const phase: DayPhase = useMemo(() => {
-    if (mode === "auto") return autoPhase;
-    if (mode === "night") return "night";
-    return autoPhase === "night" ? "afternoon" : autoPhase;
-  }, [mode, autoPhase]);
+  const theme: ThemeName = useMemo(() => themeForPhase(phase), [phase]);
 
-  const theme: ThemeName = useMemo(() => {
-    if (mode === "day") return themeForPhase(phase) === "night" ? "day" : themeForPhase(phase);
-    if (mode === "night") return "night";
-    return themeForPhase(phase);
-  }, [mode, phase]);
-
-  const sky = useMemo(() => {
-    const base = mode === "auto" ? effectiveDate : clockForPhase(phase, effectiveDate);
+  const sky = useMemo(
     // Longitude comes from the browser's UTC offset, which does not exist on
     // the server — so before mount the reference sky uses zero.
-    return skyState(base, DEFAULT_LATITUDE, now ? longitudeFromTimezone() : 0);
-  }, [mode, phase, effectiveDate, now]);
+    () => skyState(effectiveDate, DEFAULT_LATITUDE, now ? longitudeFromTimezone() : 0),
+    [effectiveDate, now],
+  );
 
   /* paint the theme onto <html> */
   useEffect(() => {
@@ -197,19 +178,9 @@ export function ThemeProvider({
     }
   }, [theme, phase]);
 
-  const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
-    setNow(new Date());
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      /* the choice still applies for this visit */
-    }
-  }, []);
-
   const value = useMemo<ThemeContextValue>(
-    () => ({ mode, setMode, theme, phase, sky, reducedMotion, overridden: override !== null }),
-    [mode, setMode, theme, phase, sky, reducedMotion, override],
+    () => ({ theme, phase, sky, reducedMotion, overridden: override !== null }),
+    [theme, phase, sky, reducedMotion, override],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

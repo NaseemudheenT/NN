@@ -79,6 +79,11 @@
     /* transparent, so LiveAtmosphere shows through from -z-10 */
     background: transparent;
     color: var(--ink-primary);
+    /* The hour changes under the visitor, never at them: ink and rules
+       cross-fade over minutes rather than switching. */
+    transition:
+      color var(--chrono-fade) linear,
+      border-color var(--chrono-fade) linear;
     font-family: var(--font-ui);
     font-size: var(--text-body);
     font-weight: 400;

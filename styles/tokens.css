@@ -80,6 +80,16 @@
   --duration-panel: 520ms;
   --duration-room: 820ms;
   --duration-cinematic: 1400ms;
+
+  /* ── the chrono fade ───────────────────────────────────────────
+     How long the room takes to change hour. Deliberately measured in
+     minutes, not milliseconds: the sun does not step, and a showroom
+     that visibly re-themes itself reads as a website with a toggle.
+     Two minutes is slow enough that nobody catches it moving and fast
+     enough that a visitor who arrives at 20:59 is in the night lounge
+     before they have finished reading the first panel.            */
+  --chrono-fade: 120s;
+  --chrono-fade-fast: 40s;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -209,4 +219,41 @@
 
   --color-positive: var(--state-positive);
   --color-critical: var(--state-critical);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE CHRONO FADE
+
+   The engine recomputes the sky once a minute. Every layer it paints
+   therefore steps, once a minute, by a very small amount — and a step,
+   however small, is visible if it lands instantly.
+
+   Giving those layers a transition longer than the tick means each step
+   is still crossing when the next one starts, so what the eye receives
+   is one continuous movement of light with no seam in it. There is no
+   control for this anywhere in the interface, and there is nothing to
+   press: the room simply is whatever hour it is.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-chrono,
+.nn-chrono * {
+  transition:
+    background var(--chrono-fade) linear,
+    background-color var(--chrono-fade) linear,
+    opacity var(--chrono-fade) linear,
+    filter var(--chrono-fade) linear;
+}
+
+/* Motion values drive transform and must never be smoothed here, or the
+   pointer parallax would lag two minutes behind the pointer. */
+.nn-chrono * {
+  transition-property: background, background-color, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-chrono,
+  .nn-chrono * {
+    transition: none;
+  }
 }

@@ -122,21 +122,24 @@ export function Rail({
             <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
               <cylinderGeometry args={[0.019, 0.019, length, 20]} />
               <meshPhysicalMaterial
-                color={MATERIALS.brass.colour}
-                roughness={MATERIALS.brass.roughness}
+                color={MATERIALS.champagne.colour}
+                roughness={MATERIALS.champagne.roughness}
                 metalness={1}
               />
             </mesh>
-            {/* wall brackets at the quarter points */}
+            {/* Wall brackets at the quarter points. The rail stands 150 mm
+                off the stone so a garment hangs clear of the wall and the
+                spot above can get light down the back of it — a rail fixed
+                flat to a wall is a hardware-shop rail. */}
             {[-length / 2 + 0.12, length / 2 - 0.12].map((x) => (
               <group key={x} position={[x, 0, 0.14]}>
                 <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
                   <cylinderGeometry args={[0.013, 0.013, 0.28, 12]} />
-                  <meshPhysicalMaterial color={MATERIALS.brass.colour} roughness={0.3} metalness={1} />
+                  <meshPhysicalMaterial color={MATERIALS.champagne.colour} roughness={MATERIALS.champagne.roughness} metalness={1} />
                 </mesh>
                 <mesh position={[0, 0, 0.15]}>
                   <cylinderGeometry args={[0.04, 0.04, 0.012, 16]} />
-                  <meshPhysicalMaterial color={MATERIALS.brassBright.colour} roughness={0.16} metalness={1} />
+                  <meshPhysicalMaterial color={MATERIALS.champagneBright.colour} roughness={MATERIALS.champagneBright.roughness} metalness={1} />
                 </mesh>
               </group>
             ))}
@@ -148,7 +151,7 @@ export function Rail({
   );
 }
 
-/* ── NN brass hanger ──────────────────────────────────────────── */
+/* ── NN champagne-gold hanger ──────────────────────────────────────────── */
 
 export function Hanger({ position = [0, 0, 0] as [number, number, number] }) {
   const hook = useMemo(() => new THREE.TorusGeometry(0.028, 0.004, 6, 20, Math.PI * 1.4), []);
@@ -159,7 +162,7 @@ export function Hanger({ position = [0, 0, 0] as [number, number, number] }) {
         <group position={position}>
           {/* hook over the rail */}
           <mesh geometry={hook} position={[0, 0.03, 0]} rotation={[0, 0, Math.PI * 0.8]}>
-            <meshPhysicalMaterial color={MATERIALS.brassBright.colour} roughness={0.16} metalness={1} />
+            <meshPhysicalMaterial color={MATERIALS.champagneBright.colour} roughness={0.16} metalness={1} />
           </mesh>
           {/* shoulders: two bars angled down from the neck */}
           {[-1, 1].map((side) => (
@@ -170,13 +173,13 @@ export function Hanger({ position = [0, 0, 0] as [number, number, number] }) {
               castShadow
             >
               <boxGeometry args={[0.21, 0.009, 0.014]} />
-              <meshPhysicalMaterial color={MATERIALS.brass.colour} roughness={0.28} metalness={1} />
+              <meshPhysicalMaterial color={MATERIALS.champagne.colour} roughness={0.28} metalness={1} />
             </mesh>
           ))}
           {/* bottom bar */}
           <mesh position={[0, -0.105, 0]}>
             <boxGeometry args={[0.39, 0.006, 0.01]} />
-            <meshPhysicalMaterial color={MATERIALS.brass.colour} roughness={0.3} metalness={1} />
+            <meshPhysicalMaterial color={MATERIALS.champagne.colour} roughness={0.3} metalness={1} />
           </mesh>
         </group>
       }

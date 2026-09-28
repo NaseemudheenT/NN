@@ -33,6 +33,14 @@
     --glass-blur: 26px;
     --glass-magnify: 1.012;
     --glass-edge: 0.34;
+
+    /* The hairline that contains the glass.
+       On the dark themes it is the brand ivory at 8% — the value the house
+       specification gives for optical-grade surfaces, and low enough that the
+       edge is felt rather than seen. On the ivory theme that same hairline
+       would be invisible against the page, so the light themes fall back to a
+       dark mix of the ink. The override lives in the theme block below. */
+    --glass-hairline: rgba(247, 245, 239, 0.08);
     --glass-fresnel: 0.1;
     --glass-radius: 0;
     /* the pointer, written by the interaction layer */
@@ -56,7 +64,7 @@
       inset -1px 0 0 color-mix(in srgb, #000 12%, transparent),
       var(--shadow-panel);
 
-    border: 1px solid color-mix(in srgb, var(--ink-primary) 13%, transparent);
+    border: 1px solid var(--glass-hairline);
 
     transition:
       box-shadow var(--duration-hover) var(--ease-architect),
@@ -1887,4 +1895,236 @@
     font-size: var(--text-micro);
     color: var(--ink-tertiary);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE ATELIER ORB
+
+   Layer order, from the back: shell, three iridescent sheets, core,
+   specular. Everything animates transform, opacity or filter only, so
+   the whole thing lives on the compositor and costs no layout.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-orb {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  isolation: isolate;
+  /* the light the orb throws onto whatever is behind it */
+  box-shadow:
+    0 0 0 1px rgba(247, 245, 239, 0.08),
+    0 2px 10px -2px rgba(0, 0, 0, 0.5),
+    0 0 22px -6px color-mix(in srgb, var(--metal-gold, #c5a059) 70%, transparent);
+  transition: box-shadow var(--duration-panel, 520ms) var(--ease-architect, ease);
+}
+
+.nn-orb > span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── the shell ──────────────────────────────────────────────────── */
+.nn-orb__shell {
+  background:
+    radial-gradient(
+      120% 120% at 30% 24%,
+      rgba(247, 245, 239, 0.26) 0%,
+      rgba(247, 245, 239, 0.06) 26%,
+      rgba(10, 10, 10, 0.55) 62%,
+      rgba(10, 10, 10, 0.82) 100%
+    );
+  backdrop-filter: blur(6px) saturate(140%);
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  z-index: 4;
+}
+
+/* ── the iridescence ────────────────────────────────────────────── */
+.nn-orb__iris {
+  inset: 12%;
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  z-index: 2;
+}
+
+.nn-orb__iris--a {
+  background: conic-gradient(
+    from 0deg,
+    #c5a059 0%,
+    #e8d39b 18%,
+    transparent 42%,
+    #b98f4a 66%,
+    transparent 88%,
+    #c5a059 100%
+  );
+  opacity: 0.85;
+  animation: nn-orb-turn 9s linear infinite;
+}
+
+.nn-orb__iris--b {
+  background: conic-gradient(
+    from 140deg,
+    transparent 0%,
+    #9fb2c4 22%,
+    transparent 48%,
+    #d8bb7e 74%,
+    transparent 100%
+  );
+  opacity: 0.5;
+  animation: nn-orb-turn 14s linear infinite reverse;
+}
+
+.nn-orb__iris--c {
+  background: conic-gradient(
+    from 260deg,
+    transparent 0%,
+    #efe9dd 16%,
+    transparent 38%,
+    #a8895a 70%,
+    transparent 100%
+  );
+  opacity: 0.34;
+  animation: nn-orb-turn 21s linear infinite;
+}
+
+/* ── the core, breathing ────────────────────────────────────────── */
+.nn-orb__core {
+  inset: 26%;
+  background: radial-gradient(
+    circle at 38% 34%,
+    #fdf6e4 0%,
+    #e8d39b 32%,
+    #c5a059 58%,
+    transparent 78%
+  );
+  filter: blur(1.5px);
+  z-index: 3;
+  animation: nn-orb-breathe 5.2s var(--ease-architect, ease-in-out) infinite;
+}
+
+/* ── the specular point ─────────────────────────────────────────── */
+.nn-orb__spec {
+  inset: auto auto 58% 22%;
+  width: 22%;
+  height: 22%;
+  background: radial-gradient(circle, rgba(255, 253, 245, 0.95) 0%, transparent 70%);
+  filter: blur(0.5px);
+  z-index: 5;
+}
+
+/* ── states ─────────────────────────────────────────────────────── */
+/* Listening: wider, brighter, and the iris speeds up — the visual
+   equivalent of leaning in. */
+.nn-orb--listening {
+  box-shadow:
+    0 0 0 1px rgba(247, 245, 239, 0.16),
+    0 2px 12px -2px rgba(0, 0, 0, 0.5),
+    0 0 34px -4px color-mix(in srgb, var(--metal-gold, #c5a059) 92%, transparent);
+}
+.nn-orb--listening .nn-orb__core { animation-duration: 2.4s; }
+.nn-orb--listening .nn-orb__iris--a { animation-duration: 5s; }
+
+/* Thinking: the core contracts and the sheets turn fast. */
+.nn-orb--thinking .nn-orb__core { animation-duration: 1.5s; }
+.nn-orb--thinking .nn-orb__iris--a { animation-duration: 2.6s; }
+.nn-orb--thinking .nn-orb__iris--b { animation-duration: 3.8s; }
+
+/* Answering: steady and bright, so the eye goes to the words instead. */
+.nn-orb--answering .nn-orb__core {
+  animation-duration: 3.4s;
+  opacity: 0.92;
+}
+
+@keyframes nn-orb-turn {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes nn-orb-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.82; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-orb__iris,
+  .nn-orb__core {
+    animation: none;
+  }
+  .nn-orb__core { transform: scale(1); opacity: 0.95; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE SOUND INDICATOR
+
+   Eight hairlines, eleven pixels tall, in the corner of the header. It
+   is the entire interface for the boutique soundscape, and it is meant
+   to be almost missed: a flagship does not put a media player on its
+   shopfront.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-sound {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 7px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity var(--duration-hover, 320ms) var(--ease-architect, ease);
+}
+
+.nn-sound:hover,
+.nn-sound:focus-visible {
+  opacity: 0.9;
+}
+
+.nn-sound[data-on="true"] {
+  opacity: 0.72;
+}
+
+.nn-sound__wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 11px;
+}
+
+.nn-sound__bar {
+  width: 1px;
+  height: 100%;
+  background: currentColor;
+  transform: scaleY(0.16);
+  transform-origin: center;
+  opacity: 0.45;
+  transition:
+    transform 90ms linear,
+    opacity 90ms linear;
+}
+
+/* Off: a flat line, which is what silence looks like. */
+.nn-sound[data-on="false"] .nn-sound__bar {
+  transform: scaleY(0.1) !important;
+  opacity: 0.4 !important;
+}
+
+/* With reduced motion the bars do not follow the audio; they simply stand
+   at a fixed, obviously-on height. */
+@media (prefers-reduced-motion: reduce) {
+  .nn-sound[data-on="true"] .nn-sound__bar {
+    transform: scaleY(0.55) !important;
+    transition: none;
+  }
+}
+
+
+/* ── the hairline on a light ground ─────────────────────────────────
+   Ivory at 8% cannot be seen against an ivory page, so the day theme
+   draws the same containing line in ink instead. Identical weight,
+   opposite polarity. */
+:root[data-theme="day"] {
+  --glass-hairline: rgba(10, 10, 10, 0.12);
 }

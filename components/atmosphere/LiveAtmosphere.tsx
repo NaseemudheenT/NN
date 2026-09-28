@@ -146,7 +146,7 @@ export function LiveAtmosphere() {
     <div
       ref={host}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      className="nn-chrono pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{ background: "var(--surface-void)" }}
     >
       {/* ── 1. GROUND ───────────────────────────────────────────── */}

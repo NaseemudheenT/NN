@@ -15,8 +15,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { readConsent } from "@/components/layout/ConsentBanner";
 import { toast } from "@/components/layout/Toaster";
-import type { ThemeMode } from "@/lib/daytime";
-import { Group, Row, Segmented, Switch, ICONS } from "./parts";
+
+import { Group, Row, Switch, ICONS } from "./parts";
 
 const LANGUAGES = [
   { code: "auto", label: "Match my device" },
@@ -27,25 +27,30 @@ const LANGUAGES = [
   { code: "ar", label: "العربية — Arabic" },
 ];
 
-const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: "auto", label: "Auto" },
-  { value: "day", label: "Day" },
-  { value: "night", label: "Night" },
-];
-
 const KEYS = {
   showroom3D: "nn-showroom-3d",
   measurements: "nn-measurements",
   language: "nn-language",
   intro: "nn-intro-played",
   consent: "nn-consent",
-  themeMode: "nn-theme-mode",
   bag: "nn-bag",
   cartId: "nn-cart-id",
 };
 
+/**
+ * The showroom has no light switch, by design — it is lit by the hour where
+ * the visitor is standing. This line says what the room is doing, and nothing
+ * here can change it.
+ */
+const LIGHT_DETAIL: Record<string, string> = {
+  morning: "Morning light through the windows",
+  afternoon: "Full afternoon daylight",
+  evening: "Golden hour across the marble",
+  night: "The night lounge, gold on the garments",
+};
+
 export function SettingsUI() {
-  const { mode, setMode, phase, theme, sky, reducedMotion } = useTheme();
+  const { phase, theme, sky, reducedMotion } = useTheme();
 
   const [showroom3D, setShowroom3D] = useState(true);
   const [consent, setConsent] = useState<"granted" | "declined" | null>(null);
@@ -126,17 +131,14 @@ export function SettingsUI() {
   return (
     <div className="nn-settings">
       <Group
-        title="Showroom light"
+        title="The showroom"
         footnote={sunSentence}
       >
         <Row
           icon={ICONS.sun}
           tint="linear-gradient(160deg,#e8b87a,#c9a43a)"
           label="Light"
-          detail="How the showroom is lit"
-          action={
-            <Segmented options={THEME_OPTIONS} value={mode} onChange={setMode} label="Showroom light" />
-          }
+          detail={LIGHT_DETAIL[phase]}
         />
         <Row
           icon={ICONS.cube}

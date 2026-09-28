@@ -13,6 +13,7 @@
 
 import { useMemo } from "react";
 import * as THREE from "three";
+import { MeshReflectorMaterial } from "@react-three/drei";
 import { ROOM_MODELS } from "../assets";
 import { MATERIALS } from "../materials";
 import { OptionalModel } from "../OptionalModel";
@@ -215,12 +216,20 @@ export function Room({
   windowColour,
   windowIntensity,
   night,
+  /** Whether the floor renders a live reflection. Off on constrained devices. */
+  reflections = true,
+  /** Reflection buffer size. Lowered with the quality tier. */
+  reflectionResolution = 1024,
 }: {
   windowColour: string;
   windowIntensity: number;
   night: boolean;
+  reflections?: boolean;
+  reflectionResolution?: number;
 }) {
   const wallMaterial = night ? "plasterNight" : "plaster";
+  const stoneMaterial = night ? "limestoneNight" : "limestone";
+  const panelMaterial = night ? "concreteNight" : "concrete";
   const windowXs = [-4.4, -1.5, 1.5, 4.4];
 
   return (
@@ -228,11 +237,73 @@ export function Room({
       path={ROOM_MODELS.shell}
       placeholder={
         <group>
-          {/* the floor: Nero Marquina, honed. Its low roughness is what makes
-              the brass appear twice — once on the wall and once underfoot. */}
-          <Surface material="marble" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[ROOM.width, ROOM.depth]} />
-          </Surface>
+          {/* ── the floor ──────────────────────────────────────────
+              Nero Marquina, polished rather than honed, with a real
+              reflection rendered into it each frame. This is the single
+              most expensive-looking thing in the room and the cheapest
+              to justify: a polished stone floor genuinely does carry the
+              whole room upside down in it, and every gold fitting
+              appears twice — once on the wall, once underfoot.
+
+              On weaker hardware `reflections` is false and the same
+              stone falls back to a plain physical material, which costs
+              one draw call instead of a second render pass.        */}
+          {reflections ? (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[ROOM.width, ROOM.depth]} />
+              <MeshReflectorMaterial
+                color={MATERIALS.marble.colour}
+                roughness={0.26}
+                metalness={0.35}
+                /* Blur in the reflection is what separates polished stone
+                   from a mirror: stone scatters, so the image underfoot is
+                   recognisable but soft, and softer with distance. */
+                blur={[300, 90]}
+                mixBlur={2.4}
+                mixStrength={28}
+                resolution={reflectionResolution}
+                depthScale={1.1}
+                minDepthThreshold={0.35}
+                maxDepthThreshold={1.25}
+                depthToBlurRatioBias={0.28}
+                mirror={0}
+              />
+            </mesh>
+          ) : (
+            <Surface material="marble" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[ROOM.width, ROOM.depth]} />
+            </Surface>
+          )}
+
+          {/* ── the Carrara border ─────────────────────────────────
+              A white marble band set a metre in from the walls, framing
+              the dark field. Two marbles is how a European floor is
+              actually laid: the dark stone gives depth, the light band
+              draws the geometry of the room so the eye can read its
+              shape even at night.                                   */}
+          {[
+            { p: [0, 0.0015, -ROOM.halfD + 1.06] as [number, number, number], a: [ROOM.width - 1.9, 0.16] as [number, number] },
+            { p: [0, 0.0015, ROOM.halfD - 1.06] as [number, number, number], a: [ROOM.width - 1.9, 0.16] as [number, number] },
+          ].map((band, i) => (
+            <mesh key={`cx${i}`} position={band.p} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={band.a} />
+              <meshPhysicalMaterial
+                color={MATERIALS.carrara.colour}
+                roughness={MATERIALS.carrara.roughness}
+                metalness={0}
+              />
+            </mesh>
+          ))}
+          {[-ROOM.halfW + 1.06, ROOM.halfW - 1.06].map((x) => (
+            <mesh key={`cz${x}`} position={[x, 0.0015, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[0.16, ROOM.depth - 1.9]} />
+              <meshPhysicalMaterial
+                color={MATERIALS.carrara.colour}
+                roughness={MATERIALS.carrara.roughness}
+                metalness={0}
+              />
+            </mesh>
+          ))}
 
           {/* a brass band inlaid a metre in from the walls, the way a stone
               floor in a European house is framed rather than simply laid */}
@@ -259,6 +330,55 @@ export function Room({
               />
             </mesh>
           ))}
+
+          {/* ── pilasters and panels ───────────────────────────────
+              The long walls are not flat plaster. They are dressed
+              limestone pilasters standing proud of recessed board-formed
+              concrete panels, with a hairline shadow gap at every joint.
+
+              This is what makes an interior read as built rather than
+              painted: the eye picks up the rhythm of the bays and the
+              crisp line where two materials meet, and it reads depth
+              even when the room is almost dark.                     */}
+          {[-ROOM.halfW + 0.09, ROOM.halfW - 0.09].map((x) => {
+            const inward = x < 0 ? 1 : -1;
+            return (
+              <group key={`bay-${x}`}>
+                {/* recessed concrete panels between the pilasters */}
+                {[-2.6, 0, 2.6].map((z) => (
+                  <Surface
+                    key={`panel-${z}`}
+                    material={panelMaterial}
+                    position={[x + inward * 0.02, ROOM.height / 2 + 0.05, z]}
+                    rotation={[0, inward * (Math.PI / 2), 0]}
+                    receiveShadow
+                  >
+                    <planeGeometry args={[2.15, ROOM.height - 0.9]} />
+                  </Surface>
+                ))}
+                {/* the pilasters themselves, standing 90 mm off the wall */}
+                {[-3.9, -1.3, 1.3, 3.9].map((z) => (
+                  <Surface
+                    key={`pilaster-${z}`}
+                    material={stoneMaterial}
+                    position={[x + inward * 0.055, ROOM.height / 2 + 0.05, z]}
+                    castShadow
+                    receiveShadow
+                  >
+                    <boxGeometry args={[0.13, ROOM.height - 0.7, 0.46]} />
+                  </Surface>
+                ))}
+                {/* the entablature the pilasters carry */}
+                <Surface
+                  material={stoneMaterial}
+                  position={[x + inward * 0.05, ROOM.height - 0.34, 0]}
+                  castShadow
+                >
+                  <boxGeometry args={[0.16, 0.2, ROOM.depth - 0.2]} />
+                </Surface>
+              </group>
+            );
+          })}
 
           {/* ceiling */}
           <Surface

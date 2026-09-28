@@ -26,6 +26,8 @@ import {
   WallSign,
 } from "./objects/Fixtures";
 import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
+import { ArchitecturalLighting } from "./objects/ArchitecturalLighting";
+import { Portal } from "./objects/Portal";
 import { Concierge } from "./objects/Concierge";
 import { openStylist } from "@/components/stylist/StylistDock";
 import { VIEWPOINTS, type Viewpoint } from "./viewpoints";
@@ -57,6 +59,8 @@ interface SceneProps {
   selected?: Product | null;
   /** Hide hotspot pins while the entry move is playing. */
   showHotspots: boolean;
+  /** 0 on the pavement, 1 once the visitor is through the doors. */
+  entryProgress?: number;
 }
 
 export function Scene({
@@ -68,6 +72,7 @@ export function Scene({
   onSelect,
   selected,
   showHotspots,
+  entryProgress = 1,
 }: SceneProps) {
   const rig = rigFromSky(sky);
   const night = sky.phase === "night";
@@ -85,7 +90,26 @@ export function Scene({
     <>
       <Lighting sky={sky} quality={quality} />
 
-      <Room windowColour={rig.windowColour} windowIntensity={rig.windowIntensity} night={night} />
+      <Room
+        windowColour={rig.windowColour}
+        windowIntensity={rig.windowIntensity}
+        night={night}
+        /* A live floor reflection is a second render pass over the whole
+           room. It is the thing that makes polished stone read as polished
+           stone, and the first thing to go when the device cannot afford it. */
+        reflections={quality !== "low"}
+        reflectionResolution={quality === "high" ? 1024 : 512}
+      />
+
+      {/* the doors the visitor comes through */}
+      <Portal progress={entryProgress} night={night} />
+
+      {/* recessed spots, pilaster uplights and the perimeter cove */}
+      <ArchitecturalLighting
+        lampColour={rig.lampColour}
+        level={sky.lampLevel}
+        quality={quality}
+      />
 
       {/* ── fixtures ── */}
       <Counter />
@@ -170,29 +194,43 @@ export function Scene({
       {/* ── hotspots ──
           Real buttons in the 3D space via drei's Html, so they are reachable
           by keyboard and readable by a screen reader — a pin drawn as a mesh
-          would be neither. */}
-      {showHotspots
-        ? VIEWPOINTS.filter((v) => v.pin && v.id !== activeViewpoint.id).map((v) => (
-            <Html
-              key={v.id}
-              position={v.pin!}
-              center
-              distanceFactor={9}
-              occlude={false}
-              zIndexRange={[10, 0]}
+          would be neither.
+
+          Every pin stays mounted for the life of the scene and is hidden with
+          CSS rather than by being removed. Each <Html> owns a separate React
+          root, and tearing one down while the canvas is mid-render is what
+          produces "attempted to synchronously unmount a root while React was
+          already rendering". Hiding costs nothing; unmounting costs a race. */}
+      {VIEWPOINTS.filter((v) => v.pin).map((v) => {
+        const shown = showHotspots && v.id !== activeViewpoint.id;
+        return (
+          <Html
+            key={v.id}
+            position={v.pin!}
+            center
+            distanceFactor={9}
+            occlude={false}
+            zIndexRange={[10, 0]}
+            style={{
+              opacity: shown ? 1 : 0,
+              pointerEvents: shown ? "auto" : "none",
+              transition: "opacity var(--duration-panel, 520ms) ease",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onViewpoint(v.id)}
+              className="nn-hotspot nn-hotspot--viewpoint"
+              aria-label={`Go to the ${v.label.toLowerCase()}. ${v.description}.`}
+              aria-hidden={!shown}
+              tabIndex={shown ? 0 : -1}
             >
-              <button
-                type="button"
-                onClick={() => onViewpoint(v.id)}
-                className="nn-hotspot nn-hotspot--viewpoint"
-                aria-label={`Go to the ${v.label.toLowerCase()}. ${v.description}.`}
-              >
-                <span className="nn-hotspot__ring" aria-hidden="true" />
-                <span className="nn-hotspot__label">{v.label}</span>
-              </button>
-            </Html>
-          ))
-        : null}
+              <span className="nn-hotspot__ring" aria-hidden="true" />
+              <span className="nn-hotspot__label">{v.label}</span>
+            </button>
+          </Html>
+        );
+      })}
     </>
   );
 }

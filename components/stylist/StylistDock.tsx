@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Product } from "@/lib/catalog/types";
 import { StylistChat } from "./StylistChat";
-import { LogoMark } from "@/components/brand/LogoMark";
+import { AtelierOrb } from "@/components/ai/AtelierOrb";
 
 /** Other parts of the site open the stylist by dispatching this. */
 const OPEN_EVENT = "nn:stylist-open";
@@ -96,7 +96,7 @@ export function StylistDock({ products }: { products: Product[] }) {
           className="nn-panel fixed bottom-4 right-4 z-40 flex items-center gap-2.5 p-3 transition-[border-color,transform] duration-500 hover:-translate-y-0.5 hover:border-[var(--accent)] sm:bottom-5 sm:right-5 sm:px-4"
           aria-label="Ask the NN stylist"
         >
-          <LogoMark size={18} ring={false} shimmer={false} title={null} />
+          <AtelierOrb size="sm" state="idle" />
           {/* On a phone the mark alone: the label would crowd the bar above it. */}
           <span className="hidden text-eyebrow uppercase tracking-[0.16em] sm:inline">
             Ask the stylist
@@ -126,7 +126,7 @@ export function StylistDock({ products }: { products: Product[] }) {
           >
             <div className="flex items-start justify-between gap-4 border-b p-5">
               <div className="flex items-center gap-3">
-                <LogoMark size={26} shimmer={false} title={null} />
+                <AtelierOrb size="md" state="listening" />
                 <div>
                   <h2 id="nn-dock-title" className="text-lead">
                     Your NN stylist
