@@ -34,6 +34,27 @@ import { usePrefersReducedMotion } from "@/components/motion/useReducedMotion";
 import { useDayPhase } from "@/components/theme/ThemeProvider";
 
 /** Film grain, rasterised once by the browser from an inline filter. */
+/* Every CSS value below is a single-line constant, deliberately.
+   A multi-line template literal in a style object serialises differently on
+   the server and in the browser — React sees the shorthand on one side and
+   empty longhands on the other, and discards the server HTML for the whole
+   tree. That was error #418 on every page of this site. */
+const GROUND =
+  "radial-gradient(125% 88% at 50% 6%, var(--surface-raised) 0%, transparent 58%)," +
+  "radial-gradient(150% 110% at 50% 108%, var(--surface-base) 0%, transparent 62%)," +
+  "linear-gradient(180deg, var(--surface-base) 0%, var(--surface-void) 100%)";
+
+const GLAZING =
+  "repeating-linear-gradient(90deg, transparent 0 9.5%," +
+  "color-mix(in srgb, var(--light-cool) 7%, transparent) 9.5% 20%," +
+  "transparent 20% 21%)";
+
+const GLAZING_MASK = "radial-gradient(120% 96% at 50% -6%, #000 34%, transparent 82%)";
+
+const VIGNETTE =
+  "radial-gradient(128% 104% at 50% 42%, transparent 44%," +
+  "color-mix(in srgb, var(--surface-void) 82%, transparent) 100%)";
+
 const GRAIN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E")`;
 
 export function LiveAtmosphere() {
@@ -78,16 +99,22 @@ export function LiveAtmosphere() {
     // of the light through the windows is therefore genuinely the angle of
     // the sun where the customer is standing.
     const t = Math.min(1, Math.max(0, (sky.solar.azimuth - 90) / 180));
+    const tilt = Math.max(-28, Math.min(28, 24 - sky.solar.elevation * 0.42));
     return {
-      /** Where the beam enters, as a percentage across the wall. */
-      x: 14 + t * 68,
-      /** How steep it is. A low sun throws long. */
-      tilt: Math.max(-28, Math.min(28, 24 - sky.solar.elevation * 0.42)),
+      /** Where the beam enters, as a percentage across the wall. Rounded:
+          an unrounded float serialises to different precision on the server
+          and the client, and React treats that as a hydration mismatch. */
+      x: Math.round((14 + t * 68) * 100) / 100,
+      /** The angle the light falls at, as whole degrees. */
+      tiltDeg: Math.round(180 + tilt),
+      beamDeg: Math.round(190 + tilt),
+      /** How much light is in the air, and in the beam, as whole percents. */
+      airPercent: Math.round(4 + sky.beam * 9),
+      beamPercent: Math.round(sky.beam * 11),
       /** How strong the daylight is at all. */
       strength: sky.beam,
       /** How far the lamps have come up. */
       lamps: sky.lampLevel,
-      kelvin: sky.kelvin,
     };
   }, [sky]);
 
@@ -125,13 +152,7 @@ export function LiveAtmosphere() {
       {/* ── 1. GROUND ───────────────────────────────────────────── */}
       <div
         className="absolute inset-0"
-        style={{
-          background: `
-            radial-gradient(125% 88% at 50% 6%, var(--surface-raised) 0%, transparent 58%),
-            radial-gradient(150% 110% at 50% 108%, var(--surface-base) 0%, transparent 62%),
-            linear-gradient(180deg, var(--surface-base) 0%, var(--surface-void) 100%)
-          `,
-        }}
+        style={{ background: GROUND }}
       />
 
       <motion.div className="absolute inset-0" style={{ y: roomY, scale: roomScale }}>
@@ -149,14 +170,9 @@ export function LiveAtmosphere() {
           <div
             className="absolute inset-0"
             style={{
-              background: `repeating-linear-gradient(
-                90deg,
-                transparent 0 9.5%,
-                color-mix(in srgb, var(--light-cool) 7%, transparent) 9.5% 20%,
-                transparent 20% 21%
-              )`,
-              maskImage: "radial-gradient(120% 96% at 50% -6%, #000 34%, transparent 82%)",
-              WebkitMaskImage: "radial-gradient(120% 96% at 50% -6%, #000 34%, transparent 82%)",
+              background: GLAZING,
+              maskImage: GLAZING_MASK,
+              WebkitMaskImage: GLAZING_MASK,
             }}
           />
         </motion.div>
@@ -169,11 +185,10 @@ export function LiveAtmosphere() {
           <div
             className="absolute inset-0"
             style={{
-              background: `linear-gradient(
-                ${180 + sun.tilt}deg,
-                color-mix(in srgb, var(--light-warm) ${Math.round(4 + sun.strength * 9)}%, transparent) 0%,
-                transparent 46%
-              )`,
+              background:
+                `linear-gradient(${sun.tiltDeg}deg, ` +
+                `color-mix(in srgb, var(--light-warm) ${sun.airPercent}%, transparent) 0%, ` +
+                `transparent 46%)`,
               transformOrigin: `${sun.x}% 0%`,
             }}
           />
@@ -182,12 +197,11 @@ export function LiveAtmosphere() {
             <div
               className="absolute inset-0"
               style={{
-                background: `conic-gradient(
-                  from ${190 + sun.tilt}deg at ${sun.x}% -8%,
-                  transparent 0deg,
-                  color-mix(in srgb, var(--light-warm) ${Math.round(sun.strength * 11)}%, transparent) 6deg,
-                  transparent 15deg
-                )`,
+                background:
+                  `conic-gradient(from ${sun.beamDeg}deg at ${sun.x}% -8%, ` +
+                  `transparent 0deg, ` +
+                  `color-mix(in srgb, var(--light-warm) ${sun.beamPercent}%, transparent) 6deg, ` +
+                  `transparent 15deg)`,
                 filter: "blur(28px)",
               }}
             />
@@ -214,13 +228,10 @@ export function LiveAtmosphere() {
                 height: pool.size,
                 translate: "-50% -50%",
                 animationDelay: `${i * -9}s`,
-                background: `radial-gradient(
-                  closest-side,
-                  color-mix(in srgb, var(--light-warm) ${Math.round(
-                    (5 + sun.lamps * 11) * pool.strength,
-                  )}%, transparent),
-                  transparent 72%
-                )`,
+                background:
+                  `radial-gradient(closest-side, ` +
+                  `color-mix(in srgb, var(--light-warm) ${Math.round((5 + sun.lamps * 11) * pool.strength)}%, transparent), ` +
+                  `transparent 72%)`,
                 filter: "blur(36px)",
               }}
             />
@@ -250,10 +261,7 @@ export function LiveAtmosphere() {
       {/* the vignette that seats the whole room */}
       <div
         className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(128% 104% at 50% 42%, transparent 44%, color-mix(in srgb, var(--surface-void) 82%, transparent) 100%)",
-        }}
+        style={{ background: VIGNETTE }}
       />
     </div>
   );
