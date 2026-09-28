@@ -42,6 +42,23 @@ import {
 const STORAGE_KEY = "nn-theme-mode";
 const DEFAULT_LATITUDE = 20;
 
+/**
+ * The clock the server renders by.
+ *
+ * Everything downstream — the atmosphere's inline styles, the settings
+ * footnote, the theme switch's announcement — is derived from the sky, and the
+ * sky is derived from a clock. The server's clock is never the visitor's, so
+ * rendering the real one during SSR guarantees a hydration mismatch on every
+ * page that touches it. React reports that as error #418 and throws away the
+ * server HTML.
+ *
+ * So the first render on both sides uses this fixed reference instead, and the
+ * real clock takes over on mount. The reference is an evening hour because
+ * night is the brand's resting state and the document already ships with
+ * data-theme="night" — which means the common case has nothing to correct.
+ */
+const SSR_REFERENCE = new Date("2026-01-01T21:00:00Z");
+
 interface ThemeContextValue {
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
@@ -78,7 +95,8 @@ export function ThemeProvider({
   housePhase?: DayPhase | null;
 }) {
   const [mode, setModeState] = useState<ThemeMode>("auto");
-  const [now, setNow] = useState<Date>(() => new Date());
+  /* null until mounted, so the server and the first client render agree */
+  const [now, setNow] = useState<Date | null>(null);
   const [override, setOverride] = useState<DayPhase | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -95,6 +113,8 @@ export function ThemeProvider({
       /* private browsing can throw on access; auto is a fine default */
     }
     setOverride(phaseOverrideFromSearch(window.location.search));
+    // the real clock takes over here, after hydration has matched
+    setNow(new Date());
     setHydrated(true);
   }, []);
 
@@ -134,10 +154,10 @@ export function ThemeProvider({
   /* The clock we light the room by. A ?phase= test override wins over the
      owner's pinned phase, which in turn wins over the visitor's real clock. */
   const forced = override ?? housePhase;
-  const effectiveDate = useMemo(
-    () => (forced ? clockForPhase(forced, now) : now),
-    [forced, now],
-  );
+  const effectiveDate = useMemo(() => {
+    const base = now ?? SSR_REFERENCE;
+    return forced ? clockForPhase(forced, base) : base;
+  }, [forced, now]);
 
   const autoPhase = useMemo(() => phaseFromDate(effectiveDate), [effectiveDate]);
 
@@ -157,8 +177,10 @@ export function ThemeProvider({
 
   const sky = useMemo(() => {
     const base = mode === "auto" ? effectiveDate : clockForPhase(phase, effectiveDate);
-    return skyState(base, DEFAULT_LATITUDE, longitudeFromTimezone());
-  }, [mode, phase, effectiveDate]);
+    // Longitude comes from the browser's UTC offset, which does not exist on
+    // the server — so before mount the reference sky uses zero.
+    return skyState(base, DEFAULT_LATITUDE, now ? longitudeFromTimezone() : 0);
+  }, [mode, phase, effectiveDate, now]);
 
   /* paint the theme onto <html> */
   useEffect(() => {
