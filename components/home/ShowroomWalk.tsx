@@ -88,12 +88,18 @@ export function ShowroomWalk({ catalogue }: { catalogue: CatalogueResult }) {
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [quality, setQuality] = useState<Quality>("medium");
   const [selected, setSelected] = useState<Product | null>(null);
+  /* The sky is computed from a clock, and the server's clock is not the
+     visitor's. Rendering its numbers during SSR guarantees a hydration
+     mismatch, so the reading waits for the client. */
+  const [mounted, setMounted] = useState(false);
 
   /* 0 at the top of the walk, 1 when its last screen leaves */
   const { scrollYProgress } = useScroll({
     target: walk,
     offset: ["start start", "end end"],
   });
+
+  useEffect(() => setMounted(true), []);
 
   /* decide whether to run 3D at all */
   useEffect(() => {
@@ -233,9 +239,10 @@ export function ShowroomWalk({ catalogue }: { catalogue: CatalogueResult }) {
                   </GlassButton>
                 </Link>
               ) : null}
-              {i === 1 ? (
+              {i === 1 && mounted ? (
                 <p className="nn-walk__reading">
-                  Right now: {phase}, sun {Math.round(sky.solar.elevation)}° from your horizon,{" "}
+                  Right now: {phase}, sun {Math.abs(Math.round(sky.solar.elevation))}°{" "}
+                  {sky.solar.elevation >= 0 ? "above" : "below"} your horizon,{" "}
                   {Math.round(sky.kelvin)} K.
                 </p>
               ) : null}
