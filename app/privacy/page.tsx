@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Prose } from "@/components/layout/Prose";
-import { ConsentControls } from "@/components/layout/ConsentControls";
+import { PageHeader, Prose } from "@/components/layout/PageHeader";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description:
-    "What Nero Noren collects, what it does not, and how to change your mind. Written under India's Digital Personal Data Protection Act.",
-  alternates: { canonical: "/privacy" },
+  description: "What Nero Noren collects, why, and what stays on your own device.",
 };
 
 export default function PrivacyPage() {
@@ -15,89 +11,56 @@ export default function PrivacyPage() {
     <>
       <PageHeader
         eyebrow="Privacy"
-        title="What we know about you"
-        lede="Short version: your measurements never leave your device, we count nothing until you agree, and we do not sell anything about you to anybody."
+        title={["What we", "hold"]}
+        lede="Written to be read. This describes what this site actually does, not what a template says it might do."
       />
       <Prose>
-        <h2>Your choice, now</h2>
+        <h2>What stays on your device</h2>
+        <ul>
+          <li>Your bag, so it survives a reload.</li>
+          <li>Your showroom preference — the hour of the room, and whether you have chosen the flat shop.</li>
+          <li>Your trial-room measurements, only if you choose to keep them. They are never sent to us.</li>
+        </ul>
         <p>
-          You can change your mind about being counted at any time, here:
+          All of these live in your browser&apos;s own storage. Clearing your site data removes them.
         </p>
-        <ConsentControls />
 
-        <h2>What we never collect</h2>
+        <h2>What we receive</h2>
         <ul>
           <li>
-            <strong>Your measurements.</strong> Height, weight and waist are used in your browser
-            to work out a size. They are not sent to us. If you tick &ldquo;keep my measurements on
-            this device&rdquo;, they are stored in that browser and nowhere else.
+            When you place an order: your name, email, mobile number and delivery address. We need
+            these to send the parcel and to tell you where it is.
           </li>
           <li>
-            <strong>Your card details.</strong> These are entered in Razorpay&rsquo;s own payment
-            window. We never see them, and they never pass through our servers.
-          </li>
-          <li>
-            <strong>Your IP address, in analytics.</strong> The events we count carry no address,
-            no device identifier and no user agent. There is no field for them.
+            When you ask the stylist: your question and the recent turns of that conversation, sent
+            to our server and on to the model provider to produce an answer.
           </li>
         </ul>
 
-        <h2>What we collect when you order</h2>
+        <h2>Payments</h2>
         <p>
-          To send you a parcel we need your name, delivery address, email and mobile number. Your
-          email is used for the order confirmation, your mobile for delivery updates. That
-          information goes to Shopify, which holds our order records, and to the courier who
-          delivers to you. It is not used for anything else and we do not add you to a mailing list
-          from a purchase.
+          Card and UPI details are entered in Razorpay&apos;s own window and are never seen by, sent
+          to, or stored by Nero Noren. We receive only the result of the payment, which our server
+          verifies cryptographically before confirming an order.
         </p>
 
-        <h2>What we count, with your agreement</h2>
+        <h2>Tracking</h2>
         <p>
-          Only if you say yes on the banner. We record which parts of the showroom are used, which
-          products are looked at, when the trial room is used, and that a question was asked of the
-          stylist. Each event carries the hour it happened, rounded to the hour — not the minute —
-          which is enough to see a pattern and not enough to follow a person.
-        </p>
-        <p>
-          If you say no, nothing is recorded, and the site works exactly the same. There is no
-          degraded version for people who decline.
+          We do not run advertising trackers or third-party analytics on this site. If that ever
+          changes, it will be behind a consent banner that asks first, as the Digital Personal Data
+          Protection Act requires, and refusing will not restrict anything on this site.
         </p>
 
-        <h2>The stylist</h2>
+        <h2>Keeping and removing</h2>
         <p>
-          What you ask the stylist is sent to Anthropic&rsquo;s Claude API to be answered, and then
-          it is gone. We do not store your conversation, and it is not used to train anything.
+          Order records are kept as long as tax and consumer law requires. Write to us and we will
+          tell you what is held about you, correct it, or delete what we are not obliged to keep.
         </p>
 
-        <h2>Who processes data for us</h2>
-        <dl>
-          <dt>Shopify</dt>
-          <dd>Products, stock and order records</dd>
-          <dt>Razorpay</dt>
-          <dd>Payments. They see your card details; we do not</dd>
-          <dt>Anthropic</dt>
-          <dd>The stylist&rsquo;s replies</dd>
-          <dt>Supabase</dt>
-          <dd>Consented analytics and the owner&rsquo;s own login</dd>
-          <dt>Vercel</dt>
-          <dd>Hosting</dd>
-        </dl>
-
-        <h2>Your rights under the DPDP Act</h2>
+        <h2>Asking</h2>
         <p>
-          Under India&rsquo;s Digital Personal Data Protection Act, 2023 you may ask us what we
-          hold about you, ask us to correct it, ask us to erase it, and withdraw a consent you have
-          given. Write to us and we will do it. We will not ask you why.
-        </p>
-        <p>
-          We keep order records for as long as the law requires us to, and consented analytics for
-          twelve months.
-        </p>
-
-        <h2>Changes</h2>
-        <p>
-          If this page changes in a way that affects what we collect, we will ask for your consent
-          again rather than quietly relying on the old one.
+          Any question about this page can go to the address on the order confirmation. A real
+          person answers.
         </p>
       </Prose>
     </>

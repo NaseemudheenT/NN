@@ -1,34 +1,28 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { loadCatalogue } from "@/lib/catalog";
-import { TrialRoom } from "@/components/trial/TrialRoom";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { getCatalog } from "@/lib/shopify";
+import { PageHeader, Section } from "@/components/layout/PageHeader";
+import { TrialRoom } from "@/components/trial-room/TrialRoom";
 
 export const metadata: Metadata = {
-  title: "The trial room",
+  title: "Trial room",
   description:
-    "Enter your height, weight and usual jeans waist. The Nero Noren trial room scales a body to match and works out how much room each size leaves you.",
-  alternates: { canonical: "/trial-room" },
+    "Three measurements, read against the real size chart. The trial room names your size and says where the garment will sit close and where it will be easy.",
 };
 
-export default async function TrialRoomPage() {
-  const { products } = await loadCatalogue();
+export default async function TrialRoomPage(props: PageProps<"/trial-room">) {
+  const [catalog, params] = await Promise.all([getCatalog(), props.searchParams]);
+  const piece = typeof params.piece === "string" ? params.piece : undefined;
 
   return (
     <>
       <PageHeader
-        eyebrow="Sizing"
-        title="The trial room"
-        lede="Tell us your height, your weight and the waist of the jeans you already wear. We scale a body to match and show you the piece on it, with the room each measurement leaves you."
+        eyebrow="Trial room"
+        title={["Step behind", "the curtain"]}
+        lede="Height, weight, and the waist of trousers you already wear. That is enough to estimate your measurements and read them against the size chart — and to say where a piece will sit close and where it will be easy."
       />
-
-      <Suspense
-        fallback={
-          <p className="nn-wrap py-16 text-[var(--ink-soft)]">Opening the fitting room…</p>
-        }
-      >
-        <TrialRoom products={products} />
-      </Suspense>
+      <Section className="pb-28 md:pb-40">
+        <TrialRoom products={catalog.products} initialHandle={piece} />
+      </Section>
     </>
   );
 }

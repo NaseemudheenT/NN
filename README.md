@@ -1,178 +1,113 @@
-# NERO NOREN
+# Nero Noren
 
-The official website of NERO NOREN — an online-first, European-inspired menswear
-house for men and boys, from India. The home page **is** a 3D showroom: customers walk through it,
-see garments on the rails and mannequins, try pieces in a trial room, ask an AI
-stylist, and buy.
+The digital showroom of **Nero Noren**, an online-first menswear house for men and boys.
 
-> *Timeless style builds character.*
+The home page is not a landing page with a 3D background — it is a room. Limestone
+walls, honed travertine, brass rails, tall arched windows and a backlit NN sign, all
+generated in code, lit by the hour of the visitor's own clock. Scroll walks a camera
+through it. The garments hang in it. Everything else on the site is another part of
+the same building.
 
----
-
-## What this is
-
-A full Next.js application, not a page. The parts that make it a real shop:
-
-| Piece | What it does | Status |
-|---|---|---|
-| **Next.js on Vercel** | The site itself, server-rendered, running all day | ready to deploy |
-| **Shopify Storefront API** | Products, prices, stock, cart — edited from your phone | needs your keys |
-| **Razorpay** | UPI, cards, netbanking, with server-verified signatures | needs your keys |
-| **Claude API** | The stylist, and the owner console's command centre | needs your key |
-| **Supabase** | Owner login, showroom settings, consented analytics | needs your keys |
-| **The 3D showroom** | Runs in the customer's browser, lit by their own clock | working now |
-
-Without any keys the site still runs end to end on the Collection 001 reference
-catalogue, and says clearly on the page which environment variable is missing.
-Nothing is faked silently.
+*Timeless style builds character.*
 
 ---
+
+## Stack
+
+| Area | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack), React 19, TypeScript strict |
+| 3D | Three.js, React Three Fiber, drei, postprocessing |
+| Motion | Framer Motion, plus a scroll-driven camera rig |
+| Styling | Tailwind CSS v4, CSS-first design tokens |
+| Catalogue | Shopify Storefront API (headless) |
+| Payments | Razorpay, signature verified server-side |
+| Stylist | Claude, called only from the server |
+| Owner access | Supabase magic link, gated by `OWNER_EMAILS` |
 
 ## Running it
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in what you have
+cp .env.example .env.local   # fill in what you have; nothing is required
 npm run dev
 ```
 
-Open http://localhost:3000.
+Nothing in `.env.local` is required to run the site. Each integration degrades
+honestly on its own: the catalogue shows Collection 001 without prices, the stylist
+says it is not connected, checkout says payments are not connected. **No placeholder
+price, stock level or AI answer is ever invented to fill a gap.**
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript, no emit |
-| `npm run models:manifest` | Re-scan `/public/models` and `/public/hdri` after adding assets |
+```bash
+npm run lint      # eslint, including the React Compiler rules
+npm run build     # production build
+```
 
----
-
-## The things that are genuinely computed
-
-Three parts of this site do real arithmetic rather than approximating a look.
-
-### The light — `lib/daytime.ts`
-
-The showroom is lit by the visitor's own sky, not by four hand-picked presets.
-
-- **Sun position** from the NOAA solar position algorithm, evaluated against the
-  visitor's local clock, calendar date and longitude. Longitude is inferred from
-  the browser's UTC offset, so nothing has to ask for location permission.
-- **Colour** from a Planckian-locus blackbody model. A low sun is red here for
-  the reason it is red outside: Kasten–Young optical air mass rises as the sun
-  drops, and the long air path scatters the short wavelengths out.
-- **Brightness** from the Meinel clear-sky model, `I = I₀ · 0.7^(AM^0.678)`.
-- **Refraction** near the horizon from Bennett's formula.
-
-So the room at 08:00 in June is not the room at 08:00 in December, and the
-shadows fall where they would actually fall.
-
-One deliberate liberty: the building is oriented so its window wall catches the
-day. The computed azimuth is mapped onto a sweep across that wall, because
-otherwise the sun would spend half of every day behind solid masonry.
-
-### The fit — `lib/fit.ts`
-
-Not a lookup table. The torso is treated as a cylinder of a given height and
-mass, so girth scales as `√(mass / height)`. Fitted against published male
-anthropometry the result is `chest ≈ 160·√(M/H) − 5`, accurate to about ±3 cm.
-
-Ease — the number that actually decides how a shirt feels — is then
-`garment measurement − body measurement`, computed against the real finished
-measurements from the size chart, and reported per area.
-
-Every returned figure says whether it was measured or estimated. A stated jeans
-waist always overrides the model, because a measured number beats a modelled one.
-
-### The money — `lib/money.ts`, `lib/razorpay.ts`
-
-Money is an integer number of paise everywhere. `0.1 + 0.2 !== 0.3`, and a rupee
-lost to binary rounding in a cart total is a real rupee.
-
-Totals are computed on the server from the catalogue, never taken from the
-request — a client that can send its own total can send a smaller one. A payment
-is real only once `HMAC-SHA256(order_id|payment_id)` verifies in constant time
-**and** Razorpay itself confirms the capture and the amount.
-
----
-
-## Layout
+## How it is put together
 
 ```
-app/                    routes, API handlers, sitemap, robots, OG image
+app/                      routes — showroom, collection, product, trial room,
+                          stylist, bag, checkout, the house, sizing, care,
+                          delivery, privacy, terms, owner
+  api/stylist             streams Claude, catalogue-constrained, rate-limited
+  api/checkout/*          creates and verifies Razorpay orders
+  api/owner/session       magic link request and session exchange
+
 components/
-  brand/                the NN monogram: one letterform, flat and extruded
-  showroom/             the 3D room, its objects, lighting and camera
-  shop/                 catalogue, cards, bag, garment drawings
-  trial/                the fitting room and the fit engine's interface
-  stylist/              the AI stylist
-  owner/                the owner console
-  layout/, theme/       shell, theme engine, consent
+  brand/                  the NN monogram and wordmark, drawn as geometry
+  showroom/               the room: architecture, materials, lighting, camera,
+                          garments, and the 2D fallback
+  ui/glass/               the liquid-glass system
+  motion/                 reveals and parallax, all from one motion language
+  shop/                   collection, product, bag, checkout, search
+  trial-room/  ai/  owner/  layout/
+
 lib/
-  daytime.ts            solar position, colour temperature, sky state
-  fit.ts                body estimate and ease
-  shopify.ts            Storefront API
-  razorpay.ts           orders and signature verification
-  india.ts              PIN codes, mobile numbers, delivery windows
-  catalog/              the catalogue layer and the Collection 001 seed
-  business.ts           the owner console's figures
-public/models/          3D assets, plus the manifest that makes them optional
-reference/              the approved design prototype
+  tokens.ts               colours, lighting presets, viewpoints, motion
+  fit.ts                  the fit engine
+  shopify.ts              catalogue and cart
+  razorpay.ts  owner.ts  client-prefs.ts  bag.ts
 ```
 
----
+### The showroom
 
-## 3D assets
+Four lighting presets — morning, afternoon, evening, night — describe the same room
+at different hours, and blend continuously rather than switching like a theme. The
+visitor's clock chooses; they can override it, and `?phase=night` forces one for
+testing.
 
-The showroom is built entirely from procedural placeholders at the correct
-real-world sizes and materials. Every object checks
-`/public/models/manifest.json` first and uses a real `.glb` when one is present.
+Quality is chosen from the device (GPU, memory, cores, pointer) and lowered at
+runtime if frames drop. Below that there is an elegant 2D elevation of the same room,
+and a "shop flat" switch that is always one tap away.
 
-To swap in real assets: drop the files into `/public/models`, run
-`npm run models:manifest`, and the showroom uses them. **No code changes.**
+Every object is procedural at true real-world scale and every path is listed in
+`components/showroom/assets.ts`. Dropping real `.glb` files into `/public/models`
+replaces them one for one without touching a component.
 
-The expected paths, sizes and formats are in
-[`public/models/README.md`](public/models/README.md) and declared in
-`components/showroom/assets.ts`.
+### The fit engine
 
-Photographed lighting goes in `/public/hdri/{morning,afternoon,evening,night}.hdr`.
-Without it the room builds its own environment out of emissive planes — no CDN
-request, no multi-megabyte download, and brass still reads as brass.
+`lib/fit.ts` estimates body measurements from three numbers a customer actually knows
+— height, weight, and the waist of trousers they already own — and reads them against
+the garment's published size chart. Shirting is sized on the chest, trousers on the
+waist, and extra room where a garment is meant to have room is not counted against
+the fit. **Where a piece has published no size chart, it says so instead of guessing.**
 
----
+### The stylist
 
-## Performance
+`/api/stylist` hands Claude the live catalogue with every question and allows it to
+recommend only what is in it. It cannot invent a piece, a price, a discount or a
+delivery date. The key never leaves the server; the reply is re-emitted as plain text
+so nothing about the provider reaches the browser.
 
-The budget in `CLAUDE.md` is: first showroom view interactive under 4 s on a
-mid-range Android over 4G, and under 300 KB of JavaScript gzipped before 3D.
+## Accessibility and motion
 
-- **First-load JS: 119 KB gzipped.**
-- three.js, R3F, drei and postprocessing are a dynamic import — the page paints
-  a CSS showroom first, then the 3D arrives and takes over.
-- Quality adapts from measured frame rate, not from a user-agent guess.
-- A 2D shop is always one tap away and works with 3D off entirely.
+Semantic landmarks, a skip link, keyboard paths through search, sizes, the bag and
+checkout, and visible focus rings. `prefers-reduced-motion` removes camera movement,
+parallax and magnetic buttons, and shortens reveals — without removing any content.
 
----
+## Security
 
-## Privacy
-
-Built to India's DPDP Act, and slightly beyond it.
-
-- Nothing is counted before the visitor agrees. Declining changes nothing else.
-- Analytics events carry no IP address, no device id, no user agent. There is no
-  field for them. Timestamps are rounded to the hour.
-- Measurements never leave the device.
-- Card details are entered in Razorpay's own window and never reach us.
-- API keys are read on the server only and never reach the browser.
-
----
-
-## Deployment
-
-See [`DEPLOY.md`](DEPLOY.md) for the accounts to create, the keys to obtain, the
-Shopify metafields to add and the two Supabase tables to create.
-
----
-
-© Nero Noren Private Limited
+Secrets are read only in `lib/env.ts`, which is `server-only`. Card details are
+entered in Razorpay's own window and never reach this application; every payment is
+verified by HMAC on the server before an order is confirmed. Owner sessions are signed
+cookies, `httpOnly`, and restricted to addresses in `OWNER_EMAILS`.

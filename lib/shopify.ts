@@ -1,99 +1,280 @@
-/**
- * Shopify Storefront API — the source of truth for products, prices, stock
- * and the cart whenever it is configured.
- *
- * Server only. The Storefront token is read from the environment and never
- * reaches the browser: every call here runs inside a server component or a
- * route handler.
- *
- * NN reads two metafields per product:
- *   nn.model_glb   — path to the garment .glb under /public/models
- *   nn.fit_notes   — the brand's own words on how the piece wears
- *   nn.size_chart  — JSON size chart used by the trial room
- */
-
 import "server-only";
-import { env, shopifyReady } from "./env";
-import { toMinor } from "./money";
-import type { Product, SizeChart, GarmentStyle, GarmentType } from "./catalog/types";
-import { SHIRT_CHART, TROUSER_CHART } from "./catalog/seed";
+import { env, integrations } from "./env";
+import type { Catalog, Product, Money, Variant, Category } from "./types";
+import { COLLECTION_001 } from "./collection-001";
 
 const API_VERSION = "2025-07";
 
-class ShopifyError extends Error {}
+function endpoint() {
+  return `https://${env.shopifyDomain()}/api/${API_VERSION}/graphql.json`;
+}
 
 async function storefront<T>(
   query: string,
   variables: Record<string, unknown> = {},
-  cache: RequestCache = "force-cache",
+  revalidate = 120,
 ): Promise<T> {
-  if (!shopifyReady()) {
-    throw new ShopifyError("Shopify is not configured");
-  }
-  const res = await fetch(`https://${env.shopifyDomain}/api/${API_VERSION}/graphql.json`, {
+  const token = env.shopifyStorefrontToken();
+  if (!token) throw new Error("SHOPIFY_STOREFRONT_TOKEN is not set");
+
+  const res = await fetch(endpoint(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": env.shopifyStorefrontToken,
+      "X-Shopify-Storefront-Access-Token": token,
     },
     body: JSON.stringify({ query, variables }),
-    cache,
-    next: cache === "force-cache" ? { revalidate: 300, tags: ["shopify"] } : undefined,
+    next: { revalidate, tags: ["catalog"] },
   });
 
   if (!res.ok) {
-    throw new ShopifyError(`Shopify responded ${res.status}`);
+    throw new Error(`Shopify responded ${res.status}`);
   }
   const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
   if (json.errors?.length) {
-    throw new ShopifyError(json.errors.map((e) => e.message).join("; "));
+    throw new Error(json.errors.map((e) => e.message).join("; "));
   }
-  if (!json.data) throw new ShopifyError("Shopify returned no data");
+  if (!json.data) throw new Error("Shopify returned no data");
   return json.data;
 }
 
-/* ── fragments ─────────────────────────────────────────────────── */
-
-const PRODUCT_FIELDS = /* GraphQL */ `
-  fragment ProductFields on Product {
+const PRODUCT_FRAGMENT = /* GraphQL */ `
+  fragment ProductParts on Product {
     id
     handle
     title
     description
     productType
     tags
-    options { name values }
-    priceRange { minVariantPrice { amount currencyCode } }
-    images(first: 6) { nodes { url altText } }
-    variants(first: 25) {
+    options {
+      name
+      values
+    }
+    featuredImage {
+      url
+      altText
+      width
+      height
+    }
+    images(first: 8) {
+      nodes {
+        url
+        altText
+        width
+        height
+      }
+    }
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    variants(first: 40) {
       nodes {
         id
         title
         availableForSale
-        price { amount currencyCode }
-        selectedOptions { name value }
+        selectedOptions {
+          name
+          value
+        }
+        price {
+          amount
+          currencyCode
+        }
       }
     }
-    modelGlb: metafield(namespace: "nn", key: "model_glb") { value }
-    fitNotes: metafield(namespace: "nn", key: "fit_notes") { value }
-    sizeChart: metafield(namespace: "nn", key: "size_chart") { value }
-    colourHex: metafield(namespace: "nn", key: "colour_hex") { value }
-    stripeHex: metafield(namespace: "nn", key: "stripe_hex") { value }
-    fabric: metafield(namespace: "nn", key: "fabric") { value }
-    care: metafield(namespace: "nn", key: "care") { value }
-    bestFor: metafield(namespace: "nn", key: "best_for") { value }
-    placement: metafield(namespace: "nn", key: "placement") { value }
+    colour: metafield(namespace: "nn", key: "colour") {
+      value
+    }
+    swatch: metafield(namespace: "nn", key: "swatch") {
+      value
+    }
+    fabric: metafield(namespace: "nn", key: "fabric") {
+      value
+    }
+    fitNotes: metafield(namespace: "nn", key: "fit_notes") {
+      value
+    }
+    modelGlb: metafield(namespace: "nn", key: "model_glb") {
+      value
+    }
+    sizeChart: metafield(namespace: "nn", key: "size_chart") {
+      value
+    }
+    care: metafield(namespace: "nn", key: "care") {
+      value
+    }
   }
 `;
 
-const CART_FIELDS = /* GraphQL */ `
-  fragment CartFields on Cart {
+interface ShopifyProductNode {
+  id: string;
+  handle: string;
+  title: string;
+  description: string;
+  productType: string;
+  tags: string[];
+  options: { name: string; values: string[] }[];
+  featuredImage: { url: string; altText: string | null; width: number; height: number } | null;
+  images: { nodes: { url: string; altText: string | null; width: number; height: number }[] };
+  priceRange: { minVariantPrice: { amount: string; currencyCode: string } };
+  variants: {
+    nodes: {
+      id: string;
+      title: string;
+      availableForSale: boolean;
+      selectedOptions: { name: string; value: string }[];
+      price: { amount: string; currencyCode: string };
+    }[];
+  };
+  colour: { value: string } | null;
+  swatch: { value: string } | null;
+  fabric: { value: string } | null;
+  fitNotes: { value: string } | null;
+  modelGlb: { value: string } | null;
+  sizeChart: { value: string } | null;
+  care: { value: string } | null;
+}
+
+function money(a: { amount: string; currencyCode: string }): Money {
+  return { amount: Number(a.amount), currency: a.currencyCode };
+}
+
+function categoryOf(node: ShopifyProductNode): Category {
+  const hay = `${node.productType} ${node.tags.join(" ")} ${node.title}`.toLowerCase();
+  if (/(trouser|pant|chino)/.test(hay)) return "trousers";
+  if (/(coat|jacket|overcoat|blazer)/.test(hay)) return "outerwear";
+  if (/(knit|sweater|jumper)/.test(hay)) return "knitwear";
+  return "shirts";
+}
+
+function parseJson<T>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function sizeOf(v: ShopifyProductNode["variants"]["nodes"][number]): string {
+  const opt = v.selectedOptions.find((o) => /size/i.test(o.name));
+  return opt?.value ?? v.title;
+}
+
+function toProduct(node: ShopifyProductNode): Product {
+  const variants: Variant[] = node.variants.nodes.map((v) => ({
+    id: v.id,
+    size: sizeOf(v),
+    available: v.availableForSale,
+    price: money(v.price),
+  }));
+
+  const sizeOption = node.options.find((o) => /size/i.test(o.name));
+
+  return {
+    id: node.id,
+    handle: node.handle,
+    title: node.title,
+    colour: node.colour?.value ?? "",
+    swatch: node.swatch?.value ?? "#8a8177",
+    category: categoryOf(node),
+    fabric: node.fabric?.value ?? "",
+    fit: node.fitNotes?.value ?? "",
+    description: node.description,
+    care: parseJson<string[]>(node.care?.value ?? null) ?? [],
+    sizes: sizeOption?.values ?? variants.map((v) => v.size),
+    price: money(node.priceRange.minVariantPrice),
+    images: (node.images.nodes.length ? node.images.nodes : node.featuredImage ? [node.featuredImage] : []).map(
+      (i) => ({ url: i.url, alt: i.altText ?? `${node.title} — ${node.colour?.value ?? ""}`.trim(), width: i.width, height: i.height }),
+    ),
+    modelGlb: node.modelGlb?.value ?? null,
+    variants,
+    preview: false,
+    sizeChart: parseJson(node.sizeChart?.value ?? null),
+  };
+}
+
+/**
+ * The catalogue. When Shopify is connected it is the only source of truth.
+ * When it is not, the showroom shows Collection 001 as display forms with
+ * no price and no stock — never invented numbers.
+ */
+export async function getCatalog(): Promise<Catalog> {
+  if (!integrations.shopify()) {
+    return { configured: false, source: "preview", products: COLLECTION_001, error: null };
+  }
+  try {
+    const data = await storefront<{ products: { nodes: ShopifyProductNode[] } }>(
+      /* GraphQL */ `
+        ${PRODUCT_FRAGMENT}
+        query Catalog {
+          products(first: 60, sortKey: BEST_SELLING) {
+            nodes {
+              ...ProductParts
+            }
+          }
+        }
+      `,
+    );
+    return {
+      configured: true,
+      source: "shopify",
+      products: data.products.nodes.map(toProduct),
+      error: null,
+    };
+  } catch (e) {
+    return {
+      configured: true,
+      source: "preview",
+      products: COLLECTION_001,
+      error: e instanceof Error ? e.message : "Shopify request failed",
+    };
+  }
+}
+
+export async function getProduct(handle: string): Promise<Product | null> {
+  if (!integrations.shopify()) {
+    return COLLECTION_001.find((p) => p.handle === handle) ?? null;
+  }
+  try {
+    const data = await storefront<{ product: ShopifyProductNode | null }>(
+      /* GraphQL */ `
+        ${PRODUCT_FRAGMENT}
+        query OneProduct($handle: String!) {
+          product(handle: $handle) {
+            ...ProductParts
+          }
+        }
+      `,
+      { handle },
+    );
+    return data.product ? toProduct(data.product) : null;
+  } catch {
+    return COLLECTION_001.find((p) => p.handle === handle) ?? null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Cart                                                                */
+/* ------------------------------------------------------------------ */
+
+const CART_FRAGMENT = /* GraphQL */ `
+  fragment CartParts on Cart {
     id
     checkoutUrl
     totalQuantity
     cost {
-      subtotalAmount { amount currencyCode }
-      totalAmount { amount currencyCode }
+      subtotalAmount {
+        amount
+        currencyCode
+      }
+      totalAmount {
+        amount
+        currencyCode
+      }
     }
     lines(first: 50) {
       nodes {
@@ -103,9 +284,22 @@ const CART_FIELDS = /* GraphQL */ `
           ... on ProductVariant {
             id
             title
-            price { amount currencyCode }
-            product { handle title }
-            selectedOptions { name value }
+            selectedOptions {
+              name
+              value
+            }
+            price {
+              amount
+              currencyCode
+            }
+            image {
+              url
+              altText
+            }
+            product {
+              handle
+              title
+            }
           }
         }
       }
@@ -113,175 +307,7 @@ const CART_FIELDS = /* GraphQL */ `
   }
 `;
 
-/* ── shapes returned by Shopify ────────────────────────────────── */
-
-interface Metafield { value: string | null }
-interface RawVariant {
-  id: string;
-  title: string;
-  availableForSale: boolean;
-  price: { amount: string; currencyCode: string };
-  selectedOptions: { name: string; value: string }[];
-}
-interface RawProduct {
-  id: string;
-  handle: string;
-  title: string;
-  description: string;
-  productType: string;
-  tags: string[];
-  priceRange: { minVariantPrice: { amount: string; currencyCode: string } };
-  images: { nodes: { url: string; altText: string | null }[] };
-  variants: { nodes: RawVariant[] };
-  modelGlb: Metafield | null;
-  fitNotes: Metafield | null;
-  sizeChart: Metafield | null;
-  colourHex: Metafield | null;
-  stripeHex: Metafield | null;
-  fabric: Metafield | null;
-  care: Metafield | null;
-  bestFor: Metafield | null;
-  placement: Metafield | null;
-}
-
-/* ── mapping Shopify → the NN Product shape ────────────────────── */
-
-/** "The Oxford, Bianco" → { name: "The Oxford", colour: "Bianco" } */
-function splitTitle(title: string): { name: string; colour: string } {
-  const i = title.lastIndexOf(",");
-  if (i === -1) return { name: title.trim(), colour: "" };
-  return { name: title.slice(0, i).trim(), colour: title.slice(i + 1).trim() };
-}
-
-function inferType(raw: RawProduct): GarmentType {
-  const t = `${raw.productType} ${raw.tags.join(" ")}`.toLowerCase();
-  if (t.includes("trouser") || t.includes("pant")) return "trouser";
-  if (t.includes("shirt")) return "shirt";
-  // Fall back on the option values: trousers are sized by waist number.
-  const sizes = raw.variants.nodes.flatMap((v) =>
-    v.selectedOptions.filter((o) => /size/i.test(o.name)).map((o) => o.value),
-  );
-  return sizes.some((s) => /^\d{2}$/.test(s)) ? "trouser" : "shirt";
-}
-
-function inferStyle(raw: RawProduct, type: GarmentType): GarmentStyle {
-  const t = `${raw.title} ${raw.tags.join(" ")}`.toLowerCase();
-  if (type === "shirt") return t.includes("oxford") ? "oxford" : "poplin";
-  return t.includes("pleat") ? "pleat" : "flat";
-}
-
-function parseSizeChart(value: string | null | undefined, type: GarmentType): SizeChart {
-  if (value) {
-    try {
-      const parsed = JSON.parse(value) as SizeChart;
-      if (parsed?.rows?.length) return parsed;
-    } catch {
-      // A malformed metafield must not break the shop; fall through to default.
-    }
-  }
-  return type === "shirt" ? SHIRT_CHART : TROUSER_CHART;
-}
-
-const PLACEMENTS: Product["placement"][] = ["rail-a", "rail-b", "table", "mannequin-1", "mannequin-2"];
-
-function mapProduct(raw: RawProduct, index: number): Product {
-  const { name, colour } = splitTitle(raw.title);
-  const type = inferType(raw);
-  const style = inferStyle(raw, type);
-  const sizeOf = (v: RawVariant) =>
-    v.selectedOptions.find((o) => /size|waist/i.test(o.name))?.value ?? v.title;
-
-  const placementRaw = raw.placement?.value as Product["placement"] | undefined;
-  const placement =
-    placementRaw && PLACEMENTS.includes(placementRaw)
-      ? placementRaw
-      : PLACEMENTS[index % PLACEMENTS.length];
-
-  return {
-    handle: raw.handle,
-    title: raw.title,
-    name,
-    colour,
-    type,
-    style,
-    hex: raw.colourHex?.value || (type === "shirt" ? "#F3F2EE" : "#3A3A3D"),
-    stripe: raw.stripeHex?.value || undefined,
-    description: raw.description,
-    fabric: raw.fabric?.value || "",
-    care: raw.care?.value || "",
-    bestFor: raw.bestFor?.value || "",
-    priceMinor: toMinor(raw.priceRange.minVariantPrice.amount),
-    currency: raw.priceRange.minVariantPrice.currencyCode,
-    variants: raw.variants.nodes.map((v) => ({
-      id: v.id,
-      size: sizeOf(v),
-      available: v.availableForSale,
-      priceMinor: toMinor(v.price.amount),
-      currency: v.price.currencyCode,
-    })),
-    sizeChart: parseSizeChart(raw.sizeChart?.value, type),
-    modelGlb: raw.modelGlb?.value || undefined,
-    fitNotes: raw.fitNotes?.value || undefined,
-    placement,
-    images: raw.images.nodes.map((n) => ({ url: n.url, alt: n.altText || raw.title })),
-    isSeed: false,
-  };
-}
-
-/* ── products ──────────────────────────────────────────────────── */
-
-export async function getProducts(first = 40): Promise<Product[]> {
-  const data = await storefront<{ products: { nodes: RawProduct[] } }>(
-    /* GraphQL */ `
-      ${PRODUCT_FIELDS}
-      query Products($first: Int!) {
-        products(first: $first, sortKey: CREATED_AT) {
-          nodes { ...ProductFields }
-        }
-      }
-    `,
-    { first },
-  );
-  return data.products.nodes.map(mapProduct);
-}
-
-export async function getProduct(handle: string): Promise<Product | null> {
-  const data = await storefront<{ product: RawProduct | null }>(
-    /* GraphQL */ `
-      ${PRODUCT_FIELDS}
-      query Product($handle: String!) {
-        product(handle: $handle) { ...ProductFields }
-      }
-    `,
-    { handle },
-  );
-  return data.product ? mapProduct(data.product, 0) : null;
-}
-
-/* ── cart ──────────────────────────────────────────────────────── */
-
-export interface CartLine {
-  id: string;
-  quantity: number;
-  variantId: string;
-  size: string;
-  handle: string;
-  title: string;
-  priceMinor: number;
-  currency: string;
-}
-
-export interface Cart {
-  id: string;
-  checkoutUrl: string;
-  totalQuantity: number;
-  subtotalMinor: number;
-  totalMinor: number;
-  currency: string;
-  lines: CartLine[];
-}
-
-interface RawCart {
+export interface ShopifyCart {
   id: string;
   checkoutUrl: string;
   totalQuantity: number;
@@ -296,138 +322,105 @@ interface RawCart {
       merchandise: {
         id: string;
         title: string;
-        price: { amount: string; currencyCode: string };
-        product: { handle: string; title: string };
         selectedOptions: { name: string; value: string }[];
+        price: { amount: string; currencyCode: string };
+        image: { url: string; altText: string | null } | null;
+        product: { handle: string; title: string };
       };
     }[];
   };
 }
 
-function mapCart(raw: RawCart): Cart {
-  return {
-    id: raw.id,
-    checkoutUrl: raw.checkoutUrl,
-    totalQuantity: raw.totalQuantity,
-    subtotalMinor: toMinor(raw.cost.subtotalAmount.amount),
-    totalMinor: toMinor(raw.cost.totalAmount.amount),
-    currency: raw.cost.totalAmount.currencyCode,
-    lines: raw.lines.nodes.map((l) => ({
-      id: l.id,
-      quantity: l.quantity,
-      variantId: l.merchandise.id,
-      size:
-        l.merchandise.selectedOptions.find((o) => /size|waist/i.test(o.name))?.value ??
-        l.merchandise.title,
-      handle: l.merchandise.product.handle,
-      title: l.merchandise.product.title,
-      priceMinor: toMinor(l.merchandise.price.amount),
-      currency: l.merchandise.price.currencyCode,
-    })),
-  };
-}
-
-export async function createCart(
-  lines: { variantId: string; quantity: number }[] = [],
-): Promise<Cart> {
-  const data = await storefront<{ cartCreate: { cart: RawCart; userErrors: { message: string }[] } }>(
+export async function createCart(): Promise<ShopifyCart> {
+  const data = await storefront<{ cartCreate: { cart: ShopifyCart } }>(
     /* GraphQL */ `
-      ${CART_FIELDS}
-      mutation CartCreate($lines: [CartLineInput!]) {
-        cartCreate(input: { lines: $lines }) {
-          cart { ...CartFields }
-          userErrors { message }
+      ${CART_FRAGMENT}
+      mutation CartCreate {
+        cartCreate {
+          cart {
+            ...CartParts
+          }
         }
       }
     `,
-    { lines: lines.map((l) => ({ merchandiseId: l.variantId, quantity: l.quantity })) },
-    "no-store",
+    {},
+    0,
   );
-  if (data.cartCreate.userErrors?.length) {
-    throw new ShopifyError(data.cartCreate.userErrors.map((e) => e.message).join("; "));
-  }
-  return mapCart(data.cartCreate.cart);
+  return data.cartCreate.cart;
 }
 
-export async function getCart(cartId: string): Promise<Cart | null> {
-  const data = await storefront<{ cart: RawCart | null }>(
+export async function getCart(id: string): Promise<ShopifyCart | null> {
+  const data = await storefront<{ cart: ShopifyCart | null }>(
     /* GraphQL */ `
-      ${CART_FIELDS}
-      query Cart($cartId: ID!) { cart(id: $cartId) { ...CartFields } }
+      ${CART_FRAGMENT}
+      query Cart($id: ID!) {
+        cart(id: $id) {
+          ...CartParts
+        }
+      }
     `,
-    { cartId },
-    "no-store",
+    { id },
+    0,
   );
-  return data.cart ? mapCart(data.cart) : null;
+  return data.cart;
 }
 
 export async function addToCart(
   cartId: string,
-  lines: { variantId: string; quantity: number }[],
-): Promise<Cart> {
-  const data = await storefront<{ cartLinesAdd: { cart: RawCart; userErrors: { message: string }[] } }>(
+  lines: { merchandiseId: string; quantity: number }[],
+): Promise<ShopifyCart> {
+  const data = await storefront<{ cartLinesAdd: { cart: ShopifyCart } }>(
     /* GraphQL */ `
-      ${CART_FIELDS}
+      ${CART_FRAGMENT}
       mutation CartAdd($cartId: ID!, $lines: [CartLineInput!]!) {
         cartLinesAdd(cartId: $cartId, lines: $lines) {
-          cart { ...CartFields }
-          userErrors { message }
+          cart {
+            ...CartParts
+          }
         }
       }
     `,
-    { cartId, lines: lines.map((l) => ({ merchandiseId: l.variantId, quantity: l.quantity })) },
-    "no-store",
+    { cartId, lines },
+    0,
   );
-  if (data.cartLinesAdd.userErrors?.length) {
-    throw new ShopifyError(data.cartLinesAdd.userErrors.map((e) => e.message).join("; "));
-  }
-  return mapCart(data.cartLinesAdd.cart);
+  return data.cartLinesAdd.cart;
 }
 
-export async function updateCart(
+export async function updateCartLine(
   cartId: string,
-  lines: { id: string; quantity: number }[],
-): Promise<Cart> {
-  // Quantity 0 is a removal in Shopify's model, so split the two mutations.
-  const removals = lines.filter((l) => l.quantity <= 0).map((l) => l.id);
-  const updates = lines.filter((l) => l.quantity > 0);
-
-  let cart: RawCart | null = null;
-
-  if (updates.length) {
-    const data = await storefront<{ cartLinesUpdate: { cart: RawCart } }>(
+  lineId: string,
+  quantity: number,
+): Promise<ShopifyCart> {
+  if (quantity <= 0) {
+    const data = await storefront<{ cartLinesRemove: { cart: ShopifyCart } }>(
       /* GraphQL */ `
-        ${CART_FIELDS}
-        mutation CartUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
-          cartLinesUpdate(cartId: $cartId, lines: $lines) { cart { ...CartFields } }
-        }
-      `,
-      { cartId, lines: updates },
-      "no-store",
-    );
-    cart = data.cartLinesUpdate.cart;
-  }
-
-  if (removals.length) {
-    const data = await storefront<{ cartLinesRemove: { cart: RawCart } }>(
-      /* GraphQL */ `
-        ${CART_FIELDS}
+        ${CART_FRAGMENT}
         mutation CartRemove($cartId: ID!, $lineIds: [ID!]!) {
-          cartLinesRemove(cartId: $cartId, lineIds: $lineIds) { cart { ...CartFields } }
+          cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+            cart {
+              ...CartParts
+            }
+          }
         }
       `,
-      { cartId, lineIds: removals },
-      "no-store",
+      { cartId, lineIds: [lineId] },
+      0,
     );
-    cart = data.cartLinesRemove.cart;
+    return data.cartLinesRemove.cart;
   }
-
-  if (!cart) {
-    const existing = await getCart(cartId);
-    if (!existing) throw new ShopifyError("Cart not found");
-    return existing;
-  }
-  return mapCart(cart);
+  const data = await storefront<{ cartLinesUpdate: { cart: ShopifyCart } }>(
+    /* GraphQL */ `
+      ${CART_FRAGMENT}
+      mutation CartUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+        cartLinesUpdate(cartId: $cartId, lines: $lines) {
+          cart {
+            ...CartParts
+          }
+        }
+      }
+    `,
+    { cartId, lines: [{ id: lineId, quantity }] },
+    0,
+  );
+  return data.cartLinesUpdate.cart;
 }
-
-export { ShopifyError };

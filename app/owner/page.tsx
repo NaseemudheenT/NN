@@ -1,55 +1,52 @@
 import type { Metadata } from "next";
-import { loadCatalogue } from "@/lib/catalog";
-import { summariseBusiness } from "@/lib/business";
-import { readShowroomSettings } from "@/lib/supabase";
-import { env, supabaseReady } from "@/lib/env";
-import { OwnerConsole, type OwnerData } from "@/components/owner/OwnerConsole";
+import { currentOwner, ownerAuthReady } from "@/lib/owner";
+import { getCatalog } from "@/lib/shopify";
+import { integrations } from "@/lib/env";
+import { OwnerGate } from "@/components/owner/OwnerGate";
+import { Console } from "@/components/owner/Console";
 
 export const metadata: Metadata = {
-  title: "Owner console",
+  title: "Operations",
   robots: { index: false, follow: false, nocache: true },
 };
 
-/** Never cached: these are live business figures. */
 export const dynamic = "force-dynamic";
 
 export default async function OwnerPage() {
-  const { products, source } = await loadCatalogue();
-  const business = await summariseBusiness(products);
-  const { settings, note } = await readShowroomSettings();
+  const owner = await currentOwner();
 
-  const data: OwnerData = {
-    metrics: business.metrics,
-    products: business.products.map((p) => ({
-      handle: p.handle,
-      title: p.title,
-      unitsSold: p.unitsSold,
-      revenueMinor: p.revenueMinor,
-      views: p.views,
-      addsToBag: p.addsToBag,
-      addRate: p.addRate,
-    })),
-    gaps: business.gaps,
-    windowDays: business.windowDays,
-    analyticsSource:
-      business.analytics.source === "supabase" ? "stored in Supabase" : "held in server memory",
-    catalogueSource:
-      source === "shopify" ? "live Shopify data" : "the Collection 001 reference seed",
-    currency: products[0]?.currency ?? "INR",
-  };
+  if (!owner) {
+    return <OwnerGate configured={ownerAuthReady()} />;
+  }
 
-  return (
-    <OwnerConsole
-      data={data}
-      products={products}
-      supabaseConfigured={supabaseReady()}
-      /* The anon key is publishable by design — it is what the browser needs to
-         start a magic-link sign-in. The service role key never leaves the server. */
-      supabaseUrl={env.supabaseUrl}
-      supabaseAnonKey={env.supabaseAnonKey}
-      ownerListConfigured={env.ownerEmails.length > 0}
-      settings={settings}
-      settingsNote={note}
-    />
-  );
+  const catalog = await getCatalog();
+
+  const statuses = [
+    {
+      label: "Shopify",
+      connected: integrations.shopify(),
+      detail: "Pieces, prices, stock, photography and size charts.",
+      vars: ["SHOPIFY_STORE_DOMAIN", "SHOPIFY_STOREFRONT_TOKEN"],
+    },
+    {
+      label: "Razorpay",
+      connected: integrations.razorpay(),
+      detail: "Takes payment and verifies every signature on the server.",
+      vars: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"],
+    },
+    {
+      label: "Stylist",
+      connected: integrations.anthropic(),
+      detail: "Answers only from the live catalogue, rate-limited per visitor.",
+      vars: ["ANTHROPIC_API_KEY"],
+    },
+    {
+      label: "Supabase",
+      connected: integrations.supabase(),
+      detail: "Sends the one-time link that opens this console.",
+      vars: ["SUPABASE_URL", "SUPABASE_ANON_KEY"],
+    },
+  ];
+
+  return <Console email={owner} catalog={catalog} statuses={statuses} />;
 }

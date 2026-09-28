@@ -1,30 +1,30 @@
 import Link from "next/link";
-import { LogoMark } from "@/components/brand/LogoMark";
-
-export const metadata = { title: "Not found" };
+import { Monogram } from "@/components/brand/Monogram";
+import { GlassButton } from "@/components/ui/glass/Glass";
 
 export default function NotFound() {
   return (
-    <div className="nn-wrap grid min-h-[72svh] place-items-center py-28 text-center">
-      <div className="max-w-[42ch]">
-        <div className="flex justify-center">
-          <LogoMark size={48} />
-        </div>
-        <p className="nn-eyebrow mt-10">404</p>
-        <h1 className="mt-4 text-title">This room does not exist</h1>
-        <p className="mt-5 text-[var(--ink-soft)]">
-          The page you were looking for is not here. The showroom is, and so is the whole
-          collection.
-        </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link href="/" className="nn-btn nn-btn--gold">
-            <span>Back to the showroom</span>
-          </Link>
-          <Link href="/collection" className="nn-btn nn-btn--quiet">
-            <span>See Collection 001</span>
-          </Link>
-        </div>
+    <div className="relative z-10 flex min-h-[70svh] flex-col items-center justify-center gap-7 px-6 py-32 text-center">
+      <Monogram className="h-11 w-auto text-line" />
+      <p className="nn-meta text-ink-faint">Nothing here</p>
+      <h1 className="nn-display max-w-xl text-[clamp(2.2rem,6vw,4rem)] text-ink">
+        This part of the showroom is empty
+      </h1>
+      <p className="nn-body max-w-md text-ink-soft">
+        The piece or page you were looking for is not on this floor. The collection is through the
+        hall.
+      </p>
+      <div className="mt-2 flex flex-wrap justify-center gap-3">
+        <GlassButton href="/collection" variant="solid">
+          Collection 001
+        </GlassButton>
+        <GlassButton href="/" variant="quiet">
+          Back to the entrance
+        </GlassButton>
       </div>
+      <Link href="/stylist" className="nn-label mt-4 text-ink-faint hover:text-ink">
+        Or ask the stylist
+      </Link>
     </div>
   );
 }

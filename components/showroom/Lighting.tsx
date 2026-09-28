@@ -1,181 +1,192 @@
 "use client";
 
-/**
- * The lights.
- *
- * One sun with a shadow map, one hemisphere for the sky's bounce, a low fill so
- * nothing goes fully black, and the interior lamps. The sun's direction, colour
- * and strength all come from lib/daytime.ts, so the room at nine in the morning
- * in December is genuinely a different room from nine in June.
- *
- * Changes blend over sixty seconds, as specified. The blend is done on the
- * live light objects rather than in React state, so a phase change costs no
- * re-renders — it is sixty seconds of lerping three colours and five numbers.
- */
-
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
-import { Environment } from "@react-three/drei";
-import { ProceduralEnvironment } from "./ProceduralEnvironment";
-import type { SkyState } from "@/lib/daytime";
-import { BLEND_MS, rigFromSky, type LightingRig } from "./lightingRig";
-import { HDRI, hasHdri, loadManifest } from "./assets";
-import { ROOM } from "./objects/Room";
+import { LIGHTING, type DayPhase } from "@/lib/tokens";
+import type { Quality } from "@/components/layout/ShowroomProvider";
+import { ROOM } from "./assets";
 
-interface LightingProps {
-  sky: SkyState;
-  /** Fewer shadow samples and no environment on weak devices. */
-  quality: "low" | "medium" | "high";
-  onRig?: (rig: LightingRig) => void;
-}
+/**
+ * Architectural lighting. The same room at four hours of the day.
+ * Presets blend continuously — the visitor never sees a theme switch,
+ * only the light changing the way light changes.
+ */
+export function Lighting({
+  phase,
+  quality,
+  focusColor,
+}: {
+  phase: DayPhase;
+  quality: Quality;
+  focusColor: THREE.Color | null;
+}) {
+  const target = LIGHTING[phase];
 
-export function Lighting({ sky, quality, onRig }: LightingProps) {
-  const sun = useRef<THREE.DirectionalLight>(null);
-  const hemi = useRef<THREE.HemisphereLight>(null);
-  const fill = useRef<THREE.AmbientLight>(null);
-  const fog = useRef<THREE.Fog>(null);
+  const key = useRef<THREE.DirectionalLight>(null);
+  const ambient = useRef<THREE.HemisphereLight>(null);
+  const lampA = useRef<THREE.PointLight>(null);
+  const lampB = useRef<THREE.PointLight>(null);
+  const sign = useRef<THREE.PointLight>(null);
+  const spot = useRef<THREE.SpotLight>(null);
+  const fog = useRef<THREE.FogExp2>(null);
 
-  const target = useMemo(() => rigFromSky(sky), [sky]);
+  useFrame((state, delta) => {
+    // Critically damped blend: light settles over a few seconds, never snaps.
+    const k = 1 - Math.exp(-delta * 0.9);
 
-  /** Where we are blending from, and when the blend started. */
-  const from = useRef<LightingRig>(target);
-  const startedAt = useRef<number>(0);
-  const current = useRef<LightingRig>(target);
-
-  // Colour objects reused across frames.
-  const colours = useRef({
-    sun: new THREE.Color(target.sunColour),
-    sunTo: new THREE.Color(target.sunColour),
-    sky: new THREE.Color(target.ambientColour),
-    skyTo: new THREE.Color(target.ambientColour),
-    fog: new THREE.Color(target.fog.colour),
-    fogTo: new THREE.Color(target.fog.colour),
-  });
-
-  useEffect(() => {
-    from.current = { ...current.current };
-    colours.current.sunTo.set(target.sunColour);
-    colours.current.skyTo.set(target.ambientColour);
-    colours.current.fogTo.set(target.fog.colour);
-    startedAt.current = performance.now();
-    onRig?.(target);
-  }, [target, onRig]);
-
-  useFrame(() => {
-    const elapsed = performance.now() - startedAt.current;
-    // Smoothstep, so the change eases in and out rather than starting abruptly.
-    const raw = Math.min(1, elapsed / BLEND_MS);
-    const t = raw * raw * (3 - 2 * raw);
-
-    const lerp = (a: number, b: number) => a + (b - a) * t;
-    const a = from.current;
-
-    const rig: LightingRig = {
-      ...target,
-      sunPosition: [
-        lerp(a.sunPosition[0], target.sunPosition[0]),
-        lerp(a.sunPosition[1], target.sunPosition[1]),
-        lerp(a.sunPosition[2], target.sunPosition[2]),
-      ],
-      sunIntensity: lerp(a.sunIntensity, target.sunIntensity),
-      ambientIntensity: lerp(a.ambientIntensity, target.ambientIntensity),
-      windowIntensity: lerp(a.windowIntensity, target.windowIntensity),
-      lampIntensity: lerp(a.lampIntensity, target.lampIntensity),
-      signIntensity: lerp(a.signIntensity, target.signIntensity),
-      exposure: lerp(a.exposure, target.exposure),
-      shadowRadius: lerp(a.shadowRadius, target.shadowRadius),
-    };
-    current.current = rig;
-
-    if (sun.current) {
-      sun.current.position.set(...rig.sunPosition);
-      sun.current.intensity = rig.sunIntensity;
-      colours.current.sun.lerp(colours.current.sunTo, Math.min(1, t * 1.4));
-      sun.current.color.copy(colours.current.sun);
-      if (sun.current.shadow) sun.current.shadow.radius = rig.shadowRadius;
+    if (key.current) {
+      key.current.intensity += (target.keyIntensity - key.current.intensity) * k;
+      key.current.color.lerp(scratch.set(target.keyColor), k);
+      key.current.position.lerp(
+        tmp2.set(target.keyPosition[0], target.keyPosition[1], target.keyPosition[2]),
+        k,
+      );
     }
-    if (hemi.current) {
-      hemi.current.intensity = rig.ambientIntensity;
-      hemi.current.color.lerp(colours.current.skyTo, Math.min(1, t * 1.4));
+    if (ambient.current) {
+      ambient.current.intensity += (target.ambientIntensity - ambient.current.intensity) * k;
+      ambient.current.color.lerp(scratch.set(target.ambientColor), k);
     }
-    if (fill.current) {
-      fill.current.intensity = rig.ambientIntensity * 0.4;
+    for (const lamp of [lampA.current, lampB.current]) {
+      if (!lamp) continue;
+      lamp.intensity += (target.lampIntensity * 9 - lamp.intensity) * k;
+      lamp.color.lerp(scratch.set(target.lampColor), k);
+    }
+    if (sign.current) {
+      sign.current.intensity += (target.signIntensity * 7 - sign.current.intensity) * k;
+    }
+    if (spot.current) {
+      // The display spot warms slightly toward the garment under the light.
+      const want = focusColor ?? scratch.set(target.lampColor);
+      spot.current.color.lerp(want, k * 0.6);
+      spot.current.intensity += (target.lampIntensity * 14 + 6 - spot.current.intensity) * k;
     }
     if (fog.current) {
-      fog.current.color.lerp(colours.current.fogTo, Math.min(1, t * 1.4));
-      fog.current.near = rig.fog.near;
-      fog.current.far = rig.fog.far;
+      fog.current.color.lerp(scratch.set(target.fogColor), k);
+      fog.current.density += (target.fogDensity - fog.current.density) * k;
     }
+    if (state.scene.background instanceof THREE.Color) {
+      state.scene.background.lerp(scratch.set(target.background), k);
+    }
+    state.gl.toneMappingExposure +=
+      (target.exposure - state.gl.toneMappingExposure) * k;
   });
 
-  const shadowSize = quality === "high" ? 2048 : quality === "medium" ? 1024 : 512;
-
-  // Use a photographed .hdr only when one has actually been supplied. Asking
-  // drei for a file that is not there throws inside Suspense and takes the
-  // whole room down, so presence is checked against the manifest first.
-  const [manifestReady, setManifestReady] = useState(false);
-  useEffect(() => {
-    void loadManifest().then(() => setManifestReady(true));
-  }, []);
-  const hdriFile = manifestReady && hasHdri(HDRI[sky.phase]) ? HDRI[sky.phase] : undefined;
+  const shadows = quality === "high" ? 2048 : quality === "medium" ? 1024 : 0;
 
   return (
     <>
-      <fog ref={fog} attach="fog" args={[target.fog.colour, target.fog.near, target.fog.far]} />
+      <color attach="background" args={[target.background]} />
+      <fogExp2 ref={fog} attach="fog" args={[target.fogColor, target.fogDensity]} />
 
-      {/* the sun. One shadow-casting light: more would cost more than it adds. */}
+      {/* Window light — the sun, through the tall arched windows */}
       <directionalLight
-        ref={sun}
-        position={target.sunPosition}
-        intensity={target.sunIntensity}
-        color={target.sunColour}
-        castShadow={quality !== "low"}
-        shadow-mapSize-width={shadowSize}
-        shadow-mapSize-height={shadowSize}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.02}
-        shadow-camera-near={0.5}
+        ref={key}
+        position={target.keyPosition}
+        intensity={target.keyIntensity}
+        color={target.keyColor}
+        castShadow={shadows > 0}
+        shadow-mapSize-width={shadows || 512}
+        shadow-mapSize-height={shadows || 512}
+        shadow-camera-near={1}
         shadow-camera-far={40}
-        shadow-camera-left={-ROOM.width * 0.7}
-        shadow-camera-right={ROOM.width * 0.7}
-        shadow-camera-top={ROOM.height * 1.6}
-        shadow-camera-bottom={-2}
+        shadow-camera-left={-12}
+        shadow-camera-right={12}
+        shadow-camera-top={12}
+        shadow-camera-bottom={-6}
+        shadow-bias={-0.0009}
+        shadow-normalBias={0.03}
       />
 
-      {/* sky above, floor bounce below */}
+      {/* Bounce off limestone walls and the honed floor */}
       <hemisphereLight
-        ref={hemi}
-        args={[target.ambientColour, "#8a7b6a", target.ambientIntensity]}
+        ref={ambient}
+        args={[target.ambientColor, target.floorTint, target.ambientIntensity]}
       />
 
-      {/* a low fill so a dark corner is dark, not empty */}
-      <ambientLight ref={fill} intensity={target.ambientIntensity * 0.4} color={target.ambientColour} />
+      {/* Ceiling lamps over the two garment zones */}
+      <pointLight
+        ref={lampA}
+        position={[-3.8, 3.5, -2.2]}
+        distance={11}
+        decay={2}
+        intensity={target.lampIntensity * 9}
+        color={target.lampColor}
+      />
+      <pointLight
+        ref={lampB}
+        position={[3.8, 3.5, -2.2]}
+        distance={11}
+        decay={2}
+        intensity={target.lampIntensity * 9}
+        color={target.lampColor}
+      />
 
-      {/* Photographed light when an .hdr has been supplied, and a built
-          environment otherwise. The room is lit correctly either way; the
-          environment is what makes the brass and the mirror read as brass and
-          a mirror rather than as coloured plastic. */}
-      {quality === "low" ? null : hdriFile ? (
-        <Environment
-          key={hdriFile}
-          files={hdriFile}
-          background={false}
-          environmentIntensity={0.55 + 0.7 * sky.beam}
+      {/* The backlit NN sign washing the wall behind the counter */}
+      <pointLight
+        ref={sign}
+        position={[0, 2.6, ROOM.backWallZ + 0.7]}
+        distance={9}
+        decay={2}
+        intensity={target.signIntensity * 7}
+        color="#ffd79a"
+      />
+
+      {/* Display spot: the light that makes a garment feel physically present */}
+      <spotLight
+        ref={spot}
+        position={[0, 4.1, 0.6]}
+        angle={0.62}
+        penumbra={0.92}
+        distance={13}
+        decay={2}
+        intensity={target.lampIntensity * 14 + 6}
+        color={target.lampColor}
+        castShadow={shadows >= 1024}
+        shadow-mapSize-width={shadows || 512}
+        shadow-mapSize-height={shadows || 512}
+        shadow-bias={-0.001}
+      />
+
+      {/*
+        Reflections. Built from light shapes matching the real openings in
+        the room rather than downloaded — so it costs nothing on the network
+        and always agrees with the architecture.
+      */}
+      <Environment resolution={quality === "high" ? 256 : 128} frames={1}>
+        <color attach="background" args={["#0b0b0b"]} />
+        {/* the tall windows */}
+        <Lightformer
+          form="rect"
+          intensity={phase === "night" ? 0.25 : 3.4}
+          color={target.keyColor}
+          position={[6.4, 2.6, -1.5]}
+          rotation={[0, -Math.PI / 2, 0]}
+          scale={[6, 3.2, 1]}
         />
-      ) : (
-        <ProceduralEnvironment
-          key={sky.phase}
-          keyColour={target.windowColour}
-          fillColour={target.ambientColour}
-          daylight={sky.beam}
-          lampColour={target.lampColour}
-          lampLevel={sky.lampLevel}
-          intensity={0.55 + 0.7 * sky.beam}
-          resolution={quality === "high" ? 128 : 64}
+        {/* ceiling coves */}
+        <Lightformer
+          form="rect"
+          intensity={phase === "night" ? 1.1 : 0.7}
+          color={target.lampColor}
+          position={[0, 4.3, -2]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={[9, 5, 1]}
         />
-      )}
+        {/* the sign */}
+        <Lightformer
+          form="rect"
+          intensity={target.signIntensity * 1.6}
+          color="#ffd79a"
+          position={[0, 2.5, -6.6]}
+          scale={[3.4, 1, 1]}
+        />
+      </Environment>
     </>
   );
 }
 
+/* Scratch values, reused every frame so the loop allocates nothing. */
+const scratch = new THREE.Color();
+const tmp2 = new THREE.Vector3();

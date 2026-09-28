@@ -1,76 +1,97 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Prose } from "@/components/layout/Prose";
+import { PageHeader, Prose, Section } from "@/components/layout/PageHeader";
+import { GlassButton } from "@/components/ui/glass/Glass";
+import { Reveal } from "@/components/motion/Reveal";
 
 export const metadata: Metadata = {
-  title: "Sizing and fit",
+  title: "Sizing",
   description:
-    "How Nero Noren sizes its shirts and trousers, how the trial room works out your size, and what to do if it is wrong.",
-  alternates: { canonical: "/sizing" },
+    "How to measure yourself, how Nero Noren pieces are cut, and how to read a size chart before you order.",
 };
+
+const STEPS = [
+  {
+    t: "Chest",
+    b: "Tape around the fullest part of the chest, under the arms, with the tape level at the back. Breathe normally — do not hold your breath or puff out.",
+  },
+  {
+    t: "Waist",
+    b: "Around the natural waist, which is the narrowest point, usually just above the navel. Keep one finger under the tape.",
+  },
+  {
+    t: "Hip",
+    b: "Around the fullest part of the seat, with your feet together.",
+  },
+  {
+    t: "Shoulder",
+    b: "Across the back, from the bone at one shoulder point to the other. This is the one measurement a tailor cannot easily change.",
+  },
+  {
+    t: "Inseam",
+    b: "From the crotch seam of trousers that already fit you, straight down to the hem. Measure the trousers flat, not yourself.",
+  },
+];
 
 export default function SizingPage() {
   return (
     <>
       <PageHeader
         eyebrow="Sizing"
-        title="How we size"
-        lede="Shirts by chest, trousers by the waist of the jeans you already wear. And a trial room that shows its working."
-      />
+        title={["Measuring", "properly"]}
+        lede="Five measurements, taken over a shirt rather than a coat, with the tape snug and level. Ten minutes now saves a return later."
+      >
+        <GlassButton href="/trial-room" variant="solid" className="mt-8">
+          Use the trial room instead
+        </GlassButton>
+      </PageHeader>
+
+      <Section className="pb-20">
+        <ol className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.t} as="li" delay={i * 0.05} className="bg-bg p-7">
+              <span className="nn-meta text-accent">{String(i + 1).padStart(2, "0")}</span>
+              <h2 className="mt-3 font-display text-2xl font-light text-ink">{s.t}</h2>
+              <p className="nn-body mt-2.5 text-[0.875rem] text-ink-soft">{s.b}</p>
+            </Reveal>
+          ))}
+        </ol>
+      </Section>
+
       <Prose>
-        <h2>Shirts</h2>
+        <h2>How the pieces are cut</h2>
         <p>
-          Our shirt sizes are stated as the body they are cut to fit, not as the finished garment.
-          A medium is cut to fit a chest of 38 to 40 inches; the shirt itself measures 110 cm
-          around the chest, which leaves about nine centimetres of room. That difference is called
-          ease, and it is what decides whether a shirt feels close, regular or easy.
-        </p>
-        <p>
-          Every product page carries both numbers — the body it fits and the finished garment — so
-          you can work it out yourself if you would rather.
+          Shirting is cut clean through the body with room to move at the shoulder — close enough
+          to tuck without bunching, easy enough to reach across a table. Trousers are cut straight
+          from hip to hem, except the pleated trouser, which sits higher on the waist and has room
+          through the thigh.
         </p>
 
-        <h2>Trousers</h2>
+        <h2>Reading a size chart</h2>
         <p>
-          Trousers are sized by waist in inches, from 28 to 38, matching the jeans you already
-          own. If your jeans are a 32, order a 32. We add about one and a half centimetres of
-          wearing ease at the waistband, which is why they do not feel tight at your usual size.
+          A size chart gives the measurements of the garment, not of the body it is meant for. The
+          difference between the two is the ease. Around eight centimetres of ease at the chest
+          reads as close; thirteen is how most of our shirting is meant to sit; nineteen is roomy.
         </p>
 
-        <h2>The trial room</h2>
+        <h2>Between two sizes</h2>
         <p>
-          If you do not know your chest measurement, the{" "}
-          <Link href="/trial-room">trial room</Link> will estimate it. It is not a lookup table:
-          it treats the body as a cylinder of a given height and mass, which means girth scales
-          with the square root of weight over height. Fitted against measured male anthropometry,
-          that lands within about three centimetres across the normal range.
-        </p>
-        <p>
-          It then compares that estimate against the finished measurements of the actual garment
-          and reports the room you have at the chest, the waist and the hip. It also tells you
-          which numbers it estimated and which you gave it, because a recommendation that hides
-          its own confidence is not worth much.
-        </p>
-        <p>
-          <strong>A tape measure beats it.</strong> If you know your chest, use the tables on the
-          product page instead. If you know your jeans waist, tell the trial room — a measured
-          number always wins over a modelled one.
+          Take the larger one for shirting and have the body taken in if you want it closer — a
+          shoulder that is too narrow cannot be fixed, but a body that is too wide can. For
+          trousers, take the size that fits the waist and have the leg and hem adjusted.
         </p>
 
-        <h2>If we get it wrong</h2>
+        <h2>Boys</h2>
         <p>
-          Free size exchanges within seven days of delivery. Tell us what was wrong and where, and
-          we will send the right size. We would rather learn that a piece runs small than have you
-          keep something that does not fit.
+          Boys&apos; pieces are cut to the same standard at a smaller scale. Measure the chest and
+          the inseam and size to the larger of the two — sleeves and hems are easier to shorten than
+          a body is to let out.
         </p>
 
-        <h2>Your measurements</h2>
+        <h2>Still unsure</h2>
         <p>
-          Measurements you enter stay in your own browser. They are not sent to us unless you
-          place an order, and even then we only receive the size you chose, never the numbers
-          behind it. If you tick &ldquo;keep my measurements on this device&rdquo;, they are saved
-          in that browser and nowhere else.
+          The <a href="/trial-room">trial room</a> reads your measurements against the published
+          chart for a specific piece and says where it will sit close and where it will be easy. The{" "}
+          <a href="/stylist">stylist</a> can talk through the cut of anything in the collection.
         </p>
       </Prose>
     </>

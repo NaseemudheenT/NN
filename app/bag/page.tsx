@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { loadCatalogue } from "@/lib/catalog";
-import { BagPage as BagPageView } from "@/components/shop/BagPage";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { PageHeader, Section } from "@/components/layout/PageHeader";
+import { BagPage } from "@/components/shop/BagPage";
 
 export const metadata: Metadata = {
-  title: "Your bag",
-  description: "The pieces you have chosen from Collection 001.",
-  robots: { index: false, follow: true },
+  title: "Bag",
+  robots: { index: false, follow: false },
 };
 
-export default async function BagPage() {
-  const { products } = await loadCatalogue();
+export default function Page() {
   return (
     <>
-      <PageHeader eyebrow="Your bag" title="What you have chosen" />
-      <BagPageView products={products} />
+      <PageHeader eyebrow="Bag" title=
+{["What you have", "chosen"]} />
+      <Section className="pb-28 md:pb-40">
+        <BagPage />
+      </Section>
     </>
   );
 }
