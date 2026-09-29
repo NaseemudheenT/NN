@@ -93,7 +93,7 @@ export function StylistDock({ products }: { products: Product[] }) {
             opener.current = document.activeElement as HTMLElement | null;
             setOpen(true);
           }}
-          className="nn-panel fixed bottom-4 right-4 z-40 flex items-center gap-2.5 p-3 transition-[border-color,transform] duration-500 hover:-translate-y-0.5 hover:border-[var(--accent)] sm:bottom-5 sm:right-5 sm:px-4"
+          className="nn-panel nn-stylist-launcher flex items-center gap-2.5 p-3 transition-[border-color,transform] duration-500 hover:-translate-y-0.5 hover:border-[var(--accent)] sm:px-4"
           aria-label="Ask the NN stylist"
         >
           <AtelierOrb size="sm" state="idle" />

@@ -762,7 +762,21 @@
     font-size: var(--text-fine);
   }
 
-  /* ═══ the dock ═══ */
+  /* ═══ the dock ═══
+     Its offset and height are published as tokens, because the stylist
+     launcher has to stand clear of it. Two fixed elements both claiming the
+     bottom-right corner is how a corner ends up with a button sitting on top
+     of a label — so they agree through one number instead of two guesses. */
+  :root {
+    --nn-dock-inset: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    --nn-dock-height: 3.5rem;
+  }
+  @media (min-width: 768px) {
+    :root {
+      --nn-dock-inset: clamp(1rem, 2.5vw, 2rem);
+    }
+  }
+
   .nn-dock {
     position: fixed;
     z-index: 88;
@@ -772,14 +786,28 @@
     padding: 0.3rem;
     /* phone: along the bottom, inside the safe area, where a thumb is */
     inset-inline: clamp(0.75rem, 4vw, 1.25rem);
-    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: var(--nn-dock-inset);
   }
   @media (min-width: 768px) {
     .nn-dock {
       /* desktop: out of the reading column */
       inset-inline: auto;
       right: clamp(1rem, 2.5vw, 2rem);
-      bottom: clamp(1rem, 2.5vw, 2rem);
+      bottom: var(--nn-dock-inset);
+    }
+  }
+
+  /* ═══ the stylist launcher ═══
+     Stands directly above the dock, never on it. */
+  .nn-stylist-launcher {
+    position: fixed;
+    z-index: 40;
+    right: clamp(0.75rem, 4vw, 1.25rem);
+    bottom: calc(var(--nn-dock-inset) + var(--nn-dock-height) + 0.7rem);
+  }
+  @media (min-width: 768px) {
+    .nn-stylist-launcher {
+      right: clamp(1rem, 2.5vw, 2rem);
     }
   }
 
