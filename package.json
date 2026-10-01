@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "models:manifest": "node scripts/models-manifest.mjs",
+    "showroom:check": "npx tsx scripts/showroom-check.ts",
     "ai:exam": "npx tsx ai/tests/exam.ts"
   },
   "dependencies": {

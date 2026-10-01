@@ -8,15 +8,22 @@
  * interpolates along a path of stations, each with a place to stand, a thing
  * to look at, and a focal length.
  *
- * Three things make this feel like a camera rather than a slider:
+ * Four things make this feel like a camera rather than a slider:
  *
  *  · SMOOTHING. Raw scroll is jittery and arrives in discrete jumps. The
  *    progress is run through a spring, so the camera has inertia: it starts
  *    after you do and settles after you stop, the way a body carrying a
  *    camera does.
- *  · CATMULL-ROM, not linear. Interpolating straight between stations gives
- *    a visible corner at each one. A spline through them curves, so the walk
- *    is continuous and nobody notices the waypoints.
+ *  · A ROUTED PATH, not a spline through the stations. A spline takes the
+ *    shortest pretty line between waypoints, and the shortest line from the
+ *    rails to the table goes through a dressed mannequin. Each leg is routed
+ *    around the furniture by components/showroom/choreography, so the stations
+ *    stay what they should be — where you stand and what you look at — and
+ *    the room decides the path between them.
+ *  · DISTANCE, not waypoint count, drives the scroll. Because the legs are
+ *    routed they are no longer equal lengths, so progress is mapped through
+ *    arc length. Scrolling at a steady rate therefore walks at a steady pace
+ *    instead of sprinting across the long legs.
  *  · A SHORTER LENS AS IT CLOSES IN. The focal length tightens toward a
  *    garment and widens in the open room, which is what a person does with
  *    their attention and what a film does with a lens.
@@ -30,6 +37,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useSpring, type MotionValue } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { exposeCamera } from "./devCamera";
+import { routeBetween } from "./choreography";
 
 export interface Station {
   id: string;
@@ -59,16 +68,50 @@ export function ScrollCamera({ stations, progress, reducedMotion, lookAmount = 1
      slider, because that is what it would be. */
   const smooth = useSpring(progress, { stiffness: 78, damping: 26, mass: 0.9 });
 
-  /* Splines through the stations. Built once: they are geometry, not state. */
-  const { path, look, fovs } = useMemo(() => {
-    const points = stations.map((s) => new THREE.Vector3(...s.position));
-    const targets = stations.map((s) => new THREE.Vector3(...s.target));
+  /* The walk. Built once: it is geometry, not state.
+
+     Every leg is routed around the furniture, then the legs are joined into
+     one curve. `breaks` records where each station falls along that curve as
+     a fraction of total distance, which is what keeps the focal length and
+     the look direction synchronised with the stations now that the legs are
+     no longer the same length. */
+  const { path, look, fovs, breaks } = useMemo(() => {
+    const points: THREE.Vector3[] = [];
+    const lengths: number[] = [];
+
+    for (let i = 0; i < stations.length - 1; i += 1) {
+      const leg = routeBetween(stations[i].position, stations[i + 1].position);
+      // Drop the duplicated join so the curve has no zero-length segment,
+      // which would otherwise put a NaN in the arc-length table.
+      points.push(...(i === 0 ? leg : leg.slice(1)));
+      lengths.push(
+        new THREE.CatmullRomCurve3(leg, false, "catmullrom", 0.5).getLength(),
+      );
+    }
+
+    const total = lengths.reduce((a, b) => a + b, 0);
+    const marks: number[] = [0];
+    let run = 0;
+    for (const l of lengths) {
+      run += l;
+      marks.push(run / total);
+    }
+
     return {
-      path: new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.4),
-      look: new THREE.CatmullRomCurve3(targets, false, "catmullrom", 0.4),
+      path: new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5),
+      look: new THREE.CatmullRomCurve3(
+        stations.map((s) => new THREE.Vector3(...s.target)),
+        false,
+        "catmullrom",
+        0.4,
+      ),
       fovs: stations.map((s) => s.fov),
+      breaks: marks,
     };
   }, [stations]);
+
+  /* A handle on the camera for in-browser verification. Development only. */
+  useEffect(() => exposeCamera(camera, "scroll"), [camera]);
 
   /* The visitor's small look-around, on top of wherever the walk has them. */
   const pointer = useRef({ x: 0, y: 0 });
@@ -97,12 +140,19 @@ export function ScrollCamera({ stations, progress, reducedMotion, lookAmount = 1
     const { position, target } = scratch.current;
 
     path.getPointAt(t, position);
-    look.getPointAt(t, target);
 
-    /* the focal length, interpolated between the two nearest stations */
-    const span = (stations.length - 1) * t;
-    const index = Math.min(stations.length - 2, Math.floor(span));
-    const within = span - index;
+    /* Which leg the walk is on, by distance travelled rather than by
+       waypoint count — the legs are routed, so they are not equal lengths. */
+    let index = 0;
+    while (index < breaks.length - 2 && t >= breaks[index + 1]) index += 1;
+    const span = breaks[index + 1] - breaks[index];
+    const within = span > 1e-6 ? (t - breaks[index]) / span : 0;
+
+    /* The eyes, and the focal length, keyed to the stations on either side. */
+    look.getPointAt(
+      THREE.MathUtils.clamp((index + within) / (stations.length - 1), 0, 1),
+      target,
+    );
     const fov = fovs[index] + (fovs[index + 1] - fovs[index]) * within;
 
     /* the look-around, eased */
@@ -163,16 +213,21 @@ export const HOME_WALK: Station[] = [
   },
   {
     id: "floor",
-    // On the floor, the room open on both sides.
-    position: [-2.4, 1.6, 0.9],
-    target: [1.4, 1.35, 1.6],
+    // On the floor, the room open on both sides. Stood well clear of the
+    // dressed form at (-2.1, 1.5) — the previous standpoint was 0.33 m off
+    // its shoulder, close enough to crowd the frame.
+    position: [-3.4, 1.6, 0.45],
+    target: [1.2, 1.3, 1.2],
     fov: 50,
   },
   {
     id: "rails",
-    // At the rails, turned toward the shirts.
-    position: [-2.0, 1.55, 1.5],
-    target: [-2.6, 1.5, 3.9],
+    // Square on to the first rail, two metres back, the way you stand to
+    // read a row of shirts. This station used to sit at (-2.0, 1.5), which
+    // is 0.1 m from the centre of a dressed mannequin — the camera was
+    // standing inside it, and the shirt on the form filled the lens.
+    position: [-3.3, 1.55, 1.6],
+    target: [-3.3, 1.5, 3.85],
     fov: 42,
   },
   {

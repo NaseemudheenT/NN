@@ -33,6 +33,9 @@ const LINKS = [
   { href: "/collection", label: "Men" },
   { href: "/boys", label: "Boys" },
   { href: "/collections", label: "Collections" },
+  // The room you walk rather than scroll. The homepage carries you along one
+  // fixed route; this is the same showroom with the camera handed over.
+  { href: "/showroom", label: "Showroom" },
   { href: "/journal", label: "Journal" },
   { href: "/about", label: "About" },
 ];
