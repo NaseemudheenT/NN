@@ -145,6 +145,10 @@ export function CameraRig({
    * offset against each other and still finish together.
    */
   const walkTo = (
+    /* Routed and measured by the caller: building it costs a couple of
+       milliseconds, and the caller needs its length to decide the duration,
+       so routing it twice would spend that twice on the frame a move starts. */
+    curve: THREE.CatmullRomCurve3,
     from: readonly [number, number, number],
     to: Viewpoint | typeof INTRO.to,
     fromTarget: readonly [number, number, number],
@@ -152,7 +156,6 @@ export function CameraRig({
     duration: number,
     onComplete?: () => void,
   ) => {
-    const curve = curveBetween(from, to.position);
     path.current = curve;
     rig.current.u = 0;
     rig.current.fov = fromFov;
@@ -225,6 +228,7 @@ export function CameraRig({
     }
 
     walkTo(
+      curveBetween(INTRO.from.position, INTRO.to.position),
       INTRO.from.position,
       INTRO.to,
       INTRO.to.target,
@@ -263,9 +267,16 @@ export function CameraRig({
     const fromTarget: [number, number, number] = [rig.current.tx, rig.current.ty, rig.current.tz];
 
     const sweep = sweepBetween(from, fromTarget, viewpoint.position, viewpoint.target);
-    const metres = curveBetween(from, viewpoint.position).getLength();
+    const curve = curveBetween(from, viewpoint.position);
 
-    walkTo(from, viewpoint, fromTarget, rig.current.fov, moveDuration(metres, sweep));
+    walkTo(
+      curve,
+      from,
+      viewpoint,
+      fromTarget,
+      rig.current.fov,
+      moveDuration(curve.getLength(), sweep),
+    );
 
     return () => {
       timeline.current?.kill();
