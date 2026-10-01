@@ -83,22 +83,32 @@ export default async function Image() {
           Men &amp; Boys
         </div>
 
-        <div style={{ position: "relative", marginTop: 44, width: 1, height: 34, background: "#b4913a" }} />
+        {/* Stone, not gold: this is a flat PNG, and a gold that cannot catch
+            light is just a yellow line. The monogram above keeps its metal
+            because a gradient still reads as plating in a still image. */}
+        <div style={{ position: "relative", marginTop: 44, width: 1, height: 34, background: "#b7b1a7" }} />
 
+        {/* Two stacked lines rather than a <br>.
+            Satori requires any element with more than one child to declare
+            display, and it does not lay out <br> at all — this div had a text
+            node, a break and another text node, which is what was making the
+            whole card fail to render. The site was advertising an og:image
+            that 500d on every request. */}
         <div
           style={{
             position: "relative",
             marginTop: 30,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             fontSize: 22,
             letterSpacing: 11,
             textTransform: "uppercase",
-            textAlign: "center",
             lineHeight: 1.7,
           }}
         >
-          Timeless style
-          <br />
-          builds character
+          <div style={{ display: "flex" }}>Timeless style</div>
+          <div style={{ display: "flex" }}>builds character</div>
         </div>
       </div>
     ),
