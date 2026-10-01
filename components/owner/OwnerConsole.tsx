@@ -276,7 +276,7 @@ export function OwnerConsole({
       <div className="nn-wrap grid min-h-[70svh] place-items-center py-24">
         <div className="w-full max-w-[26rem]">
           <div className="flex justify-center">
-            <LogoMark size={44} />
+            <LogoMark size={44} sheen="loop" />
           </div>
           <h1 className="mt-9 text-center text-title">Owner console</h1>
           <p className="mt-4 text-center text-fine text-[var(--ink-soft)]">

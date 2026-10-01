@@ -45,7 +45,7 @@ export function LiveLogo({
         style={{ opacity: use3D ? 0 : 1 }}
         aria-hidden={use3D}
       >
-        <LogoMark size={size * 0.42} shimmer={!reducedMotion} />
+        <LogoMark size={size * 0.42} sheen={reducedMotion ? "none" : "loop"} />
       </div>
 
       {use3D ? <LiveLogoScene reducedMotion={reducedMotion} /> : null}

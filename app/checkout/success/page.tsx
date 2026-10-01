@@ -26,7 +26,7 @@ export default async function SuccessPage({
     <div className="nn-wrap grid min-h-[70svh] place-items-center py-28 text-center">
       <div className="max-w-[46ch]">
         <div className="flex justify-center">
-          <LogoMark size={56} />
+          <LogoMark size={56} sheen="loop" />
         </div>
 
         <p className="nn-eyebrow mt-10">Payment verified</p>

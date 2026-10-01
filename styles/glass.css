@@ -309,15 +309,28 @@
   .nn-btn--icon { padding: 0; gap: 0; }
   .nn-btn--icon svg { width: 1.05rem; height: 1.05rem; }
 
-  /* ── metal: the primary action. A finish, not a fill. ──────────── */
+  /* ── metal: the primary action ────────────────────────────────────
+     The name is historical; what this is now is the house's primary
+     button, and it is ink.
+
+     It used to sit at rest in gold ink on a gold-tinted ground inside a
+     gold border — three flat golds at once, which is the misuse the brand
+     board forbids. The board's own buttons are not gold: the mobile mockup
+     shows a white pill with dark type, the desktop one white type above a
+     white rule. So at rest this is a hairline of ink on glass.
+
+     The plated gradient is kept, but it is now what the button fills WITH
+     on approach — a surface catching light as a hand nears it, which is
+     what a finish actually does, rather than a colour sitting there being
+     yellow. */
   .nn-btn--metal {
-    border-color: color-mix(in srgb, var(--metal-body) 58%, transparent);
-    color: var(--metal-light);
-    background: color-mix(in srgb, var(--metal-body) 9%, transparent);
+    border-color: color-mix(in srgb, var(--ink-primary) 42%, transparent);
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 5%, transparent);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 34%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--ink-primary) 18%, transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 26%, transparent),
       var(--shadow-lift);
   }
@@ -334,7 +347,7 @@
   .nn-btn--metal:hover,
   .nn-btn--metal:focus-visible {
     color: var(--ink-inverse);
-    border-color: var(--metal-light);
+    border-color: color-mix(in srgb, var(--metal-light) 70%, transparent);
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 52%, transparent),
       0 14px 34px -14px color-mix(in srgb, var(--metal-body) 42%, transparent);
@@ -472,8 +485,8 @@
   .nn-field:hover { border-color: var(--edge-strong); }
   .nn-field:focus {
     outline: none;
-    border-color: color-mix(in srgb, var(--metal-body) 70%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--metal-body) 40%, transparent),
+    border-color: color-mix(in srgb, var(--ink-primary) 70%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink-primary) 40%, transparent),
       inset 0 0 24px color-mix(in srgb, var(--metal-body) 8%, transparent);
   }
 }
@@ -1094,7 +1107,7 @@
     font-size: var(--text-micro);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--metal-body);
+    color: var(--ink-secondary);
     font-variant-numeric: tabular-nums;
   }
 }
@@ -1275,7 +1288,7 @@
       transform var(--duration-room) var(--ease-architect);
   }
   .nn-collection:hover .nn-collection__plate {
-    border-color: color-mix(in srgb, var(--metal-body) 46%, transparent);
+    border-color: color-mix(in srgb, var(--ink-primary) 46%, transparent);
   }
 
   /* the pieces, hung on a rail */
@@ -1378,7 +1391,7 @@
       box-shadow var(--duration-room) var(--ease-architect);
   }
   .nn-card[data-near="true"] .nn-card__plinth {
-    border-color: color-mix(in srgb, var(--metal-body) 44%, transparent);
+    border-color: color-mix(in srgb, var(--ink-primary) 44%, transparent);
     box-shadow: var(--shadow-panel);
   }
 
@@ -2205,4 +2218,56 @@
    opposite polarity. */
 :root[data-theme="day"] {
   --glass-hairline: rgba(10, 10, 10, 0.12);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE MARK
+
+   The ligature breathes on approach: the two Ns ease apart by a hair
+   and settle back. The distance is deliberately tiny — the identity is
+   that the letters SHARE a stem, and anything more than about a
+   percent of the mark's width pulls that stem into two and the thing
+   stops being one letterform.
+
+   Transform only, so it composites and costs no layout. transform-box
+   is required: without it an SVG path transforms about the viewBox
+   origin rather than its own, and the halves fly apart.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-mark__n {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 620ms var(--ease-architect, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+/* Only where there is a real pointer. On a touch screen every tap would
+   trigger it and the mark would twitch. */
+@media (hover: hover) and (pointer: fine) {
+  a:hover .nn-mark__n--a,
+  button:hover .nn-mark__n--a,
+  .nn-mark:hover .nn-mark__n--a {
+    transform: translateX(-1.6px);
+  }
+  a:hover .nn-mark__n--b,
+  button:hover .nn-mark__n--b,
+  .nn-mark:hover .nn-mark__n--b {
+    transform: translateX(1.6px);
+  }
+}
+
+/* Keyboard users get the same acknowledgement as the mouse. */
+a:focus-visible .nn-mark__n--a,
+button:focus-visible .nn-mark__n--a {
+  transform: translateX(-1.6px);
+}
+a:focus-visible .nn-mark__n--b,
+button:focus-visible .nn-mark__n--b {
+  transform: translateX(1.6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-mark__n {
+    transition: none;
+    transform: none !important;
+  }
 }

@@ -13,12 +13,18 @@
 
 @layer components {
   /* ── old button variants ─────────────────────────────────────── */
+  /* Same correction as .nn-btn--metal in glass.css: at rest this is ink on
+     glass, and the plated gradient below is what it fills with on approach.
+     Gold is a finish that catches light, not a colour a button sits in. */
   .nn-btn--gold {
-    border-color: color-mix(in srgb, var(--metal-body) 58%, transparent);
-    color: var(--metal-light);
-    background: color-mix(in srgb, var(--metal-body) 9%, transparent);
+    border-color: color-mix(in srgb, var(--ink-primary) 42%, transparent);
+    color: var(--ink-primary);
+    background: color-mix(in srgb, var(--ink-primary) 5%, transparent);
   }
-  .nn-btn--gold:hover { color: var(--ink-inverse); border-color: var(--metal-light); }
+  .nn-btn--gold:hover {
+    color: var(--ink-inverse);
+    border-color: color-mix(in srgb, var(--metal-light) 70%, transparent);
+  }
   .nn-btn--gold::before,
   .nn-btn--gold .nn-btn__fill {
     background: linear-gradient(148deg, var(--metal-shadow), var(--metal-body) 40%, var(--metal-light) 56%, var(--metal-shadow));
@@ -275,13 +281,13 @@
     transition: transform var(--duration-hover) var(--ease-material);
   }
   .nn-switch input:checked + .nn-switch__track {
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: var(--ink-primary);
   }
   .nn-switch input:checked + .nn-switch__track .nn-switch__knob {
     transform: translateX(1.25rem);
   }
   .nn-switch input:focus-visible + .nn-switch__track {
-    outline: 2px solid var(--metal-light);
+    outline: 2px solid var(--ink-primary);
     outline-offset: 3px;
   }
 

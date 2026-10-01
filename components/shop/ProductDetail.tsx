@@ -72,7 +72,7 @@ export function ProductDetail({
                   className="w-full"
                 />
                 <span className="nn-product__tag">
-                  <LogoMark size={11} ring={false} shimmer={false} title={null} />
+                  <LogoMark size={11} ring={false} sheen="none" title={null} />
                   <span>Nero Noren</span>
                 </span>
               </div>

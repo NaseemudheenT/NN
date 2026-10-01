@@ -89,7 +89,7 @@ export function GlassNav() {
         <div className="nn-nav__inner nn-wrap">
           {/* ── the mark ── */}
           <Link href="/" className="nn-nav__brand" aria-label="Nero Noren, home">
-            <LogoMark size={26} ring={false} shimmer={false} title={null} />
+            <LogoMark size={26} ring={false} sheen="once" title={null} />
             <span className="nn-nav__lockup">
               <span className="nn-wordmark nn-nav__wordmark">Nero Noren</span>
               <span className="nn-nav__audience">Men &amp; Boys</span>

@@ -8,7 +8,7 @@ export default function NotFound() {
     <div className="nn-wrap grid min-h-[72svh] place-items-center py-28 text-center">
       <div className="max-w-[42ch]">
         <div className="flex justify-center">
-          <LogoMark size={48} />
+          <LogoMark size={48} sheen="loop" />
         </div>
         <p className="nn-eyebrow mt-10">404</p>
         <h1 className="mt-4 text-title">This room does not exist</h1>

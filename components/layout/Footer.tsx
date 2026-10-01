@@ -39,7 +39,7 @@ export function Footer() {
         <div className="nn-footer__top">
           {/* the lockup, as the board stacks it */}
           <div className="nn-footer__brand">
-            <LogoMark size={40} ring={false} shimmer={false} title={null} />
+            <LogoMark size={40} ring={false} sheen="none" title={null} />
             <p className="nn-wordmark nn-footer__wordmark">Nero Noren</p>
             <p className="nn-footer__audience">Men &amp; Boys</p>
             <p className="nn-footer__line">Timeless style builds character</p>
