@@ -118,6 +118,46 @@
       var(--shadow-panel);
   }
 
+  /* ── refraction ─────────────────────────────────────────────────
+     Only where the engine actually resolves a filter reference inside
+     backdrop-filter. LiquidFilter writes data-liquid="on" after testing;
+     until then, and forever on Safari, the blur above stands on its own.
+
+     The filter goes FIRST in the chain: bend the backdrop, then blur it.
+     Blurring first would smear the displacement into mush. */
+  :root[data-liquid="on"] .glass {
+    -webkit-backdrop-filter: url(#nn-liquid-panel) blur(var(--glass-blur)) saturate(1.8)
+      brightness(1.04);
+    backdrop-filter: url(#nn-liquid-panel) blur(var(--glass-blur)) saturate(1.8)
+      brightness(1.04);
+  }
+  :root[data-liquid="on"] .glass--pane {
+    -webkit-backdrop-filter: url(#nn-liquid-pane) blur(var(--glass-blur)) saturate(1.8)
+      brightness(1.04);
+    backdrop-filter: url(#nn-liquid-pane) blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+  }
+  :root[data-liquid="on"] .glass--lens {
+    -webkit-backdrop-filter: url(#nn-liquid-lens) blur(var(--glass-blur)) saturate(1.8)
+      brightness(1.04);
+    backdrop-filter: url(#nn-liquid-lens) blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+  }
+
+  /* A displacement map on a surface that is itself moving costs a full
+     re-filter every frame. While a sheet is animating in, drop to blur. */
+  :root[data-liquid="on"] .glass[data-moving="true"] {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-liquid="on"] .glass,
+    :root[data-liquid="on"] .glass--pane,
+    :root[data-liquid="on"] .glass--lens {
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+      backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.04);
+    }
+  }
+
   /* ── thicknesses ───────────────────────────────────────────────── */
 
   /* a pane: navigation, bars, docks. Thin, so what is behind reads. */
@@ -396,9 +436,16 @@
     background: var(--ink-primary);
     border-color: transparent;
   }
+  /* The selected filter.
+     This was a gold plate. A plate is a physical object — an engraved button,
+     a foil hangtag — and a filter toggle is not one of those; it is a state,
+     and the board signals state with contrast, not with yellow. So the
+     selected pill is simply the brightest thing in the row: ink ground,
+     inverse type. The metal finish stays available on .nn-btn--metal, where
+     the gradient is reading as plating on a real surface. */
   .nn-pill--metal[data-active="true"] {
     color: var(--ink-inverse);
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: var(--ink-primary);
   }
   button.nn-pill:hover { color: var(--ink-primary); border-color: var(--edge-line); }
   button.nn-pill[data-active="true"]:hover { color: var(--ink-inverse); }
@@ -988,7 +1035,7 @@
       gap var(--duration-hover) var(--ease-architect);
   }
   .nn-walk__discover svg { width: 1.1rem; height: 1.1rem; }
-  .nn-walk__discover:hover { border-color: var(--metal-light); gap: 1.15rem; }
+  .nn-walk__discover:hover { border-color: var(--ink-primary); gap: 1.15rem; }
 
   .nn-walk__escape {
     position: absolute;
@@ -1893,7 +1940,10 @@
     font-weight: 500;
     letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: var(--metal-body);
+    /* The tagline is type, so it is set in ink. On the board the tagline is
+       foil-stamped — a finish on a physical object — and the digital
+       equivalent of foil is not yellow text. */
+    color: var(--ink-secondary);
   }
   .nn-footer__blurb {
     max-width: 34ch;

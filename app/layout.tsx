@@ -7,6 +7,7 @@ import { BagProvider } from "@/components/shop/BagProvider";
 import { LiveAtmosphere } from "@/components/atmosphere/LiveAtmosphere";
 import { ShowroomEntry } from "@/components/atmosphere/ShowroomEntry";
 import { PointerLight } from "@/components/motion/PointerLight";
+import { LiquidFilter } from "@/components/ui/glass/LiquidFilter";
 import { GlassNav } from "@/components/ui/navigation/GlassNav";
 import { GlassDock } from "@/components/ui/navigation/GlassDock";
 import { Footer } from "@/components/layout/Footer";
@@ -84,6 +85,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             {/* one pointer listener, feeding every glass surface */}
             <PointerLight />
+
+            {/* the refraction the glass bends its backdrop through */}
+            <LiquidFilter />
 
             <a className="nn-skip" href="#main">
               Skip to content

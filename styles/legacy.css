@@ -64,7 +64,7 @@
   }
   .nn-hotspot:hover,
   .nn-hotspot:focus-visible {
-    border-color: var(--metal-light);
+    border-color: var(--ink-primary);
     background: color-mix(in srgb, var(--surface-base) 92%, transparent);
     transform: translateY(-2px);
   }
@@ -119,10 +119,10 @@
   .nn-prose a {
     color: var(--ink-primary);
     text-decoration: underline;
-    text-decoration-color: var(--metal-body);
+    text-decoration-color: var(--edge-strong);
     text-underline-offset: 0.2em;
   }
-  .nn-prose a:hover { color: var(--metal-light); }
+  .nn-prose a:hover { text-decoration-color: var(--ink-primary); }
   .nn-prose dl { display: grid; gap: 0.6em; }
   .nn-prose dt { color: var(--ink-primary); font-weight: 500; }
   .nn-prose dd { margin: 0 0 0.6em; color: var(--ink-secondary); }

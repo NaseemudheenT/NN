@@ -28,8 +28,17 @@
   --ink-faint: var(--ink-tertiary);
   --line: var(--edge-line);
   --line-strong: var(--edge-strong);
-  --accent: var(--metal-body);
-  --accent-soft: var(--metal-light);
+  /* The accent is CONTRAST, not gold.
+     This alias used to point at --metal-body, which put flat #c19c3f on
+     eyebrows, active filters and hover borders. The brand board is explicit
+     that gold is a physical finish — foil, an engraved button, lit signage —
+     and never a flat colour; its own web mockup carries no gold at all, just
+     white type and a white rule on black. So the accent is the ink itself,
+     and "active" reads as the brightest thing on the screen rather than the
+     most yellow. Gold still exists, in --metal-* , where it belongs: on
+     surfaces that respond to light. */
+  --accent: var(--ink-primary);
+  --accent-soft: var(--ink-secondary);
   --accent-ink: var(--ink-inverse);
   --btn-bg: var(--ink-primary);
   --btn-ink: var(--ink-inverse);
@@ -49,8 +58,11 @@
   --color-ink-faint: var(--ink-tertiary);
   --color-line: var(--edge-line);
   --color-line-strong: var(--edge-strong);
-  --color-accent: var(--metal-body);
-  --color-accent-soft: var(--metal-light);
+  /* Same correction as the alias above: the Tailwind `accent` utilities
+     must not paint flat gold either. A `--color-metal` ramp is still
+     exported below for anything that genuinely is metal. */
+  --color-accent: var(--ink-primary);
+  --color-accent-soft: var(--ink-secondary);
   --color-accent-ink: var(--ink-inverse);
   --color-btn-bg: var(--ink-primary);
   --color-btn-ink: var(--ink-inverse);
@@ -159,7 +171,14 @@
     text-transform: uppercase;
     color: var(--ink-tertiary);
   }
-  .nn-label--metal { color: var(--metal-body); }
+  /* The house metadata label.
+     It used to be painted flat --metal-body, which is gold used as ink —
+     the one thing the brand board forbids. The board sets its small caps in
+     Stone, and that is what this is now. Gold survives in this stylesheet
+     only where it is a real finish: the gradient on .nn-btn--metal and the
+     highlight-and-shadow of .metal-engraved, both of which respond to light
+     the way plated metal does. */
+  .nn-label--metal { color: var(--ink-secondary); }
 
   /* the wordmark, at the board's tracking */
   .nn-wordmark {
