@@ -13,12 +13,12 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { AdaptiveDpr, PerformanceMonitor, Preload } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
 import type { Product } from "@/lib/catalog/types";
 import type { SkyState } from "@/lib/daytime";
 import { Scene } from "./Scene";
 import { CameraRig } from "./CameraRig";
+import { CinematicGrade } from "./CinematicGrade";
 import { INTRO, type Viewpoint } from "./viewpoints";
 import { rigFromSky } from "./lightingRig";
 
@@ -123,18 +123,12 @@ export default function ShowroomCanvas({
       />
 
       {showEffects ? (
-        <EffectComposer enableNormalPass={false}>
-          {/* Bloom sits on the lamps, the backlit sign and the brass only: the
-              threshold rises in daylight so cloth never glows. */}
-          <Bloom
-            intensity={rig.bloom.intensity}
-            luminanceThreshold={rig.bloom.threshold}
-            luminanceSmoothing={0.3}
-            mipmapBlur
-          />
-          <Vignette offset={0.32} darkness={sky.phase === "night" ? 0.55 : 0.3} />
-          {quality === "high" ? <SMAA /> : <></>}
-        </EffectComposer>
+        <CinematicGrade
+          quality={quality}
+          phase={sky.phase}
+          bloom={rig.bloom}
+          reducedMotion={reducedMotion}
+        />
       ) : null}
     </Canvas>
   );

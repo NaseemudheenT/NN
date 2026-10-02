@@ -38,6 +38,7 @@ import { useSpring, type MotionValue } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { exposeCamera } from "./devCamera";
+import { focus } from "./focus";
 import { routeBetween } from "./choreography";
 
 export interface Station {
@@ -174,6 +175,11 @@ export function ScrollCamera({ stations, progress, reducedMotion, lookAmount = 1
     target.x += drift.current.x * 1.5;
     target.y -= drift.current.y * 0.85;
     camera.lookAt(target);
+
+    /* Hand the lens its subject. The walk is always looking at something
+       real — a rail, the table, the mirror — so the distance to that is
+       exactly where focus belongs, and it changes as the camera moves. */
+    focus.distance = camera.position.distanceTo(target);
 
     /* A narrow phone sees less of the room at the same focal length, so the
        lens widens to compensate. Without this the showroom is a corridor. */

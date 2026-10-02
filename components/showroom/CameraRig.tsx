@@ -38,6 +38,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { exposeCamera } from "./devCamera";
+import { focus } from "./focus";
 import gsap from "gsap";
 import { INTRO, type Viewpoint } from "./viewpoints";
 import {
@@ -316,6 +317,11 @@ export function CameraRig({
       r.tz,
     );
     camera.lookAt(target);
+
+    /* Hand the lens its subject — see ./focus. Measured to the look
+       target rather than to the viewpoint, so during a move focus tracks
+       what the eyes are on rather than where the feet are going. */
+    focus.distance = camera.position.distanceTo(target);
 
     // A narrow phone needs a wider lens to show the same amount of room.
     const aspect = size.width / Math.max(1, size.height);

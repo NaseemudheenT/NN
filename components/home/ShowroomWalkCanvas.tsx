@@ -15,13 +15,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { AdaptiveDpr, PerformanceMonitor, Preload } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
 import type { MotionValue } from "framer-motion";
 import * as THREE from "three";
 import type { Product } from "@/lib/catalog/types";
 import type { SkyState } from "@/lib/daytime";
 import { Scene } from "@/components/showroom/Scene";
 import { ScrollCamera, HOME_WALK } from "@/components/showroom/ScrollCamera";
+import { CinematicGrade } from "@/components/showroom/CinematicGrade";
 import { rigFromSky } from "@/components/showroom/lightingRig";
 import { viewpointById } from "@/components/showroom/viewpoints";
 import { announceShowroomReady } from "@/components/atmosphere/ShowroomEntry";
@@ -126,18 +126,12 @@ export default function ShowroomWalkCanvas({
       />
 
       {effects ? (
-        <EffectComposer enableNormalPass={false}>
-          {/* Bloom on the lamps, the lit sign and the brass only. The
-              threshold rises in daylight so cloth never glows. */}
-          <Bloom
-            intensity={rig.bloom.intensity}
-            luminanceThreshold={rig.bloom.threshold}
-            luminanceSmoothing={0.3}
-            mipmapBlur
-          />
-          <Vignette offset={0.3} darkness={sky.phase === "night" ? 0.58 : 0.34} />
-          {quality === "high" ? <SMAA /> : <></>}
-        </EffectComposer>
+        <CinematicGrade
+          quality={quality}
+          phase={sky.phase}
+          bloom={rig.bloom}
+          reducedMotion={reducedMotion}
+        />
       ) : null}
     </Canvas>
   );
