@@ -32,6 +32,19 @@ import { MATERIALS } from "../materials";
 import { Surface, ROOM } from "./Room";
 import { BULLNOSE, BullnosedBox, MASONRY, MasonryArch } from "./Masonry";
 
+/* The facade, outside the portal. `wing` is how far the elevation runs
+   each side of the arch: 1.4 m comfortably covers the 0.81 m that is
+   actually in frame from the approach, with margin for the camera
+   drifting as it walks in. */
+export const FACADE = {
+  /** Thickness of the facade wall itself. */
+  depth: 0.3,
+  /** Height of the slurried-brick plinth — the splash zone. */
+  plinth: 0.9,
+  /** How far the elevation runs each side of the opening. */
+  wing: 1.4,
+} as const;
+
 export const PORTAL = {
   /** Clear opening, metres. Tall enough to feel like an entrance. */
   width: 2.6,
@@ -140,6 +153,73 @@ export function Portal({
 
   return (
     <group position={[PORTAL.x, 0, 0]}>
+      {/* ══ THE FACADE ══════════════════════════════════════════════
+          What a customer sees before they see anything else.
+
+          Measured from the approach station — 2.4 m out, 58° lens —
+          0.81 m of facade reads each side of the archivolt and the
+          frame bottoms out at y 0.45 m, so the lower metre of wall is
+          genuinely on screen and worth building.
+
+          Two materials, stacked the way a Mediterranean street
+          elevation actually is. A SLURRIED BRICK plinth takes the
+          bottom 900 mm: brick washed over with thinned lime, so the
+          courses still read through the wash. It is there because that
+          is the splash zone — rain coming off the pavement would stain
+          and blow soft lime plaster within a season, so the base of a
+          real building is always the harder material. Above it, the
+          hand-troweled Antico White stucco field.
+
+          The arch crowns at 3.80 m and the frame tops out at 3.11 m, so
+          from the pavement the crown is ABOVE the frame. That is
+          deliberate and it is free: as the camera walks in, the arch
+          rises out of shot over your head, which is what walking under
+          a heavy opening feels like. */}
+      {[-1, 1].map((side) => {
+        const z = side * (PORTAL.width / 2 + PORTAL.ring + FACADE.wing / 2);
+        return (
+          <group key={`facade-${side}`}>
+            {/* the slurried-brick plinth */}
+            <BullnosedBox
+              width={FACADE.depth}
+              height={FACADE.plinth}
+              depth={FACADE.wing}
+              material="brickSlurried"
+              position={[-FACADE.depth / 2, FACADE.plinth / 2, z]}
+              castShadow
+              receiveShadow
+            />
+            {/* a travertine band capping it, which is how the two
+                materials are actually joined — and it throws a hard
+                shadow line across the elevation that reads the plinth
+                from a distance */}
+            <BullnosedBox
+              width={FACADE.depth + 0.04}
+              height={0.07}
+              depth={FACADE.wing}
+              radius={BULLNOSE.trim}
+              material={travertine}
+              position={[-FACADE.depth / 2 - 0.02, FACADE.plinth + 0.035, z]}
+              castShadow
+            />
+            {/* the stucco field above */}
+            <BullnosedBox
+              width={FACADE.depth}
+              height={ROOM.height - FACADE.plinth}
+              depth={FACADE.wing}
+              material={stucco}
+              position={[
+                -FACADE.depth / 2,
+                FACADE.plinth + (ROOM.height - FACADE.plinth) / 2,
+                z,
+              ]}
+              castShadow
+              receiveShadow
+            />
+          </group>
+        );
+      })}
+
       {/* ── the archivolt ───────────────────────────────────────────
           The band of fired clay that frames the opening, extruded
           through the full 450 mm of reveal so its soffit is a real

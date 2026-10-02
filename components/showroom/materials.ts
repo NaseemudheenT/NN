@@ -210,14 +210,12 @@ export const MATERIALS = {
     emissive: "#ffd9a0",
     emissiveIntensity: 1,
   },
-  /** The hidden cove strip itself, on the rare occasion it is visible. */
-  coveStrip: {
-    colour: "#f4e8d2",
-    roughness: 0.8,
-    metalness: 0,
-    emissive: "#ffcf96",
-    emissiveIntensity: 1,
-  },
+  /* No entry for the cove strips. A strip IS a light source, so it must not
+     be tone-mapped — otherwise the exposure that makes the room look right
+     crushes the emitter to a dull band. They are drawn with a basic material
+     and toneMapped={false} in ArchitecturalLighting, which is the correct
+     tool; a physically based MaterialSpec is the wrong one and having one
+     here only invited somebody to use it. */
 } as const satisfies Record<string, MaterialSpec>;
 
 export type MaterialName = keyof typeof MATERIALS;
