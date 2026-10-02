@@ -19,7 +19,6 @@ import {
   Doorway,
   Lamp,
   Mannequin,
-  Mirror,
   Rail,
   ShoppingBag,
   Table,
@@ -27,6 +26,7 @@ import {
 } from "./objects/Fixtures";
 import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
 import { ArchitecturalLighting } from "./objects/ArchitecturalLighting";
+import { ReflectiveMirror } from "./objects/ReflectiveMirror";
 import { LightShafts } from "./objects/LightShafts";
 import { Portal } from "./objects/Portal";
 import { Concierge } from "./objects/Concierge";
@@ -123,7 +123,14 @@ export function Scene({
       <Concierge onAsk={openStylist} lampIntensity={rig.lampIntensity} />
       <ShoppingBag />
       <WallSign intensity={rig.signIntensity} />
-      <Mirror />
+      {/* The mirror reflects the actual room on the top tier — see
+          ./objects/ReflectiveMirror for why a grey rectangle was not
+          good enough once the camera started standing in front of it. */}
+      <ReflectiveMirror
+        position={[ROOM.halfW - 0.1, 1.15, -1.4]}
+        rotation={-Math.PI / 2}
+        quality={quality}
+      />
       <Doorway />
 
       {/* picture lamps over each rail and the table */}
