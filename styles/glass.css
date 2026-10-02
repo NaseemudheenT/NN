@@ -2998,3 +2998,65 @@ button:focus-visible .nn-mark__n--b {
     margin-top: 2.2rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE SHOWROOM, BEHIND EVERY PAGE
+   One continuous building rather than a set of pages: the room is in
+   the layout and the camera walks to a different part of the floor
+   for each route. See components/atmosphere/ShowroomBackdrop.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -9;
+  pointer-events: none;
+  /* Behind LiveAtmosphere's own -10, so the CSS room sits underneath as
+     the floor this is laid over — if the canvas is slow to arrive, or
+     never arrives, what shows through is a finished room rather than a
+     hole. */
+}
+
+.nn-backdrop canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* The scrim.
+
+   The hero taught this lesson already and it cost a correction: a lit
+   room is not a reliable background for type. Measured against the
+   lighting rig, a garment under a tight beam reaches about sRGB 206,
+   where ivory text is 1.45:1. Content on these pages is ordinary body
+   copy rather than a headline with its own shadow, so the room behind
+   it has to be held down much harder than the hero's is — hence a flat
+   veil over the whole thing rather than a shaped vignette. */
+.nn-backdrop__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      120% 90% at 50% 40%,
+      color-mix(in srgb, var(--surface-base) 72%, transparent) 0%,
+      color-mix(in srgb, var(--surface-base) 88%, transparent) 70%,
+      var(--surface-base) 100%
+    );
+  /* And a blur, so the room reads as DEPTH rather than as detail
+     competing for the eye. A sharp room behind a paragraph is a room
+     you try to look at. */
+  backdrop-filter: blur(3px) saturate(0.92);
+  -webkit-backdrop-filter: blur(3px) saturate(0.92);
+}
+
+/* On a light theme the room has to be held down harder still: ink is
+   dark here, and a bright window behind dark text is the worst case. */
+:root[data-theme="day"] .nn-backdrop__scrim {
+  background:
+    radial-gradient(
+      120% 90% at 50% 40%,
+      color-mix(in srgb, var(--surface-base) 84%, transparent) 0%,
+      color-mix(in srgb, var(--surface-base) 94%, transparent) 70%,
+      var(--surface-base) 100%
+    );
+}

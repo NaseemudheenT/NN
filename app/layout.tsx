@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { BagProvider } from "@/components/shop/BagProvider";
 import { LiveAtmosphere } from "@/components/atmosphere/LiveAtmosphere";
+import { ShowroomBackdrop } from "@/components/atmosphere/ShowroomBackdrop";
 import { ShowroomEntry } from "@/components/atmosphere/ShowroomEntry";
 import { PointerLight } from "@/components/motion/PointerLight";
 import { LiquidFilter } from "@/components/ui/glass/LiquidFilter";
@@ -81,7 +82,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 should feel like walking between areas of one building,
                 and that is only true if the light does not restart at
                 every door.                                         */}
+            {/* The CSS room, which is always there and is complete on its
+                own, and the real one behind it where the device can carry
+                it — see components/atmosphere/ShowroomBackdrop. */}
             <LiveAtmosphere />
+            <ShowroomBackdrop />
 
             {/* one pointer listener, feeding every glass surface */}
             <PointerLight />
