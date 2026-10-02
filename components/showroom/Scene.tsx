@@ -27,6 +27,7 @@ import {
 import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
 import { ArchitecturalLighting } from "./objects/ArchitecturalLighting";
 import { ReflectiveMirror } from "./objects/ReflectiveMirror";
+import { Topiary } from "./objects/Topiary";
 import { LightShafts } from "./objects/LightShafts";
 import { Portal } from "./objects/Portal";
 import { Concierge } from "./objects/Concierge";
@@ -106,6 +107,11 @@ export function Scene({
       <Portal progress={entryProgress} night={night} />
 
       {/* recessed spots, pilaster uplights and the perimeter cove */}
+      {/* Olive topiary. The only thing in the room that was not
+          manufactured, which is what the eye calibrates the rest against —
+          see ./objects/Topiary for why it barely moves. */}
+      <Topiary quality={quality} />
+
       {/* Sunlight made visible: shafts leaning in through the deep-set
           windows, angled by the same solar calculation that aims the key
           light. See ./objects/LightShafts. */}

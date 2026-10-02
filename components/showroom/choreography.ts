@@ -65,6 +65,14 @@ export const FLOOR_PLAN: readonly FloorObstacle[] = [
   { id: "arcade-wall", x: 0, z: ROOM.halfD - MASONRY.wall / 2, hx: ROOM.halfW, hz: MASONRY.wall / 2, pad: 0, height: ROOM.height },
   // The full-length mirror, flat against the right-hand wall.
   { id: "mirror", x: ROOM.halfW - 0.1, z: -1.4, hx: 0.06, hz: 0.6, pad: 0.08, height: 2.3 },
+  /* The olive topiary. Added to the plan rather than left out of it: they
+     are only decoration, but a camera walking through a plant is exactly as
+     wrong as one walking through a table, and the next person to move a
+     viewpoint should find out from the check rather than from a customer.
+     Kept in step with PLANTERS in objects/Topiary. */
+  { id: "planter-0", x: -4.6, z: -2.5, hx: 0, hz: 0, pad: 0.3, height: 1.3 },
+  { id: "planter-1", x: -4.6, z: 2.5, hx: 0, hz: 0, pad: 0.3, height: 1.3 },
+  { id: "planter-2", x: 4.9, z: -3.1, hx: 0, hz: 0, pad: 0.3, height: 1.3 },
 ];
 
 /** Shoulder room. The camera is a person's eyes, not a point. */
