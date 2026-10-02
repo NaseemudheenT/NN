@@ -574,11 +574,42 @@
     text-align: center;
   }
 
+  /* ── the arch, scribed in one line ───────────────────────────────
+     Sits behind the mark rather than beside it, so the monogram is
+     framed by the same geometry the showroom is built from. The line
+     draws from both springing points at once, meeting at the crown.
+
+     stroke-dashoffset is the whole trick: with pathLength normalised
+     to 1, a dasharray of 1 and an offset animating 1 → 0 walks the
+     dash along the path, which reads as the line being drawn. It is
+     also GPU-cheap and, unlike a width or clip animation, it follows
+     the curve exactly. */
+  .nn-entry__arch {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: clamp(13rem, 36vw, 21rem);
+    height: auto;
+    translate: -50% -58%;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .nn-entry__arch-line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: nn-entry-scribe 1500ms var(--ease-architect) 120ms both;
+  }
+  @keyframes nn-entry-scribe {
+    from { stroke-dashoffset: 1; }
+    to   { stroke-dashoffset: 0; }
+  }
+
   /* the mark strikes, then light crosses it */
   .nn-entry__mark {
+    position: relative;
     width: clamp(6rem, 17vw, 10.5rem);
     height: auto;
-    animation: nn-entry-strike 1100ms var(--ease-material) both;
+    animation: nn-entry-strike 1100ms var(--ease-material) 260ms both;
   }
   @keyframes nn-entry-strike {
     from { transform: scale(0.9); opacity: 0.001; filter: blur(7px); }
@@ -589,20 +620,61 @@
     display: grid;
     justify-items: center;
     gap: 0.7rem;
-    animation: nn-entry-settle 900ms var(--ease-architect) 420ms both;
   }
   @keyframes nn-entry-settle {
     from { transform: translate3d(0, 10px, 0); opacity: 0.001; }
     to   { transform: none; opacity: 1; }
   }
 
+  /* ── the wordmark, set letter by letter ──────────────────────────
+     Two animations at once, and the combination is the point.
+
+     Each letter rises and sharpens on its own stagger, which is the
+     obvious half. The less obvious half is on the PARENT: the whole
+     line's letter-spacing opens from 0.12em to the board's 0.34em over
+     the same period, so the letters are still spreading apart as the
+     last of them arrives. A wordmark that only fades up has already
+     happened; one whose tracking expands is being composed in front of
+     you, which is the right feeling for a house whose identity is a
+     wide-tracked serif.
+
+     letter-spacing is not a compositor property, so this relayouts the
+     line each frame. That is affordable here and nowhere else: it is
+     ten glyphs, once, on a screen with nothing else on it. */
   .nn-entry__wordmark {
+    display: inline-flex;
     font-family: var(--font-display);
     font-size: clamp(1.15rem, 3.4vw, 2rem);
     font-weight: 400;
     letter-spacing: var(--tracking-wordmark);
     text-transform: uppercase;
     color: var(--ink-primary);
+    animation: nn-entry-track 1600ms var(--ease-architect) 520ms both;
+  }
+  @keyframes nn-entry-track {
+    from { letter-spacing: 0.12em; }
+    to   { letter-spacing: var(--tracking-wordmark); }
+  }
+
+  /* One glyph. The stagger is 52 ms, which at ten letters puts the
+     last one 470 ms after the first — long enough to read as a
+     sequence, short enough that nobody is waiting for the N. */
+  .nn-entry__letter {
+    display: inline-block;
+    animation: nn-entry-set 760ms var(--ease-out-quint) both;
+    animation-delay: calc(560ms + var(--i) * 52ms);
+  }
+  @keyframes nn-entry-set {
+    from {
+      transform: translate3d(0, 0.5em, 0);
+      opacity: 0.001;
+      filter: blur(5px);
+    }
+    to {
+      transform: none;
+      opacity: 1;
+      filter: blur(0);
+    }
   }
   .nn-entry__audience {
     font-family: var(--font-ui);
@@ -611,6 +683,8 @@
     letter-spacing: 0.44em;
     text-transform: uppercase;
     color: var(--ink-tertiary);
+    /* after the last letter of the wordmark has landed */
+    animation: nn-entry-settle 900ms var(--ease-architect) 1180ms both;
   }
 
   /* the meter: a hairline that fills */
@@ -636,7 +710,7 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--ink-tertiary);
-    animation: nn-entry-settle 900ms var(--ease-architect) 700ms both;
+    animation: nn-entry-settle 900ms var(--ease-architect) 1420ms both;
   }
 }
 
@@ -966,6 +1040,22 @@
   /* ── the hero lockup ────────────────────────────────────────────
      Centred and stacked exactly as the board sets it: mark, wordmark,
      audience, tagline, then the way in.                          */
+  /* ── insurance over a bright pool ────────────────────────────────
+     The walk's scrim is deliberately transparent through its middle
+     band (34%–62%), which is exactly where this lockup sits, and the
+     room behind it is no longer reliably dark: a garment under a tight
+     beam reaches about sRGB 206, where ivory type measures 1.45:1.
+
+     Most framings never put a lit niche behind the headline, but "most"
+     is not a guarantee, so the type carries its own shadow. A soft dark
+     halo under ivory glyphs raises contrast at the glyph EDGE whatever
+     is behind them, which is what the reference material does for the
+     same reason — type over footage always carries one.
+
+     Two shadows on purpose: a tight one that does the contrast work and
+     a wide, faint one that stops the tight one reading as a hard
+     outline. Neither is visible against a dark room; both save the
+     headline against a bright one. */
   .nn-walk__hero {
     position: absolute;
     inset: 0;
@@ -973,6 +1063,9 @@
     align-content: center;
     justify-items: center;
     gap: 0;
+    text-shadow:
+      0 1px 2px color-mix(in srgb, var(--surface-void) 72%, transparent),
+      0 2px 22px color-mix(in srgb, var(--surface-void) 58%, transparent);
     padding: 6rem clamp(1.25rem, 5vw, 3rem) 8rem;
     text-align: center;
     pointer-events: none;

@@ -126,7 +126,10 @@ export function Scene({
       <Lamp position={[TABLE_AT[0], 3.15, TABLE_AT[2] - 0.1]} intensity={rig.lampIntensity * 0.8} target={[TABLE_AT[0], 0.5, TABLE_AT[2]]} />
 
       {/* ── the shirts, hanging ── */}
-      <Rail position={RAIL_A}>
+      {/* 1.4 m, not the 1.8 m default: the rail now hangs inside an arched
+          niche 1.5 m wide, and a rail wider than its opening would run
+          straight into the pier beside it. */}
+      <Rail position={RAIL_A} length={1.4}>
         {spread(railA.length, 1.8).map((x, i) => (
           <HangingShirt
             key={railA[i].handle}
@@ -139,7 +142,7 @@ export function Scene({
         ))}
       </Rail>
 
-      <Rail position={RAIL_B}>
+      <Rail position={RAIL_B} length={1.4}>
         {spread(railB.length, 1.8).map((x, i) => (
           <HangingShirt
             key={railB[i].handle}

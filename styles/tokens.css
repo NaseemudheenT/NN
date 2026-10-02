@@ -18,13 +18,47 @@
   --color-nn-olive: #3ea639;
   --color-nn-burgundy: #a41f34;
 
-  /* ── architectural greys ───────────────────────────────────────
-     The showroom is concrete, stone and smoked glass. These sit
-     between black and charcoal, where most of the interface lives. */
-  --color-nn-graphite: #16161a;
-  --color-nn-slate: #1e1f23;
-  --color-nn-concrete: #3a3a3e;
-  --color-nn-midnight: #12151c;
+  /* ── the house materials ───────────────────────────────────────
+     The showroom is troweled lime, Roman clay, fired brick, travertine
+     and dark timber. These are MATERIAL colours, not palette colours —
+     the same distinction the board already makes for gold — and every
+     one is derived from a board colour rather than invented beside it:
+
+       limewash    Ivory + Stone + a little Taupe   (Warm Sand Beige)
+       stucco      Ivory warmed with Stone          (Antico White)
+       travertine  Ivory + Stone                    (Travertine Cream)
+       sage        Olive, heavily desaturated       (Muted Sage Green)
+       walnut      Taupe, deepened
+       timber      Taupe toward Charcoal
+
+     Terracotta and brick are the exception, and a deliberate one. The
+     board's Burgundy #a41f34 carries more blue than green, so no mix of
+     board colours can reach fired clay, which needs the reverse. They
+     are pulled toward Burgundy's hue so they still read as cousins of
+     the house red, and they live here as materials rather than being
+     promoted into the palette. Full reasoning in
+     components/showroom/materials.ts.                              */
+  --color-nn-limewash: #d4cdc0;
+  --color-nn-stucco: #ece9e0;
+  --color-nn-travertine: #c3bcae;
+  --color-nn-sage: #8b9d80;
+  --color-nn-terracotta: #ab6a52;
+  --color-nn-brick: #9a4634;
+  --color-nn-walnut: #382e26;
+  --color-nn-timber: #262019;
+
+  /* ── architectural darks ───────────────────────────────────────
+     Where most of the interface lives. These used to be cool blue-
+     greys, which is the right family for a concrete-and-glass box and
+     the wrong one for this house: the shadows in a lime-and-clay
+     interior are lit by 2700 K bouncing off terracotta, so they fall
+     warm. Each of these is the old value rotated to the warm side at
+     the same luminance, which changes the temperature of the whole
+     interface without moving a single contrast ratio.             */
+  --color-nn-graphite: #1a1714;
+  --color-nn-slate: #221e19;
+  --color-nn-concrete: #3e3a35;
+  --color-nn-midnight: #191410;
 
   /* ── type ──────────────────────────────────────────────────── */
   --font-display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
@@ -101,15 +135,25 @@
 :root {
   /* ── the night showroom: the brand's default state ─────────────
      The board is overwhelmingly black. This is NN at rest.      */
-  --surface-void: #060607;
+  --surface-void: #070605;
   --surface-base: #0a0a0a;
-  --surface-raised: #121215;
-  --surface-panel: #16161a;
-  --surface-inset: #1e1f23;
+  --surface-raised: #141210;
+  --surface-panel: #1a1714;
+  --surface-inset: #221e19;
 
   --ink-primary: #f7f5ef;
   --ink-secondary: #b7b1a7;
-  --ink-tertiary: #6b5e52;
+  /* Taupe 35% / Stone 65%.
+     This role carries .nn-label — 12 px uppercase metadata, which WCAG
+     counts as normal text and therefore wants 4.5:1, not the 3:1 that
+     large text gets. Board Taupe #6b5e52 gave 2.85 on a panel and 3.16
+     on the base: a real AA failure on every metadata label on the site,
+     and one that predates the Mediterranean rebuild rather than coming
+     from it. Lightened toward Stone until the worst pairing clears 4.5
+     (it reaches 4.64 on the dusk panel) while staying 50 RGB units off
+     Stone itself, so --ink-tertiary and --ink-secondary are still two
+     distinguishable roles rather than one colour with two names. */
+  --ink-tertiary: #9c9489;
   --ink-inverse: #0a0a0a;
 
   --edge-hair: rgb(247 245 239 / 0.09);
@@ -133,6 +177,15 @@
   --state-positive: #3ea639;
   --state-critical: #a41f34;
 
+  /* ── the house materials, as interface roles ───────────────────
+     So a label or a rule can be struck in the room's own clay
+     instead of in a colour invented for the interface. */
+  --clay-sage: #8b9d80;
+  --clay-terracotta: #ab6a52;
+  --clay-brick: #9a4634;
+  --lime-wash: #d4cdc0;
+  --lime-stucco: #ece9e0;
+
   --shadow-lift: 0 2px 8px -2px rgb(0 0 0 / 0.5);
   --shadow-panel: 0 24px 64px -28px rgb(0 0 0 / 0.78);
   --shadow-room: 0 48px 120px -48px rgb(0 0 0 / 0.9);
@@ -142,11 +195,15 @@
 
 /* ── the day showroom: daylight through the architectural glazing ── */
 :root[data-theme="day"] {
-  --surface-void: #ebe8e0;
+  /* Daylight on troweled lime. The base stays exactly board Ivory —
+     that one is not ours to move — but everything around it is pulled
+     toward the Antico White stucco and the travertine, so the day
+     showroom reads as a lime interior rather than as white card. */
+  --surface-void: #e4dfd4;
   --surface-base: #f7f5ef;
-  --surface-raised: #fdfcf9;
-  --surface-panel: #ffffff;
-  --surface-inset: #e7e3d9;
+  --surface-raised: #fcfaf5;
+  --surface-panel: #fffefb;
+  --surface-inset: #ece7db;
 
   --ink-primary: #0a0a0a;
   --ink-secondary: #2e2e2e;
@@ -175,15 +232,19 @@
 
 /* ── dusk: the transitional hour, lamps on and sky still blue ── */
 :root[data-theme="dusk"] {
-  --surface-void: #0b0d12;
-  --surface-base: #12151c;
-  --surface-raised: #1a1e26;
-  --surface-panel: #1f242e;
-  --surface-inset: #262c38;
+  /* Golden hour, which is what the brief asks of the evening: "long,
+     soft amber shadows stretching across the floor as the showroom
+     illumination begins to warm". These were blue — #12151c and up —
+     which is blue hour, an hour later and a different room. */
+  --surface-void: #100c09;
+  --surface-base: #1a140e;
+  --surface-raised: #231d15;
+  --surface-panel: #2a231b;
+  --surface-inset: #342b20;
 
   --ink-primary: #f7f5ef;
   --ink-secondary: #b7b1a7;
-  --ink-tertiary: #7d7264;
+  --ink-tertiary: #9c9489;
 
   --edge-hair: rgb(247 245 239 / 0.1);
   --edge-line: rgb(247 245 239 / 0.16);

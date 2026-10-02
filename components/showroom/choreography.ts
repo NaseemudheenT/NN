@@ -22,6 +22,7 @@
 
 import * as THREE from "three";
 import { ROOM } from "./objects/Room";
+import { MASONRY } from "./objects/Masonry";
 
 /* ── the floor plan ──────────────────────────────────────────────────
    What the camera has to get around, measured off the geometry in
@@ -56,10 +57,12 @@ export const FLOOR_PLAN: readonly FloorObstacle[] = [
   // plus a shirt on them — 0.34 covers the lot whichever way they face.
   { id: "mannequin-a", x: -2.1, z: 1.5, hx: 0, hz: 0, pad: 0.34, height: 1.75 },
   { id: "mannequin-b", x: 1.5, z: 1.75, hx: 0, hz: 0, pad: 0.34, height: 1.75 },
-  // The rails stand 150 mm off the back wall and the garments hang on them,
-  // so the last half-metre of that wall is not walkable.
-  { id: "rail-a", x: -3.3, z: ROOM.halfD - 0.3, hx: 0.9, hz: 0.22, pad: 0.1, height: 2.0 },
-  { id: "rail-b", x: -1.0, z: ROOM.halfD - 0.3, hx: 0.9, hz: 0.22, pad: 0.1, height: 2.0 },
+  // The rail wall is 340 mm of structural masonry pierced by the arcade, and
+  // the garments hang in niches sunk a further 300 mm into it. None of that
+  // is walkable, so the whole wall is one obstacle rather than two rails —
+  // which is also less restrictive than the pair it replaces, because the
+  // masonry face stands at z = 3.66 where the old rail skirts reached 3.38.
+  { id: "arcade-wall", x: 0, z: ROOM.halfD - MASONRY.wall / 2, hx: ROOM.halfW, hz: MASONRY.wall / 2, pad: 0, height: ROOM.height },
   // The full-length mirror, flat against the right-hand wall.
   { id: "mirror", x: ROOM.halfW - 0.1, z: -1.4, hx: 0.06, hz: 0.6, pad: 0.08, height: 2.3 },
 ];

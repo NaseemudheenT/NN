@@ -53,14 +53,20 @@ function Room() {
           <Mat material="travertine" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[2.4, 2.4]} />
           </Mat>
-          {/* three walls; the fourth is where the camera stands */}
-          <Mat material="plaster" position={[0, 1.35, -1.2]} receiveShadow>
+          {/* Three walls; the fourth is where the camera stands. Warm Sand
+              Beige limewash, the same hand-troweled finish as the showroom —
+              a fitting room is the one place where wall colour genuinely
+              matters, because it is the colour bouncing back onto the
+              customer's face and onto the cloth they are deciding about.
+              Lime at 0.96 roughness returns almost perfectly diffuse light,
+              which is why it flatters where a glossy wall does not. */}
+          <Mat material="limewash" position={[0, 1.35, -1.2]} receiveShadow>
             <planeGeometry args={[2.4, 2.7]} />
           </Mat>
-          <Mat material="plaster" position={[-1.2, 1.35, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+          <Mat material="limewash" position={[-1.2, 1.35, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
             <planeGeometry args={[2.4, 2.7]} />
           </Mat>
-          <Mat material="plaster" position={[1.2, 1.35, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+          <Mat material="limewash" position={[1.2, 1.35, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
             <planeGeometry args={[2.4, 2.7]} />
           </Mat>
           <Mat material="ceiling" position={[0, 2.7, 0]} rotation={[Math.PI / 2, 0, 0]}>

@@ -13,12 +13,13 @@
 
 import { useMemo } from "react";
 import * as THREE from "three";
-import { MeshReflectorMaterial } from "@react-three/drei";
 import { ROOM_MODELS } from "../assets";
 import { MATERIALS } from "../materials";
 import { OptionalModel } from "../OptionalModel";
 import { monogramWidthFor } from "@/components/brand/monogramGeometry";
 import { MonogramMesh } from "@/components/brand/MonogramMesh";
+import { BULLNOSE, BullnosedBox, MASONRY, MasonryArch, Niche } from "./Masonry";
+import { Floor } from "./Floor";
 
 export const ROOM = {
   width: 12,
@@ -203,12 +204,69 @@ function ArchedWindow({
       </group>
 
       {/* stone sill */}
-      <Surface material="marbleBorder" position={[0, -0.06, 0.12]} receiveShadow>
+      <Surface material="travertine" position={[0, -0.06, 0.12]} receiveShadow>
         <boxGeometry args={[WINDOW.width + 0.35, 0.1, 0.34]} />
       </Surface>
     </group>
   );
 }
+
+/* ── the arcade ───────────────────────────────────────────────────
+   Four Romanesque bays on the rail wall, on a 2.3 m pitch.
+
+   The pitch is not a design choice: it is the distance between the two
+   garment rails, which were already placed. The architecture frames the
+   merchandise rather than the other way round, so the bays are anchored
+   on the rails at x = −3.3 and −1.0 and the pattern continues from
+   there. A 1.5 m opening on a 2.3 m pitch leaves 520 mm of solid pier
+   between each arch, which is a real pier — wide enough to carry the
+   spandrel above it and read as structure. Widen the openings to 1.8 m
+   and the piers drop to 160 mm, at which point they read as mullions
+   and the whole wall turns back into a partition with holes in it.
+
+   The springing line sits at 2.05 m — just above a tall man's head — so
+   every arch begins its curve above eye level and a visitor reads the
+   opening as something to walk under rather than something in the way.
+
+   The clay alternates sage and terracotta. Four identical openings in
+   one colour read as a corridor; alternating them reads as a room.   */
+const ARCADE = { springing: 2.05, ring: 0.14 } as const;
+
+const ARCADE_BAYS: readonly { x: number; width: number; clay: "sage" | "terracotta" }[] = [
+  { x: -3.3, width: 1.5, clay: "sage" },
+  { x: -1.0, width: 1.5, clay: "terracotta" },
+  { x: 1.3, width: 1.5, clay: "terracotta" },
+  { x: 3.6, width: 1.5, clay: "sage" },
+];
+
+/**
+ * The solid masonry between the arches.
+ *
+ * Derived from the openings rather than listed, exactly as `pierSegments`
+ * does for the windows, so a bay can be moved or resized without leaving a
+ * hole in the wall or a pier overlapping an arch ring.
+ */
+function arcadePiers(): [number, number][] {
+  const piers: [number, number][] = [];
+  let cursor = -ROOM.halfW;
+  for (const bay of [...ARCADE_BAYS].sort((a, b) => a.x - b.x)) {
+    const left = bay.x - bay.width / 2 - ARCADE.ring;
+    const right = bay.x + bay.width / 2 + ARCADE.ring;
+    if (left > cursor + 0.01) piers.push([cursor, left]);
+    cursor = Math.max(cursor, right);
+  }
+  if (cursor < ROOM.halfW - 0.01) piers.push([cursor, ROOM.halfW]);
+  return piers;
+}
+
+/* ── the ceiling structure ───────────────────────────────────────
+   A 220 × 160 mm beam on a 1.1 m centre. Both numbers are structural:
+   that is roughly what a timber beam has to measure to carry a 12 m
+   room, and roughly how close together they have to sit. Getting them
+   right matters more than it sounds, because a viewer who has stood in
+   a building reads an under-sized beam as a prop immediately.        */
+const BEAM = { height: 0.22, width: 0.16 } as const;
+const BEAM_ZS = [-3.3, -2.2, -1.1, 0, 1.1, 2.2, 3.3] as const;
 
 /* ── the room shell ───────────────────────────────────────────── */
 
@@ -227,9 +285,13 @@ export function Room({
   reflections?: boolean;
   reflectionResolution?: number;
 }) {
-  const wallMaterial = night ? "plasterNight" : "plaster";
-  const stoneMaterial = night ? "limestoneNight" : "limestone";
-  const panelMaterial = night ? "concreteNight" : "concrete";
+  const lime = night ? "limewashNight" : "limewash";
+  const clayWarm = night ? "terracottaNight" : "terracotta";
+  const claySage = night ? "sageNight" : "sage";
+  const limeStucco = night ? "stuccoNight" : "stucco";
+  const brickTrim = night ? "brickNight" : "brick";
+  const beam = night ? "timberNight" : "timber";
+  const soffit = night ? "ceilingNight" : "ceiling";
   const windowXs = [-4.4, -1.5, 1.5, 4.4];
 
   return (
@@ -237,161 +299,152 @@ export function Room({
       path={ROOM_MODELS.shell}
       placeholder={
         <group>
-          {/* ── the floor ──────────────────────────────────────────
-              Nero Marquina, polished rather than honed, with a real
-              reflection rendered into it each frame. This is the single
-              most expensive-looking thing in the room and the cheapest
-              to justify: a polished stone floor genuinely does carry the
-              whole room upside down in it, and every gold fitting
-              appears twice — once on the wall, once underfoot.
+          {/* ── the floor ───────────────────────────────────────────
+              Matte microcement paths running into dark walnut chevron
+              where the couture lounges are. See ./Floor.            */}
+          <Floor
+            night={night}
+            reflections={reflections}
+            reflectionResolution={reflectionResolution}
+          />
 
-              On weaker hardware `reflections` is false and the same
-              stone falls back to a plain physical material, which costs
-              one draw call instead of a second render pass.        */}
-          {reflections ? (
-            <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={[ROOM.width, ROOM.depth]} />
-              <MeshReflectorMaterial
-                color={MATERIALS.marble.colour}
-                roughness={0.26}
-                metalness={0.35}
-                /* Blur in the reflection is what separates polished stone
-                   from a mirror: stone scatters, so the image underfoot is
-                   recognisable but soft, and softer with distance. */
-                blur={[300, 90]}
-                mixBlur={2.4}
-                mixStrength={28}
-                resolution={reflectionResolution}
-                depthScale={1.1}
-                minDepthThreshold={0.35}
-                maxDepthThreshold={1.25}
-                depthToBlurRatioBias={0.28}
-                mirror={0}
-              />
-            </mesh>
-          ) : (
-            <Surface material="marble" rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={[ROOM.width, ROOM.depth]} />
-            </Surface>
-          )}
+          {/* ══ THE ARCADE ══════════════════════════════════════════
+              The long walls are not partitions. They are 340 mm of
+              structure, pierced by four Romanesque arches and hollowed
+              behind each one into a deep niche with a clay back.
 
-          {/* ── the Carrara border ─────────────────────────────────
-              A white marble band set a metre in from the walls, framing
-              the dark field. Two marbles is how a European floor is
-              actually laid: the dark stone gives depth, the light band
-              draws the geometry of the room so the eye can read its
-              shape even at night.                                   */}
-          {[
-            { p: [0, 0.0015, -ROOM.halfD + 1.06] as [number, number, number], a: [ROOM.width - 1.9, 0.16] as [number, number] },
-            { p: [0, 0.0015, ROOM.halfD - 1.06] as [number, number, number], a: [ROOM.width - 1.9, 0.16] as [number, number] },
-          ].map((band, i) => (
-            <mesh key={`cx${i}`} position={band.p} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={band.a} />
-              <meshPhysicalMaterial
-                color={MATERIALS.carrara.colour}
-                roughness={MATERIALS.carrara.roughness}
-                metalness={0}
-              />
-            </mesh>
-          ))}
-          {[-ROOM.halfW + 1.06, ROOM.halfW - 1.06].map((x) => (
-            <mesh key={`cz${x}`} position={[x, 0.0015, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={[0.16, ROOM.depth - 1.9]} />
-              <meshPhysicalMaterial
-                color={MATERIALS.carrara.colour}
-                roughness={MATERIALS.carrara.roughness}
-                metalness={0}
-              />
-            </mesh>
-          ))}
+              This is the single biggest change from the old room, and
+              the reason is structural rather than decorative. A flat
+              wall gives the light one plane to fall on, so it reads as
+              a backdrop however it is painted. A pierced wall gives it
+              a jamb, a soffit, a reveal and a recess — four surfaces at
+              four angles, each catching a different amount — and the
+              eye reads mass from the gradient between them. That is
+              what makes a garment look like it is standing IN
+              somewhere rather than in front of something.
 
-          {/* a brass band inlaid a metre in from the walls, the way a stone
-              floor in a European house is framed rather than simply laid */}
-          {[
-            { p: [0, 0.002, -ROOM.halfD + 1] as [number, number, number], a: [ROOM.width - 2, 0.03] as [number, number] },
-            { p: [0, 0.002, ROOM.halfD - 1] as [number, number, number], a: [ROOM.width - 2, 0.03] as [number, number] },
-          ].map((band, i) => (
-            <mesh key={`bx${i}`} position={band.p} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={band.a} />
-              <meshPhysicalMaterial
-                color={MATERIALS.brass.colour}
-                roughness={MATERIALS.brass.roughness}
-                metalness={1}
-              />
-            </mesh>
-          ))}
-          {[-ROOM.halfW + 1, ROOM.halfW - 1].map((x) => (
-            <mesh key={`bz${x}`} position={[x, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[0.03, ROOM.depth - 2]} />
-              <meshPhysicalMaterial
-                color={MATERIALS.brass.colour}
-                roughness={MATERIALS.brass.roughness}
-                metalness={1}
-              />
-            </mesh>
-          ))}
+              The niches also do the lighting a favour: a piece in a
+              recess is lit on three sides by bounce off its own clay,
+              which fills the shadows a single tight beam would leave. */}
+          {[-1, 1].map((side) => {
+            // side −1 is the window wall (z = −4); +1 is the rail wall.
+            const z = side * ROOM.halfD;
+            // The window wall is already pierced by its openings, so only
+            // the rail wall carries the arcade.
+            if (side < 0) return null;
 
-          {/* ── pilasters and panels ───────────────────────────────
-              The long walls are not flat plaster. They are dressed
-              limestone pilasters standing proud of recessed board-formed
-              concrete panels, with a hairline shadow gap at every joint.
-
-              This is what makes an interior read as built rather than
-              painted: the eye picks up the rhythm of the bays and the
-              crisp line where two materials meet, and it reads depth
-              even when the room is almost dark.                     */}
-          {[-ROOM.halfW + 0.09, ROOM.halfW - 0.09].map((x) => {
-            const inward = x < 0 ? 1 : -1;
             return (
-              <group key={`bay-${x}`}>
-                {/* recessed concrete panels between the pilasters */}
-                {[-2.6, 0, 2.6].map((z) => (
-                  <Surface
-                    key={`panel-${z}`}
-                    material={panelMaterial}
-                    position={[x + inward * 0.02, ROOM.height / 2 + 0.05, z]}
-                    rotation={[0, inward * (Math.PI / 2), 0]}
-                    receiveShadow
-                  >
-                    <planeGeometry args={[2.15, ROOM.height - 0.9]} />
-                  </Surface>
-                ))}
-                {/* the pilasters themselves, standing 90 mm off the wall */}
-                {[-3.9, -1.3, 1.3, 3.9].map((z) => (
-                  <Surface
-                    key={`pilaster-${z}`}
-                    material={stoneMaterial}
-                    position={[x + inward * 0.055, ROOM.height / 2 + 0.05, z]}
+              <group key={`arcade-${side}`}>
+                {/* the wall body, built as piers between the arches */}
+                {arcadePiers().map(([from, to]) => (
+                  <BullnosedBox
+                    key={`pier-${from}`}
+                    width={to - from}
+                    height={ROOM.height}
+                    depth={MASONRY.wall}
+                    material={lime}
+                    position={[(from + to) / 2, ROOM.height / 2, z - (side * MASONRY.wall) / 2]}
                     castShadow
                     receiveShadow
-                  >
-                    <boxGeometry args={[0.13, ROOM.height - 0.7, 0.46]} />
-                  </Surface>
+                  />
                 ))}
-                {/* the entablature the pilasters carry */}
-                <Surface
-                  material={stoneMaterial}
-                  position={[x + inward * 0.05, ROOM.height - 0.34, 0]}
-                  castShadow
-                >
-                  <boxGeometry args={[0.16, 0.2, ROOM.depth - 0.2]} />
-                </Surface>
+
+                {/* the arches, and the niches behind them */}
+                {ARCADE_BAYS.map((bay) => (
+                  <group key={`bay-${bay.x}`}>
+                    <MasonryArch
+                      spec={{
+                        width: bay.width,
+                        springing: ARCADE.springing,
+                        depth: MASONRY.wall,
+                        ring: ARCADE.ring,
+                      }}
+                      material={lime}
+                      ringMaterial={brickTrim}
+                      position={[bay.x, 0, z - (side * MASONRY.wall) / 2]}
+                      rotation={[0, side > 0 ? Math.PI : 0, 0]}
+                    />
+                    {/* the recess, sunk a further 300 mm into the masonry */}
+                    <Niche
+                      width={bay.width - 0.12}
+                      height={ARCADE.springing + (bay.width - 0.12) / 2}
+                      springing={ARCADE.springing}
+                      material={limeStucco}
+                      backMaterial={bay.clay === "sage" ? claySage : clayWarm}
+                      position={[bay.x, 0, z - side * MASONRY.wall]}
+                      rotation={[0, side > 0 ? Math.PI : 0, 0]}
+                    />
+                    {/* the spandrel above the arch, closing the wall to the
+                        ceiling — without this you see daylight over the head
+                        of every arch, which is the classic giveaway that a
+                        wall was assembled rather than built */}
+                    <BullnosedBox
+                      width={bay.width + ARCADE.ring * 2}
+                      height={ROOM.height - (ARCADE.springing + bay.width / 2 + ARCADE.ring)}
+                      depth={MASONRY.wall}
+                      material={lime}
+                      position={[
+                        bay.x,
+                        (ROOM.height + ARCADE.springing + bay.width / 2 + ARCADE.ring) / 2,
+                        z - (side * MASONRY.wall) / 2,
+                      ]}
+                      castShadow
+                      receiveShadow
+                    />
+                  </group>
+                ))}
               </group>
             );
           })}
 
-          {/* ceiling */}
+          {/* ══ THE CEILING ═════════════════════════════════════════
+              Heavy exposed timber over troweled lime. Seven beams on a
+              1.1 m centre, which is a real structural spacing for a
+              12 m span and not a decorative one — and the shadows they
+              throw across the lime are most of what makes the ceiling
+              read as a ceiling rather than a lid.
+
+              The beams are the darkest thing in the house. That is
+              deliberate: a pale interior with nothing dark overhead
+              reads as a gallery, and the weight up there is what makes
+              it read as a building.                                  */}
           <Surface
-            material="ceiling"
+            material={soffit}
             position={[0, ROOM.height, 0]}
             rotation={[Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[ROOM.width, ROOM.depth]} />
           </Surface>
+          {BEAM_ZS.map((bz) => (
+            <BullnosedBox
+              key={`beam-${bz}`}
+              width={ROOM.width - 0.1}
+              height={BEAM.height}
+              depth={BEAM.width}
+              radius={BULLNOSE.trim}
+              material={beam}
+              position={[0, ROOM.height - BEAM.height / 2, bz]}
+              castShadow
+              receiveShadow
+            />
+          ))}
+          {/* the wall plates the beams sit on */}
+          {[-1, 1].map((side) => (
+            <BullnosedBox
+              key={`plate-${side}`}
+              width={0.16}
+              height={0.2}
+              depth={ROOM.depth - 0.1}
+              radius={BULLNOSE.trim}
+              material={beam}
+              position={[side * (ROOM.halfW - 0.08), ROOM.height - BEAM.height - 0.1, 0]}
+              castShadow
+            />
+          ))}
 
           {/* counter wall, z = +4 */}
           <Surface
-            material={wallMaterial}
+            material={lime}
             position={[0, ROOM.height / 2, ROOM.halfD]}
             rotation={[0, Math.PI, 0]}
             receiveShadow
@@ -401,7 +454,7 @@ export function Room({
 
           {/* entrance wall, x = −6 */}
           <Surface
-            material={wallMaterial}
+            material={lime}
             position={[-ROOM.halfW, ROOM.height / 2, 0]}
             rotation={[0, Math.PI / 2, 0]}
             receiveShadow
@@ -411,7 +464,7 @@ export function Room({
 
           {/* mirror wall, x = +6 */}
           <Surface
-            material={wallMaterial}
+            material={lime}
             position={[ROOM.halfW, ROOM.height / 2, 0]}
             rotation={[0, -Math.PI / 2, 0]}
             receiveShadow
@@ -424,7 +477,7 @@ export function Room({
           <group>
             {/* header above the windows */}
             <Surface
-              material={wallMaterial}
+              material={lime}
               position={[0, (WINDOW.sill + WINDOW.straight + WINDOW.arch + ROOM.height) / 2, -ROOM.halfD]}
               receiveShadow
             >
@@ -433,7 +486,7 @@ export function Room({
               />
             </Surface>
             {/* dado below the sills */}
-            <Surface material={wallMaterial} position={[0, WINDOW.sill / 2, -ROOM.halfD]} receiveShadow>
+            <Surface material={lime} position={[0, WINDOW.sill / 2, -ROOM.halfD]} receiveShadow>
               <planeGeometry args={[ROOM.width, WINDOW.sill]} />
             </Surface>
             {/* piers: the solid wall left between the openings, worked out
@@ -441,7 +494,7 @@ export function Room({
             {pierSegments(windowXs).map(([from, to]) => (
               <Surface
                 key={`pier-${from}`}
-                material={wallMaterial}
+                material={lime}
                 position={[
                   (from + to) / 2,
                   WINDOW.sill + (WINDOW.straight + WINDOW.arch) / 2,

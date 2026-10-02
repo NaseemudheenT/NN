@@ -7,10 +7,19 @@
  * be: the customer is arriving somewhere, and the time it takes to open the
  * door is the time it takes to load.
  *
- *   the monogram strikes, and light crosses the metal once
- *   the wordmark and the audience line settle beneath it
+ *   a Romanesque arch scribes itself out of the dark
+ *   the monogram strikes inside it, and light crosses the metal once
+ *   NERO NOREN is SET letter by letter, its tracking opening as it goes
+ *   the audience line settles beneath
  *   a hairline fills as real work completes
  *   the shutter lifts, and the room is behind it
+ *
+ * The arch is the same arch the showroom is built from — a true semicircle
+ * struck from the springing line, rise exactly half the span — so the first
+ * thing a customer sees is the geometry of the building they are entering,
+ * drawn in a single champagne line. It is decorative and it is on the stage,
+ * deliberately: the exit path is safety-critical (see rule 1) and nothing
+ * about the arch is allowed anywhere near it.
  *
  * Three hard rules, learned the painful way:
  *
@@ -31,6 +40,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { N_INTERLOCK_X, N_PATH } from "@/components/brand/monogram";
 
 const SESSION_KEY = "nn-entered";
+
+/** The wordmark, per letter, so each one can be set in turn. */
+const WORDMARK = [..."NERO NOREN"];
 
 /** The longest the shutter may ever stay down, whatever else happens. */
 const BACKSTOP_MS = 9000;
@@ -165,6 +177,36 @@ export function ShowroomEntry() {
       <div className="nn-entry__light" aria-hidden="true" />
 
       <div className="nn-entry__stage">
+        {/* ── the arch ──────────────────────────────────────────────
+            Scribed as one champagne line, from the two springing
+            points up and over the crown. Same proportions as the
+            arcade in the showroom: 112 wide, springing at 60 from the
+            base, radius 56 — so the rise is exactly half the span,
+            which is what makes it Romanesque rather than merely
+            curved.
+
+            pathLength="1" normalises the stroke so the dash animation
+            is written in fractions instead of in the 296 user units
+            the path actually measures. */}
+        <svg className="nn-entry__arch" viewBox="0 0 120 164" aria-hidden="true">
+          <path
+            className="nn-entry__arch-line"
+            pathLength="1"
+            d="M4 160 L4 96 A 56 56 0 0 1 116 96 L116 160"
+            fill="none"
+            stroke="url(#nn-entry-arch)"
+            strokeWidth="1.1"
+            strokeLinecap="round"
+          />
+          <defs>
+            <linearGradient id="nn-entry-arch" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="var(--metal-shadow)" />
+              <stop offset="55%" stopColor="var(--metal-body)" />
+              <stop offset="100%" stopColor="var(--metal-light)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
         {/* the monogram, struck in metal */}
         <svg
           className="nn-entry__mark"
@@ -188,7 +230,28 @@ export function ShowroomEntry() {
         </svg>
 
         <div className="nn-entry__type">
-          <span className="nn-entry__wordmark">Nero Noren</span>
+          {/* ── the wordmark, SET rather than faded in ───────────────
+              Each letter rises and sharpens in turn while the whole
+              line's tracking opens from tight to the board's 0.34em.
+              That opening is the effect: a wordmark that merely fades
+              up has already arrived, where one whose letterspacing
+              expands reads as being composed in front of you — which
+              is what a house with a serif wordmark should look like.
+
+              The accessible name is on the parent, so a screen reader
+              reads "Nero Noren" once rather than spelling it out. */}
+          <span className="nn-entry__wordmark" aria-label="Nero Noren">
+            {WORDMARK.map((ch, i) => (
+              <span
+                key={`${ch}-${i}`}
+                className="nn-entry__letter"
+                style={{ "--i": i } as React.CSSProperties}
+                aria-hidden="true"
+              >
+                {ch === " " ? "\u00a0" : ch}
+              </span>
+            ))}
+          </span>
           <span className="nn-entry__audience">Men &amp; Boys</span>
         </div>
 
