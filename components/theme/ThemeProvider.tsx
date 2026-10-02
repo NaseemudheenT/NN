@@ -40,7 +40,10 @@ import {
   type DayPhase,
   type SkyState,
   type ThemeName,
+  applyWeather,
 } from "@/lib/daytime";
+import { seasonFor, type Season, type WeatherState } from "@/lib/weather";
+import { useWeather } from "./useWeather";
 
 const DEFAULT_LATITUDE = 20;
 
@@ -66,8 +69,13 @@ interface ThemeContextValue {
   theme: ThemeName;
   /** The phase of the visitor's day, or the forced phase in test mode. */
   phase: DayPhase;
-  /** Physically derived lighting for the 3D showroom. */
+  /** Physically derived lighting for the 3D showroom, with the real
+      weather already folded in once it has landed. */
   sky: SkyState;
+  /** What it is actually doing outside, where the visitor is. */
+  weather: WeatherState;
+  /** The visitor's meteorological season, hemisphere-correct. */
+  season: Season;
   reducedMotion: boolean;
   /** True while a ?phase= override is in force. */
   overridden: boolean;
@@ -156,11 +164,27 @@ export function ThemeProvider({
 
   const theme: ThemeName = useMemo(() => themeForPhase(phase), [phase]);
 
-  const sky = useMemo(
+  /* What it is actually doing outside. Clear-sky defaults until the fetch
+     lands, so the room opens at once and the weather corrects it a moment
+     later rather than holding the door shut. */
+  const weather = useWeather();
+
+  const sky = useMemo(() => {
     // Longitude comes from the browser's UTC offset, which does not exist on
     // the server — so before mount the reference sky uses zero.
-    () => skyState(effectiveDate, DEFAULT_LATITUDE, now ? longitudeFromTimezone() : 0),
-    [effectiveDate, now],
+    const clear = skyState(effectiveDate, DEFAULT_LATITUDE, now ? longitudeFromTimezone() : 0);
+    /* Astronomy first, weather second. skyState answers "where is the sun",
+       which is always true; applyWeather answers "what is in the way", which
+       is a network call that may never arrive. */
+    return applyWeather(clear, weather);
+  }, [effectiveDate, now, weather]);
+
+  /* Hemisphere-correct, which is the whole reason it takes a latitude —
+     northern seasons hard-coded would dress the room for winter in a
+     Sydney January. */
+  const season = useMemo<Season>(
+    () => seasonFor(effectiveDate, DEFAULT_LATITUDE),
+    [effectiveDate],
   );
 
   /* paint the theme onto <html> */
@@ -179,8 +203,8 @@ export function ThemeProvider({
   }, [theme, phase]);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme, phase, sky, reducedMotion, overridden: override !== null }),
-    [theme, phase, sky, reducedMotion, override],
+    () => ({ theme, phase, sky, weather, season, reducedMotion, overridden: override !== null }),
+    [theme, phase, sky, weather, season, reducedMotion, override],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

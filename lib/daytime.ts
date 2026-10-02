@@ -307,6 +307,12 @@ export function beamStrength(elevationDeg: number): number {
   return clamp(Math.pow(0.7, Math.pow(am, 0.678)), 0, 1);
 }
 
+import {
+  beamThroughCloud,
+  skylightThroughCloud,
+  type WeatherState,
+} from "./weather";
+
 /* ── the full lighting brief for a moment ──────────────────────── */
 
 export interface SkyState {
@@ -354,6 +360,51 @@ export function skyState(
     beam,
     lampLevel,
     exposure,
+  };
+}
+
+/**
+ * The same sky, with the actual weather applied.
+ *
+ * skyState is a CLEAR-SKY model: it answers "where is the sun and what colour
+ * is it", which is astronomy and is always true. What it cannot know is
+ * whether anything is in the way. This folds that in.
+ *
+ * The lamps are the part worth pointing at. lampLevel is derived from the
+ * beam, so attenuating the beam for cloud makes the showroom's lights come up
+ * on a grey afternoon WITHOUT anything new being written to do it — which is
+ * exactly what happens in a real shop, where the staff turn the lights on
+ * because it is dark outside and not because the clock reached a number.
+ *
+ * Kept as a separate function rather than folded into skyState because the
+ * two have different natures: astronomy is deterministic and available
+ * instantly, weather is a network call that may never land. The room renders
+ * from the first the moment it opens and takes the second when it arrives.
+ */
+export function applyWeather(sky: SkyState, weather: WeatherState): SkyState {
+  if (!weather.live) return sky;
+
+  const beam = clamp(sky.beam * beamThroughCloud(weather.cloud, weather.code), 0, 1);
+
+  /* Overcast does not darken a room as much as the lost beam implies: the
+     whole sky becomes one soft source. Losing the sun and gaining that is
+     why grey days read as flat rather than as dim, and why exposure must
+     not simply follow the beam down. */
+  const lampLevel = clamp(1 - beam * 1.35, 0, 1);
+  const exposure = (0.85 + 0.55 * lampLevel) / skylightThroughCloud(weather.cloud);
+
+  /* Cloud is a diffuser, and a diffuser is cooler than the beam it replaces —
+     overcast light is the blue of the whole sky rather than the warm of a
+     low sun. Fully overcast pulls about 900 K cooler. */
+  const kelvin = clamp(sky.kelvin + weather.cloud * 900, 1900, 9000);
+
+  return {
+    ...sky,
+    beam,
+    lampLevel,
+    exposure,
+    kelvin,
+    rgb: blackbodyToLinearRGB(kelvin),
   };
 }
 
