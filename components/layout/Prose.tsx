@@ -1,13 +1,10 @@
-/**
- * Long-form text, measured for reading.
- *
- * One column at about 62 characters, which is where a line stops being
- * comfortable. Nothing clever: a page of prose only has to be easy to read.
- */
+/** A measured column of running text. One width, set once, used everywhere. */
 export function Prose({ children }: { children: React.ReactNode }) {
   return (
-    <div className="nn-wrap" style={{ paddingBottom: "var(--space-hall)" }}>
-      <div className="nn-prose nn-wrap--text">{children}</div>
+    <div className="band band--tight">
+      <div className="wrap">
+        <div className="prose reveal">{children}</div>
+      </div>
     </div>
   );
 }

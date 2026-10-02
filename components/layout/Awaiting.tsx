@@ -1,75 +1,35 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { GlassButton } from "@/components/ui/glass/GlassButton";
-import { N_INTERLOCK_X, N_PATH } from "@/components/brand/monogram";
+import { Monogram } from "@/components/brand/Monogram";
 
 /**
- * An honest waiting state.
+ * A page that is honest about being empty.
  *
- * For parts of the house that exist in the identity but not yet in stock: the
- * boys' line is on every label the board shows, and the journal is in the
- * navigation, but neither has anything real behind it. Inventing products or
- * articles to fill them would be the one thing this brand must never do.
- *
- * So the page says plainly what is coming and what is not, in the same
- * materials as everywhere else, and points at what the customer can actually
- * buy today. A designed empty state is worth more than a fabricated full one.
+ * The brand voice forbids fake scarcity and fake luxury; padding a journal
+ * with three invented essays to make the site look busy is the same lie in
+ * a different costume. So this says there is nothing here, says what will
+ * be here, and points at something that does exist.
  */
 export function Awaiting({
   label,
   title,
   body,
   detail,
-  action = { href: "/collection", label: "See Collection 001" },
-  children,
 }: {
   label: string;
   title: string;
   body: string;
-  /** The honest specifics: what exists, what does not, what happens next. */
-  detail?: ReactNode;
-  action?: { href: string; label: string };
-  children?: ReactNode;
+  detail?: React.ReactNode;
 }) {
-  const width = N_INTERLOCK_X + 84;
-
   return (
-    <div className="nn-awaiting">
-      <div className="nn-wrap nn-awaiting__inner">
-        <svg className="nn-awaiting__mark" viewBox={`0 0 ${width} 100`} aria-hidden="true">
-          <defs>
-            <linearGradient id="nn-await-metal" x1="0" y1="0" x2="1" y2="0.42">
-              <stop offset="0%" stopColor="var(--sheen-low)" />
-              <stop offset="40%" stopColor="var(--sheen-mid)" />
-              <stop offset="52%" stopColor="var(--sheen-high)" />
-              <stop offset="100%" stopColor="var(--sheen-low)" />
-            </linearGradient>
-          </defs>
-          <g fill="url(#nn-await-metal)" opacity="0.5">
-            <path d={N_PATH} />
-            <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} />
-          </g>
-        </svg>
-
-        <p className="nn-label nn-label--metal">{label}</p>
-        <h1 className="nn-awaiting__title">{title}</h1>
-        <p className="nn-awaiting__body">{body}</p>
-
-        {detail ? <div className="nn-awaiting__detail glass glass--panel">{detail}</div> : null}
-
-        <div className="nn-awaiting__actions">
-          <Link href={action.href}>
-            <GlassButton tone="metal" size="md">
-              {action.label}
-            </GlassButton>
-          </Link>
-          <Link href="/" className="nn-link text-[var(--text-micro)] uppercase tracking-[var(--tracking-label)]">
-            Back to the showroom
-          </Link>
-        </div>
-
-        {children}
+    <section className="awaiting band">
+      <div className="wrap awaiting__in">
+        <Monogram size={40} className="awaiting__mark" />
+        <p className="label label--soft">{label}</p>
+        <h1 className="d-h1">{title}</h1>
+        <p className="lead awaiting__body">{body}</p>
+        {detail ? <div className="awaiting__detail prose">{detail}</div> : null}
+        <Link href="/collection" className="btn btn--solid">See the collection</Link>
       </div>
-    </div>
+    </section>
   );
 }

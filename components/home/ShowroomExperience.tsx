@@ -1,115 +1,51 @@
-"use client";
+import Link from "next/link";
+import { Plate } from "@/components/ui/Plate";
+import { ArrowRight } from "@/components/ui/icons";
+
+const ZONES = [
+  { href: "/men", label: "Men's tailoring", note: "Cut for the way you actually stand", kind: "room" as const },
+  { href: "/boys", label: "Boys collection", note: "The same cloth, the same cut, scaled", kind: "street" as const },
+  { href: "/collection?category=outerwear", label: "Outerwear", note: "Coats that outlast the season", kind: "cloth" as const },
+  { href: "/collection?category=loafers", label: "Loafers", note: "Leather, finished by hand", kind: "detail" as const },
+];
 
 /**
- * The European showroom experience.
+ * The four zones of the floor.
  *
- * The dark band that sits between the walk and the collection, and the one
- * place on the homepage that says plainly what NN is: a house you can walk
- * through rather than a grid you scroll.
- *
- * Four ways in, built from the catalogue rather than written down. A hard-coded
- * list of categories is a list that goes wrong the first time the range
- * changes — these count what is actually in stock, so "Four shirts" is true
- * because four shirts exist, and the card disappears if they stop existing.
+ * Four tall doors in a row, which is what the arcade of the real hall looks
+ * like from the middle of the nave — so the band is not decorating the
+ * showroom idea, it is a plan of it.
  */
-
-import Link from "next/link";
-import { motion } from "framer-motion";
-import type { Product } from "@/lib/catalog/types";
-import { LiquidButton } from "@/components/ui/glass/LiquidButton";
-import { usePrefersReducedMotion } from "@/components/motion/useReducedMotion";
-
-interface Zone {
-  id: string;
-  label: string;
-  count: number;
-  note: string;
-  href: string;
-}
-
-/** A plain-English count. "Four shirts" reads; "4 shirts" is a spreadsheet. */
-const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
-const spell = (n: number) => WORDS[n] ?? String(n);
-
-export function ShowroomExperience({ products }: { products: Product[] }) {
-  const reduced = usePrefersReducedMotion();
-
-  const shirts = products.filter((p) => p.type === "shirt");
-  const trousers = products.filter((p) => p.type === "trouser");
-
-  const zones: Zone[] = [
-    {
-      id: "rails",
-      label: "The rails",
-      count: shirts.length,
-      note: `${spell(shirts.length)} ${shirts.length === 1 ? "shirt" : "shirts"}, hanging in the arched niches on the long wall.`,
-      href: "/collection?type=shirt",
-    },
-    {
-      id: "table",
-      label: "The table",
-      count: trousers.length,
-      note: `${spell(trousers.length)} ${trousers.length === 1 ? "trouser" : "trousers"}, folded on the oak table under a tight beam.`,
-      href: "/collection?type=trouser",
-    },
-    {
-      id: "mirror",
-      label: "The mirror",
-      count: 0,
-      note: "A full-length mirror and two dressed forms, for seeing a piece the way it will actually be worn.",
-      href: "/trial-room",
-    },
-    {
-      id: "atelier",
-      label: "The atelier",
-      count: 0,
-      note: "A stylist who knows the whole range, and will put a shirt against a trouser for you.",
-      href: "/stylist",
-    },
-  ].filter((z) => z.count !== 0 || z.id === "mirror" || z.id === "atelier");
-
+export function ShowroomExperience() {
   return (
-    <section className="nn-experience" aria-labelledby="nn-experience-title">
-      <div className="nn-wrap nn-experience__inner">
-        <div className="nn-experience__lede">
-          <p className="nn-label">The house</p>
-          <h2 id="nn-experience-title" className="nn-experience__title">
-            A showroom you
-            <br />
-            walk through.
-          </h2>
-          <p className="nn-experience__body">
-            Troweled lime on thick masonry, Romanesque arches, dark walnut underfoot and a room lit
-            by your own clock. The garments hang in the niches and the light is aimed at them,
-            which is the only reason any of the architecture is here.
-          </p>
-          <Link href="/showroom" aria-label="Enter the showroom">
-            <LiquidButton size="lg" tabIndex={-1}>
-              Enter the showroom
-            </LiquidButton>
-          </Link>
+    <section className="exp band" aria-labelledby="exp-h">
+      <div className="wrap exp__in">
+        <div className="exp__intro nn-room reveal">
+          <Plate kind="room" alt="" className="exp__intro-bg" />
+          <div className="exp__intro-body">
+            <h2 id="exp-h" className="d-h2">The European<br />showroom experience</h2>
+            <p className="lead">
+              Step into a world of refined elegance. Explore our curated spaces, discover signature
+              pieces, and experience the art of modern tailoring.
+            </p>
+            <Link href="/showroom" className="btn btn--glass">Start the tour</Link>
+          </div>
+          <p className="exp__count label tnum">01&nbsp;/&nbsp;04</p>
         </div>
 
-        <ul className="nn-experience__zones">
-          {zones.map((zone, i) => (
-            <motion.li
-              key={zone.id}
-              initial={reduced ? false : { y: 20 }}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.6, delay: i * 0.06, ease: [0.16, 0.84, 0.24, 1] }}
-            >
-              <Link href={zone.href} className="nn-zone glass glass--panel">
-                <span className="nn-zone__index">{String(i + 1).padStart(2, "0")}</span>
-                <span className="nn-zone__label">{zone.label}</span>
-                <span className="nn-zone__note">{zone.note}</span>
-                <span className="nn-zone__go" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
-                    <path d="M4 12h15M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+        <ul className="exp__zones">
+          {ZONES.map((z, i) => (
+            <li key={z.href} className="reveal" style={{ "--reveal-delay": `${i * 70}ms` } as React.CSSProperties}>
+              <Link href={z.href} className="zone">
+                <Plate kind={z.kind} alt="" className="zone__img" sizes="(max-width: 900px) 50vw, 18vw" />
+                <span className="zone__shade" aria-hidden />
+                <span className="zone__body">
+                  <span className="zone__label">{z.label}</span>
+                  <span className="zone__note">{z.note}</span>
+                  <ArrowRight size={16} className="zone__arrow" />
                 </span>
               </Link>
-            </motion.li>
+            </li>
           ))}
         </ul>
       </div>

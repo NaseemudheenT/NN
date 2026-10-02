@@ -1,0 +1,168 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NERO NOREN — the stage
+
+   The hall sits behind the page. Two layers occupy it: the painted room,
+   which is always there, and the real one, which fades in over the top
+   when the device can carry it. Neither ever intercepts a pointer — every
+   control on this site is DOM.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0a0a;
+  pointer-events: none;
+  contain: strict;
+}
+.nn-stage[data-fixed] { position: fixed; z-index: 0; }
+
+.nn-canvas {
+  position: absolute !important;
+  inset: 0;
+  animation: nn-canvas-in var(--d-door) var(--ease) both;
+}
+@keyframes nn-canvas-in { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── the painted hall ─────────────────────────────────────────── */
+.nn-painted { position: absolute; inset: 0; }
+.nn-painted > * { position: absolute; }
+
+/* the sky behind the windows — cool at the zenith, the sun's own colour low */
+.nn-painted__sky {
+  inset: 0;
+  background:
+    radial-gradient(120% 86% at 50% 86%,
+      rgb(var(--sun-rgb) / calc(0.5 + var(--sun-beam) * 0.4)) 0%,
+      rgb(var(--sun-rgb) / 0.1) 36%,
+      transparent 68%),
+    linear-gradient(180deg, #10131b 0%, #171a22 46%, #221d1b 78%, #2a211b 100%);
+}
+
+/* the end wall, with its three openings */
+.nn-painted__wall {
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.6rem, 2.2vw, 2.6rem);
+  padding-bottom: 34%;
+  /* The wall warms up only as the lamps do. At midday a limewashed wall
+     lit through a window is a cool mid-grey, not the amber it goes at seven
+     in the evening — tying it to --lamp is what makes the painted hall tell
+     the same time as the real one. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #2a2a2b calc((1 - var(--lamp)) * 100%), #1b1713) 0%,
+    color-mix(in srgb, #333234 calc((1 - var(--lamp)) * 100%), #221d18) 58%,
+    color-mix(in srgb, #1d1d1f calc((1 - var(--lamp)) * 100%), #161310) 100%
+  );
+  /* the wall is cut away where the arches are: the openings are painted on
+     top of it, so they read as light coming through rather than as lamps */
+  mask-image: linear-gradient(180deg, #000 0 72%, rgba(0,0,0,.9) 100%);
+}
+
+/* ── an opening, not a lit rectangle ─────────────────────────────
+   Three things make the difference, and they are the same three that make
+   the real one work: the sky behind it is a gradient rather than a colour,
+   the masonry reveal is visible down one jamb and in shade down the other,
+   and there are glazing bars. Without the bars it is a hole; with them it
+   is a window. */
+.nn-painted__arch {
+  position: relative;
+  display: block;
+  background:
+    /* the glazing bars */
+    repeating-linear-gradient(90deg, transparent 0 calc(50% - 1px), rgba(28,24,20,.5) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px) 100%),
+    repeating-linear-gradient(0deg, rgba(28,24,20,.42) 0 1.5px, transparent 1.5px 17%),
+    /* the sky through them, warmer and brighter toward the horizon */
+    linear-gradient(180deg,
+      rgb(var(--sun-rgb) / calc(0.16 + var(--sun-beam) * 0.4)) 0%,
+      rgb(var(--sun-rgb) / calc(0.40 + var(--sun-beam) * 0.52)) 52%,
+      rgb(var(--sun-rgb) / calc(0.58 + var(--sun-beam) * 0.4)) 100%);
+  box-shadow:
+    /* the light the opening throws back into the hall */
+    0 0 70px 16px rgb(var(--sun-rgb) / calc(0.08 + var(--sun-beam) * 0.24)),
+    /* the reveal: lit on the side the sun is on, in shade on the other */
+    inset clamp(3px, .5vw, 8px) 0 0 rgba(224,206,178,.5),
+    inset calc(-1 * clamp(3px, .5vw, 8px)) 0 0 rgba(30,25,20,.75),
+    inset 0 clamp(3px, .5vw, 8px) 0 rgba(30,25,20,.6);
+}
+.nn-painted__arch--main {
+  width: clamp(92px, 15vw, 230px);
+  height: clamp(200px, 33vw, 500px);
+  border-radius: 50% 50% 0 0 / 28% 28% 0 0;
+}
+.nn-painted__arch--side {
+  width: clamp(48px, 7.6vw, 118px);
+  height: clamp(120px, 21vw, 320px);
+  border-radius: 50% 50% 0 0 / 24% 24% 0 0;
+  opacity: 0.86;
+}
+
+/* the beam, laid down the hall from the great window */
+.nn-painted__shaft {
+  left: 50%;
+  bottom: 0;
+  width: 86%;
+  height: 76%;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(58% 100% at 50% 8%,
+      rgb(var(--sun-rgb) / calc(var(--sun-beam) * 0.3)) 0%,
+      rgb(var(--sun-rgb) / calc(var(--sun-beam) * 0.09)) 38%,
+      transparent 72%);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+}
+
+/* The floor: honed stone, carrying the great window down the nave as a long
+   smear. This one gradient is doing most of the work in the whole painting —
+   a reflection is how you read a floor as polished, and a polished floor is
+   how you read a room as tall. */
+.nn-painted__floor {
+  left: 0; right: 0; bottom: 0;
+  height: 38%;
+  background:
+    /* the window, reflected and stretched toward the viewer */
+    radial-gradient(22% 86% at 50% -4%,
+      rgb(var(--sun-rgb) / calc(0.2 + var(--sun-beam) * 0.42)) 0%,
+      rgb(var(--sun-rgb) / calc(0.05 + var(--sun-beam) * 0.1)) 38%,
+      transparent 74%),
+    /* the sconces, reflected too */
+    radial-gradient(30% 60% at 12% 2%, rgba(255,190,114,calc(var(--lamp) * .2)) 0%, transparent 68%),
+    radial-gradient(30% 60% at 88% 2%, rgba(255,190,114,calc(var(--lamp) * .2)) 0%, transparent 68%),
+    linear-gradient(180deg, #1a1813 0%, #0d0c0a 70%, #070706 100%);
+}
+
+/* The arcade down each side. Each bay is a pier and an opening, and the
+   openings get the same round head as the great window — straight stripes
+   read as a fence, and the one thing this hall is not is a corridor. */
+.nn-painted__arcade {
+  top: 0; bottom: 24%;
+  width: 30%;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(42,35,28,.5) 0 6%,
+      rgba(8,7,6,.9) 6% 9%,
+      rgba(8,7,6,.9) 9% 17%),
+    radial-gradient(60% 24% at 3% 34%, rgba(255,190,114,calc(var(--lamp) * .5)) 0%, transparent 62%),
+    radial-gradient(60% 24% at 20% 34%, rgba(255,190,114,calc(var(--lamp) * .42)) 0%, transparent 62%),
+    radial-gradient(60% 24% at 38% 34%, rgba(255,190,114,calc(var(--lamp) * .3)) 0%, transparent 62%);
+  mask-image: linear-gradient(90deg, #000 0 48%, transparent 100%);
+}
+.nn-painted__arcade[data-side="l"] { left: 0; }
+.nn-painted__arcade[data-side="r"] { right: 0; transform: scaleX(-1); }
+
+/* the lamps: the warm pools the sconces throw on the piers */
+.nn-painted__lamps {
+  inset: 0;
+  background:
+    radial-gradient(42% 34% at 14% 46%, rgba(255,190,114,calc(var(--lamp) * 0.2)) 0%, transparent 70%),
+    radial-gradient(42% 34% at 86% 46%, rgba(255,190,114,calc(var(--lamp) * 0.2)) 0%, transparent 70%),
+    radial-gradient(120% 92% at 50% 44%, transparent 38%, rgba(6,6,7,.62) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nn-canvas { animation: none; }
+}

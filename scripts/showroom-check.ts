@@ -1,365 +1,222 @@
 /**
- * Is the showroom actually built, and does the camera stay out of it?
+ * NERO NOREN — architectural regression check.
  *
- * Checks every fixed viewpoint, every station of the homepage walk, and every
- * routed path between them against the floor plan. A camera placed inside a
- * dressed mannequin is the kind of defect that is invisible in code review,
- * obvious the moment someone scrolls, and trivially catchable here.
+ * `npm run showroom:check`
  *
- * Two things, both of them the kind of defect that is invisible in code
- * review and obvious the moment someone scrolls.
+ * The hall is code, which means a plausible-looking number can quietly make
+ * it a worse building — a wall thinned until its arches have no reveal, a
+ * vault that tops out above its own ceiling, a rail standing inside a tree.
+ * None of that shows up in a type error and some of it does not show up in a
+ * screenshot either, because you have to be standing in the right place.
  *
- * THE CAMERA. Every fixed viewpoint, every station of the homepage walk, and
- * every routed path between them, against the floor plan. A camera placed
- * inside a dressed mannequin is trivially catchable here and nowhere else.
- *
- * THE ARCHITECTURE. The arcade's piers, the rails fitting their openings, the
- * beam angles against the brief's 15°–24°, whether the cove strips are
- * genuinely hidden from eye height, and whether the windows are genuinely
- * deep-set. Each of these is a number someone could "tidy" later without
- * realising it was load-bearing — the spots were a 39° flood before this
- * check existed, which is nearly twice the brief and lit the walkways as
- * brightly as the merchandise.
- *
- *   npm run showroom:check
+ * So this asserts the things a drawing office would check, against the one
+ * plan every part of the room measures itself from. It has teeth: each
+ * assertion was verified by breaking the value it guards and watching this
+ * fail.
  */
 
-import {
-  CLEARANCE,
-  FLOOR_PLAN,
-  clearanceAt,
-  curveBetween,
-  routeBetween,
-  moveDuration,
-  sweepBetween,
-  wallClearance,
-  WALL_MARGIN,
-} from "../components/showroom/choreography";
-import { VIEWPOINTS, INTRO } from "../components/showroom/viewpoints";
-import { HOME_WALK } from "../components/showroom/ScrollCamera";
-import { ARCADE, ARCADE_BAYS, ROOM, WINDOW } from "../components/showroom/objects/Room";
-import { MASONRY } from "../components/showroom/objects/Masonry";
 import * as THREE from "three";
+import { PLAN } from "../components/showroom/plan";
+import { archBand, archPath, garmentShape, pierceWall } from "../components/showroom/geometry";
 
 let failures = 0;
-const note = (s: string) => console.log(s);
-const fail = (s: string) => {
+const pass = (what: string, detail = "") => console.log(`  ok   ${what}${detail ? ` — ${detail}` : ""}`);
+const fail = (what: string, detail: string) => {
   failures += 1;
-  console.log(`  FAIL  ${s}`);
+  console.error(`  FAIL ${what} — ${detail}`);
 };
+const check = (what: string, ok: boolean, detail: string) => (ok ? pass(what, detail) : fail(what, detail));
 
-/** A camera standing still may be closer to things than one walking past. */
-const STANDING_CLEARANCE = 0.3;
+console.log("\nNERO NOREN — showroom check\n");
 
-/* Numbers the scene holds privately, restated here so a change to either
-   side shows up as a failure rather than as a silent disagreement. */
-const BEAM_ANGLES = { narrow: 0.148, medium: 0.209 };
-const COVE_LIP = { proud: 0.12, rise: 0.18 };
-const COVE_Y = ROOM.height - 0.34;
-/** [x, length] of each garment rail, from Scene.tsx. */
-const RAILS: [number, number][] = [
-  [-3.3, 1.4],
-  [-1.0, 1.4],
-];
+/* ── 1. the masonry is thick enough to have a reveal ─────────────
+   An arch cut through a 50 mm wall has a 50 mm soffit, which at any
+   realistic viewing angle is a line rather than a surface — and a surface
+   catching light at a grazing angle is the whole reason the arches read as
+   masonry instead of as holes in card. 300 mm is the thinnest a real
+   load-bearing arcade gets. */
+console.log("masonry");
+check(
+  "the end wall is thick enough to reveal",
+  PLAN.endWall.thickness >= 0.3,
+  `${(PLAN.endWall.thickness * 1000).toFixed(0)} mm`,
+);
+check(
+  "the arcade is thick enough to reveal",
+  PLAN.arcade.thickness >= 0.3,
+  `${(PLAN.arcade.thickness * 1000).toFixed(0)} mm`,
+);
 
-/** Outside the portal, on the approach. The entry shots start out here. */
-function outdoors(p: readonly [number, number, number]): boolean {
-  return p[0] < -ROOM.halfW;
-}
+/* ── 2. the arch soffit really is the hole's own side wall ───────
+   If ExtrudeGeometry ever stops generating the hole's wall, the arches
+   become two parallel cut-out plates and the room loses its depth silently —
+   a change you cannot see from the front and cannot see in a type error.
 
-function checkStandpoint(label: string, p: readonly [number, number, number]) {
-  const { distance, obstacle } = clearanceAt(p[0], p[2]);
-  const wall = wallClearance(p[0], p[2]);
-  const where = `(${p[0].toFixed(2)}, ${p[2].toFixed(2)})`;
-
-  if (outdoors(p)) {
-    // The approach deliberately stands outside the building looking in, so
-    // the walls do not apply — but it does have to be in front of the door.
-    if (Math.abs(p[2]) > 1.1) {
-      fail(`${label} ${where} is outside the portal but off its axis`);
-    } else {
-      note(`  ok    ${label.padEnd(24)} ${where.padEnd(16)} outside, on the portal axis`);
-    }
-    return;
-  }
-
-  if (distance < STANDING_CLEARANCE) {
-    fail(
-      `${label} ${where} is ${distance.toFixed(2)} m from ${obstacle?.id} ` +
-        `— needs ${STANDING_CLEARANCE} m${distance < 0 ? " (INSIDE IT)" : ""}`,
-    );
-  } else if (wall < WALL_MARGIN - 0.1) {
-    fail(`${label} ${where} is ${wall.toFixed(2)} m from a wall`);
-  } else {
-    note(
-      `  ok    ${label.padEnd(24)} ${where.padEnd(16)} ` +
-        `${distance.toFixed(2)} m to ${obstacle?.id ?? "nothing"}`,
-    );
-  }
-}
-
-note("\nFLOOR PLAN");
-for (const o of FLOOR_PLAN) {
-  note(
-    `        ${o.id.padEnd(14)} at (${o.x.toFixed(2)}, ${o.z.toFixed(2)})  ` +
-      `${(o.hx * 2).toFixed(2)} × ${(o.hz * 2).toFixed(2)} m + ${o.pad} m skirt, ` +
-      `${o.height.toFixed(2)} m tall`,
-  );
-}
-
-note("\nWHERE THE CAMERA STANDS");
-for (const v of VIEWPOINTS) checkStandpoint(`viewpoint:${v.id}`, v.position);
-for (const s of HOME_WALK) checkStandpoint(`walk:${s.id}`, s.position);
-
-note("\nHOW IT GETS THERE  (routed, 41 samples each)");
-for (let i = 0; i < VIEWPOINTS.length; i += 1) {
-  for (let j = 0; j < VIEWPOINTS.length; j += 1) {
-    if (i === j) continue;
-    const from = VIEWPOINTS[i];
-    const to = VIEWPOINTS[j];
-
-    // the straight line this replaces, for comparison
-    let straightWorst = Infinity;
-    let straightHit = "";
-    for (let k = 0; k <= 40; k += 1) {
-      const t = k / 40;
-      const x = from.position[0] + (to.position[0] - from.position[0]) * t;
-      const z = from.position[2] + (to.position[2] - from.position[2]) * t;
-      const c = clearanceAt(x, z);
-      if (c.distance < straightWorst) {
-        straightWorst = c.distance;
-        straightHit = c.obstacle?.id ?? "";
-      }
-    }
-
-    const curve = curveBetween(from.position, to.position);
-    let worst = Infinity;
-    let hit = "";
-    for (let k = 0; k <= 40; k += 1) {
-      const p = curve.getPointAt(k / 40);
-      const c = clearanceAt(p.x, p.z);
-      if (c.distance < worst) {
-        worst = c.distance;
-        hit = c.obstacle?.id ?? "";
-      }
-    }
-
-    const sweep = sweepBetween(from.position, from.target, to.position, to.target);
-    const secs = moveDuration(curve.getLength(), sweep);
-    const leg = `${from.id} → ${to.id}`;
-
-    // Endpoints are pinned, so a path can be no better than its worse end.
-    const floor = Math.min(
-      STANDING_CLEARANCE,
-      clearanceAt(from.position[0], from.position[2]).distance,
-      clearanceAt(to.position[0], to.position[2]).distance,
-    );
-
-    if (worst < floor - 0.01) {
-      fail(`${leg} comes ${worst.toFixed(2)} m from ${hit}`);
-    } else {
-      const rescued =
-        straightWorst < CLEARANCE && worst >= floor - 0.01
-          ? `  (straight line: ${straightWorst.toFixed(2)} m from ${straightHit})`
-          : "";
-      note(
-        `  ok    ${leg.padEnd(26)} ${curve.getLength().toFixed(1)} m  ` +
-          `${((sweep * 180) / Math.PI).toFixed(0).padStart(3)}°  ` +
-          `${secs.toFixed(2)}s  clears ${worst.toFixed(2)} m${rescued}`,
-      );
-    }
-  }
-}
-
-/* The homepage walk, as the spline the camera is actually dragged along —
-   not as the stations. The legs are routed clear, but they are then joined
-   into one Catmull-Rom, and a spline smoothing through a waypoint can cut a
-   corner the routing had carefully taken. This is the only check that proves
-   what the visitor gets. */
-note("\nTHE HOMEPAGE WALK  (the joined spline, 400 samples)");
+   The discriminator is NOT "vertices between the faces": an extruded side
+   wall is quads whose corners sit ON the two faces, so there is nothing in
+   between. It is whether any TRIANGLE both lies on the arch's radius and
+   SPANS the wall — front face to back face. Only a soffit does that. */
+console.log("\narch soffit");
 {
-  const points: THREE.Vector3[] = [];
-  for (let i = 0; i < HOME_WALK.length - 1; i += 1) {
-    const leg = routeBetween(HOME_WALK[i].position, HOME_WALK[i + 1].position);
-    points.push(...(i === 0 ? leg : leg.slice(1)));
+  const w = PLAN.windows[0];
+  const t = PLAN.endWall.thickness;
+  const geo = pierceWall(8, 14, t, [archPath(0, w.width, w.height, w.sill)]);
+  const pos = geo.attributes.position;
+  const r = w.width / 2;
+  const springY = w.sill + w.height - r;
+
+  let spanning = 0;
+  for (let i = 0; i < pos.count; i += 3) {
+    let onCurve = true;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    for (let k = 0; k < 3; k += 1) {
+      const x = pos.getX(i + k), y = pos.getY(i + k), z = pos.getZ(i + k);
+      if (y < springY || Math.abs(Math.hypot(x, y - springY) - r) > 0.02) { onCurve = false; break; }
+      minZ = Math.min(minZ, z);
+      maxZ = Math.max(maxZ, z);
+    }
+    if (onCurve && maxZ - minZ > t * 0.9) spanning += 1;
   }
-  const walk = new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5);
+  check("the soffit is generated, not drawn", spanning > 0, `${spanning} triangles span the ${(t * 1000).toFixed(0)} mm wall on the arch radius`);
+}
+
+/* ── 3. the vault fits under its own ceiling ─────────────────────
+   The transverse arch springs from PLAN.springline and rises by half the
+   nave's width plus the band. If that total passes the ceiling the arches
+   punch through the roof — visible only from one end of the hall, which is
+   exactly the kind of thing that ships. */
+console.log("\nthe vault");
+{
+  const band = 0.55;
+  const top = PLAN.springline + PLAN.arcade.x + band;
+  check("the vault clears the ceiling", top <= PLAN.nave.height, `crown ${top.toFixed(2)} m, ceiling ${PLAN.nave.height} m`);
+  check(
+    "the vault springs above the arcade",
+    PLAN.springline >= PLAN.arcade.openingHeight,
+    `springline ${PLAN.springline} m, arcade head ${PLAN.arcade.openingHeight} m`,
+  );
+  const g = archBand(PLAN.arcade.x * 2, band, 1.0);
+  g.computeBoundingBox();
+  const bb = g.boundingBox!;
+  check("the band's origin sits on the springline", Math.abs(bb.min.y) < 1e-6, `min y ${bb.min.y.toFixed(4)}`);
+}
+
+/* ── 4. the windows leave a mullion between them ─────────────────
+   Two arches 200 mm apart is not a pair of windows, it is one window with a
+   crack in it, and the masonry between would not stand up. */
+console.log("\nthe great window");
+{
+  const sorted = [...PLAN.windows].sort((a, b) => a.cx - b.cx);
+  for (let i = 1; i < sorted.length; i += 1) {
+    const left = sorted[i - 1], right = sorted[i];
+    const gap = (right.cx - right.width / 2) - (left.cx + left.width / 2);
+    check(`mullion between ${left.cx} and ${right.cx}`, gap >= 0.6, `${(gap * 1000).toFixed(0)} mm`);
+  }
+  for (const w of PLAN.windows) {
+    check(
+      `window at ${w.cx} fits the wall`,
+      w.sill + w.height <= PLAN.nave.height - 0.8,
+      `head ${(w.sill + w.height).toFixed(2)} m of ${PLAN.nave.height} m`,
+    );
+    check(`window at ${w.cx} is round-headed`, w.height > w.width / 2, "straight jambs below the springing");
+  }
+}
+
+/* ── 5. the arcade's openings fit between their piers ────────────
+   Bays are placed by centre, so an opening that grew wider than its bay eats
+   the pier beside it and the arcade becomes a colonnade of thin air. */
+console.log("\nthe arcade");
+{
+  const bays = [...PLAN.bays].sort((a, b) => a - b);
+  for (let i = 1; i < bays.length; i += 1) {
+    const gap = bays[i] - bays[i - 1] - PLAN.arcade.openingWidth;
+    check(`pier between bay ${i - 1} and ${i}`, gap >= 1.2, `${gap.toFixed(2)} m`);
+  }
+  const first = bays[0] - PLAN.arcade.openingWidth / 2 - PLAN.nave.back;
+  const last = PLAN.nave.front - (bays[bays.length - 1] + PLAN.arcade.openingWidth / 2);
+  check("the arcade stops short of the end wall", first >= 1.0, `${first.toFixed(2)} m`);
+  check("the arcade stops short of the entrance", last >= 1.0, `${last.toFixed(2)} m`);
+}
+
+/* ── 6. nothing in the room stands inside anything else ──────────
+   Checked as circles on the plan, which is how a floor plan is read. */
+console.log("\nclearance");
+{
+  type Item = { what: string; x: number; z: number; r: number };
+  const items: Item[] = [
+    ...PLAN.rails.map((r, i) => ({ what: `rail ${i}`, x: r.x, z: r.z, r: Math.max(0.42, r.length / 2) })),
+    ...PLAN.trees.map((t, i) => ({ what: `tree ${i}`, x: t.x, z: t.z, r: 0.85 * t.scale })),
+    ...PLAN.mannequins.map((m, i) => ({ what: `mannequin ${i}`, x: m.x, z: m.z, r: 0.5 })),
+    ...PLAN.chairs.map((c, i) => ({ what: `chair ${i}`, x: c.x, z: c.z, r: 0.55 })),
+    { what: "table", x: PLAN.table.x, z: PLAN.table.z, r: Math.hypot(PLAN.table.width, PLAN.table.depth) / 2 },
+  ];
 
   let worst = Infinity;
-  let hit = "";
-  let at = 0;
-  for (let k = 0; k <= 400; k += 1) {
-    const t = k / 400;
-    const p = walk.getPointAt(t);
-    if (p.x < -ROOM.halfW) continue; // still outside, on the approach
-    const c = clearanceAt(p.x, p.z);
-    if (c.distance < worst) {
-      worst = c.distance;
-      hit = c.obstacle?.id ?? "";
-      at = t;
+  let worstPair = "";
+  for (let i = 0; i < items.length; i += 1) {
+    for (let j = i + 1; j < items.length; j += 1) {
+      const a = items[i], b = items[j];
+      const clear = Math.hypot(a.x - b.x, a.z - b.z) - a.r - b.r;
+      if (clear < worst) { worst = clear; worstPair = `${a.what} / ${b.what}`; }
     }
   }
+  check("nothing overlaps on the plan", worst > 0, `closest ${worstPair} at ${worst.toFixed(2)} m`);
 
-  const floor = Math.min(
-    STANDING_CLEARANCE,
-    ...HOME_WALK.filter((s) => !outdoors(s.position)).map(
-      (s) => clearanceAt(s.position[0], s.position[2]).distance,
-    ),
+  /* The walking line down the middle of the nave stays clear — as far as the
+     dais, which is where the walk ENDS. The presentation table stands on the
+     dais under the great window on purpose: it is the thing you walk toward,
+     and a basilica's axis terminating in an altar is the whole plan. Treating
+     it as an obstruction would be reading the drawing backwards. */
+  const WALK = 1.4;
+  const daisEdge = PLAN.endWall.z + 3.2;
+  const blocking = items.filter(
+    (it) => Math.abs(it.x) - it.r < WALK && it.z < PLAN.nave.front && it.z > daisEdge,
   );
+  check("the centre of the nave is walkable", blocking.length === 0,
+    blocking.length ? blocking.map((b) => b.what).join(", ") : `${WALK * 2} m clear from the entrance to the dais`);
 
-  if (worst < floor - 0.01) {
-    fail(
-      `the walk comes ${worst.toFixed(2)} m from ${hit} at ${(at * 100).toFixed(0)}% ` +
-        `along${worst < 0 ? " (INSIDE IT)" : ""}`,
-    );
-  } else {
-    note(
-      `  ok    ${walk.getLength().toFixed(1)} m of floor, ` +
-        `nearest approach ${worst.toFixed(2)} m to ${hit} at ${(at * 100).toFixed(0)}%`,
-    );
-  }
+  /* And the dais is deep enough to hold what stands on it. */
+  const tableBack = PLAN.table.z - PLAN.table.depth / 2;
+  check("the table stands on the dais", tableBack > PLAN.endWall.z && PLAN.table.z < daisEdge,
+    `table at z ${PLAN.table.z}, dais ends at ${daisEdge.toFixed(1)}`);
+
+  /* Rails and trees stand inside the building. */
+  const outside = items.filter((it) => Math.abs(it.x) + it.r > PLAN.aisle.x);
+  check("everything is inside the walls", outside.length === 0,
+    outside.length ? outside.map((o) => o.what).join(", ") : `within ±${PLAN.aisle.x} m`);
 }
 
-/* And the one-time entry push on the showroom page. */
-note("\nTHE ENTRY PUSH");
+/* ── 7. the camera is standing in the room, at eye height ────────── */
+console.log("\nthe camera");
 {
-  const curve = curveBetween(INTRO.from.position, INTRO.to.position);
-  let worst = Infinity;
-  let hit = "";
-  for (let k = 0; k <= 120; k += 1) {
-    const p = curve.getPointAt(k / 120);
-    if (p.x < -ROOM.halfW) continue;
-    const c = clearanceAt(p.x, p.z);
-    if (c.distance < worst) {
-      worst = c.distance;
-      hit = c.obstacle?.id ?? "";
-    }
-  }
-  if (worst < STANDING_CLEARANCE - 0.01) {
-    fail(`the entry push comes ${worst.toFixed(2)} m from ${hit}`);
-  } else {
-    note(
-      `  ok    ${curve.getLength().toFixed(1)} m, ${INTRO.duration}s, ` +
-        `clears ${worst.toFixed(2)} m to ${hit}`,
-    );
-  }
+  const [cx, cy, cz] = PLAN.camera.position;
+  const [, ty, tz] = PLAN.camera.target;
+  check("eye height is human", cy > 1.4 && cy < 1.95, `${cy} m`);
+  check("the camera is inside the hall", Math.abs(cx) < PLAN.arcade.x && cz <= PLAN.nave.front, `(${cx}, ${cz})`);
+  check("it is looking up the nave at the window", tz < cz && ty > cy, `target z ${tz}, y ${ty}`);
+  check("the field of view is architectural, not fish-eye", PLAN.camera.fov <= 50, `${PLAN.camera.fov}°`);
 }
 
-/* ══ THE ARCHITECTURE ═════════════════════════════════════════════ */
-
-note("\nTHE ARCADE");
+/* ── 8. a garment is a garment ───────────────────────────────────── */
+console.log("\nthe stock");
 {
-  const piers: [number, number][] = [];
-  let cursor = -ROOM.halfW;
-  for (const bay of [...ARCADE_BAYS].sort((a, b) => a.x - b.x)) {
-    const left = bay.x - bay.width / 2 - ARCADE.ring;
-    const right = bay.x + bay.width / 2 + ARCADE.ring;
-    if (left > cursor + 0.01) piers.push([cursor, left]);
-    cursor = Math.max(cursor, right);
-    const crown = ARCADE.springing + bay.width / 2;
-    // Romanesque means the rise is exactly half the span. Not a style note:
-    // it is the definition, and it is what makes these read as heavy.
-    const rise = bay.width / 2;
-    const romanesque = Math.abs(crown - ARCADE.springing - rise) < 1e-9;
-    if (!romanesque) fail(`bay x=${bay.x} is not a true semicircle`);
-    if (crown + ARCADE.ring > ROOM.height - 0.3) {
-      fail(`bay x=${bay.x} crowns at ${crown.toFixed(2)} m — no room for a spandrel`);
-    } else {
-      note(
-        `  ok    bay x=${bay.x.toFixed(2).padStart(5)}  opening ${bay.width.toFixed(2)} m  ` +
-          `crown ${crown.toFixed(2)} m  spandrel ${(ROOM.height - crown - ARCADE.ring).toFixed(2)} m  ${bay.clay}`,
-      );
-    }
-  }
-  if (cursor < ROOM.halfW - 0.01) piers.push([cursor, ROOM.halfW]);
-
-  /* A pier thinner than 300 mm stops reading as structure and starts
-     reading as a mullion, at which point the wall is a partition with
-     holes in it again and the whole exercise is undone. */
-  const MIN_PIER = 0.3;
-  for (const [a, b] of piers) {
-    const w = b - a;
-    if (w < MIN_PIER) {
-      fail(`pier ${a.toFixed(2)}..${b.toFixed(2)} is only ${w.toFixed(2)} m — reads as a mullion`);
-    } else {
-      note(`  ok    pier ${a.toFixed(2).padStart(5)}..${b.toFixed(2).padStart(5)}  ${w.toFixed(2)} m solid`);
-    }
-  }
+  const g = garmentShape(1.16, 0.52, 0.6);
+  g.computeBoundingBox();
+  const bb = g.boundingBox!;
+  const h = bb.max.y - bb.min.y;
+  const d = bb.max.z - bb.min.z;
+  check("it hangs down from the hanger", bb.max.y <= 0.08 && bb.min.y < -1, `y ${bb.min.y.toFixed(2)} to ${bb.max.y.toFixed(2)}`);
+  check("it has a front and a back", d > 0.08, `${(d * 1000).toFixed(0)} mm deep`);
+  check("it is taller than it is wide", h > bb.max.x - bb.min.x, `${h.toFixed(2)} m tall`);
 }
 
-note("\nDO THE RAILS FIT THEIR OPENINGS?");
-for (const [x, len] of RAILS) {
-  const bay = ARCADE_BAYS.find((b) => Math.abs(b.x - x) < 0.01);
-  if (!bay) {
-    fail(`the rail at x=${x} has no arch around it`);
-    continue;
-  }
-  const margin = bay.width / 2 - len / 2;
-  if (margin < 0.03) {
-    fail(`the rail at x=${x} is ${(-margin * 2).toFixed(2)} m wider than its opening`);
-  } else {
-    note(`  ok    rail x=${x.toFixed(2)}  ${len.toFixed(2)} m in a ${bay.width.toFixed(2)} m opening, ${margin.toFixed(2)} m each side`);
-  }
-}
-
-note("\nTHE BEAMS  (the brief asks 15°–24°, quoted as the full cone)");
-for (const [name, half] of Object.entries(BEAM_ANGLES)) {
-  const full = (half * 180) / Math.PI * 2;
-  if (full < 15 || full > 24) {
-    fail(`the ${name} beam is ${full.toFixed(1)}° — outside 15°–24°`);
-  } else {
-    // What it actually puts on the floor from the ceiling track.
-    const pool = 2 * (ROOM.height - 0.06 - 1.5) * Math.tan(half);
-    note(`  ok    ${name.padEnd(7)} ${full.toFixed(1)}°  lights a ${pool.toFixed(2)} m pool on a garment`);
-  }
-}
-
-note("\nARE THE COVE STRIPS HIDDEN?");
-{
-  // The lip hides the strip if a sight line grazing the lip's top edge
-  // passes above the strip, from anywhere a person's eye can be.
-  const lipTop = COVE_Y + COVE_LIP.rise / 2;
-  const stripY = COVE_Y + 0.07;
-  let worst: { eye: number; at: number } | null = null;
-  for (const eye of [1.5, 1.6, 1.75, 1.9, 2.1, 2.6]) {
-    for (let d = 0.25; d <= ROOM.depth; d += 0.05) {
-      const t = (d - 0.03) / (d - COVE_LIP.proud);
-      if (eye + (lipTop - eye) * t < stripY) {
-        worst = { eye, at: d };
-        break;
-      }
-    }
-    if (worst) break;
-  }
-  if (worst) {
-    fail(`a strip is visible to an eye at ${worst.eye} m from ${worst.at.toFixed(2)} m out`);
-  } else {
-    note(`  ok    lip ${COVE_LIP.proud * 1000} mm proud, ${COVE_LIP.rise * 1000} mm rise — hidden from every eye height up to 2.6 m`);
-  }
-}
-
-note("\nARE THE WINDOWS DEEP-SET?");
-{
-  const glassZ = -ROOM.halfD + 0.06;
-  const innerFace = -ROOM.halfD + MASONRY.deep;
-  const setBack = innerFace - glassZ;
-  const rise = WINDOW.arch;
-  const halfSpan = WINDOW.width / 2;
-  if (Math.abs(rise - halfSpan) > 1e-9) {
-    fail(`the window head rises ${rise} m on a ${WINDOW.width} m span — not a true semicircle`);
-  } else {
-    note(`  ok    head rises ${rise.toFixed(2)} m on a ${WINDOW.width.toFixed(2)} m span — Romanesque, same as the arcade`);
-  }
-  if (setBack < 0.3) {
-    fail(`the glass is only ${setBack.toFixed(2)} m behind the wall face — not deep-set`);
-  } else {
-    note(`  ok    ${(MASONRY.deep * 1000).toFixed(0)} mm of masonry, glass set ${setBack.toFixed(2)} m back from the room`);
-  }
-}
-
-note(
+console.log(
   failures === 0
-    ? "\nThe house is built, and the camera never stands in the furniture.\n"
-    : `\n${failures} problem${failures === 1 ? "" : "s"}.\n`,
+    ? "\nThe building stands.\n"
+    : `\n${failures} check${failures === 1 ? "" : "s"} failed.\n`,
 );
 process.exit(failures === 0 ? 0 : 1);
+
+/* keep the import used so tree-shaking in a bundler cannot drop it */
+void THREE;

@@ -1,87 +1,35 @@
 "use client";
 
-/**
- * The 3D canvas, in its own chunk.
- *
- * three.js, R3F, drei and postprocessing come to something over 500 kB raw.
- * Loading them with the page would blow the performance budget in CLAUDE.md and
- * delay first paint on exactly the mid-range Android the budget exists for. So
- * this module is imported dynamically: the page paints the CSS room first, then
- * the 3D arrives and takes over.
- */
-
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { AdaptiveDpr, PerformanceMonitor, Preload } from "@react-three/drei";
+import { AdaptiveDpr, AdaptiveEvents, Preload } from "@react-three/drei";
 import * as THREE from "three";
-import type { Product } from "@/lib/catalog/types";
-import type { SkyState } from "@/lib/daytime";
 import { Scene } from "./Scene";
-import { CameraRig } from "./CameraRig";
-import { CinematicGrade } from "./CinematicGrade";
-import { INTRO, type Viewpoint } from "./viewpoints";
-import { rigFromSky } from "./lightingRig";
+import { PLAN } from "./plan";
+import type { SkyState } from "@/lib/daytime";
 
-export type Quality = "low" | "medium" | "high";
-
-export interface ShowroomCanvasProps {
-  products: Product[];
-  sky: SkyState;
-  reducedMotion: boolean;
-  viewpoint: Viewpoint;
-  onViewpoint: (id: string) => void;
-  onSelect: (product: Product) => void;
-  selected: Product | null;
-  initialQuality: Quality;
-  onReady: () => void;
-}
-
+/**
+ * The real hall.
+ *
+ * Default-exported and lazily imported so three.js, drei and the whole scene
+ * graph stay out of the first bundle. Nothing on the page waits for this
+ * file; when it arrives it fades in over the painted room behind it.
+ */
 export default function ShowroomCanvas({
-  products,
   sky,
-  reducedMotion,
-  viewpoint,
-  onViewpoint,
-  onSelect,
-  selected,
-  initialQuality,
-  onReady,
-}: ShowroomCanvasProps) {
-  const [quality, setQuality] = useState<Quality>(initialQuality);
-  const [introDone, setIntroDone] = useState(false);
-  const degraded = useRef(0);
-
-  const rig = useMemo(() => rigFromSky(sky), [sky]);
-
-  /* Drop quality rather than frames. Climbing back up is allowed once, so a
-     brief stall does not permanently cost the visitor the good version, but a
-     genuinely weak device is not asked twice. */
-  const onDecline = useCallback(() => {
-    degraded.current += 1;
-    setQuality((q) => (q === "high" ? "medium" : "low"));
-  }, []);
-  const onIncline = useCallback(() => {
-    if (degraded.current > 1) return;
-    setQuality((q) => (q === "low" ? "medium" : "high"));
-  }, []);
-
-  const onIntroDone = useCallback(() => setIntroDone(true), []);
-
-  /* A safety net. The hotspots are how a visitor moves around the room, so they
-     must appear even if the entry move never reports finishing — a dropped
-     frame or a backgrounded tab must not leave someone stuck at the door. */
-  useEffect(() => {
-    const t = setTimeout(() => setIntroDone(true), (INTRO.duration + 1.5) * 1000);
-    return () => clearTimeout(t);
-  }, []);
-
-  const showEffects = quality !== "low" && !reducedMotion;
-
+  colours,
+  still,
+  quality,
+}: {
+  sky: SkyState;
+  colours: string[];
+  still: boolean;
+  quality: "high" | "low";
+}) {
   return (
     <Canvas
-      className="absolute inset-0"
-      shadows={quality !== "low"}
-      dpr={quality === "high" ? [1, 2] : [1, 1.5]}
+      className="nn-canvas"
+      shadows={quality === "high" ? { type: THREE.PCFSoftShadowMap } : false}
+      dpr={quality === "high" ? [1, 1.75] : [1, 1.25]}
       gl={{
         antialias: quality === "high",
         powerPreference: "high-performance",
@@ -89,51 +37,25 @@ export default function ShowroomCanvas({
         stencil: false,
         depth: true,
       }}
-      camera={{ fov: viewpoint.fov, near: 0.1, far: 120, position: viewpoint.position }}
+      camera={{
+        position: PLAN.camera.position,
+        fov: PLAN.camera.fov,
+        near: 0.1,
+        far: 420,
+      }}
+      /* The hall is scenery. Every control on the page is DOM, so the canvas
+         never needs to hit-test and never steals a click. */
+      eventSource={undefined}
+      frameloop={still ? "demand" : "always"}
       onCreated={({ gl, scene }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = rig.exposure;
-        scene.background = new THREE.Color(sky.phase === "night" ? "#050507" : "#d9d3c6");
-        onReady();
+        gl.setClearColor("#0a0a0a");
+        scene.matrixWorldAutoUpdate = true;
       }}
     >
-      <PerformanceMonitor onDecline={onDecline} onIncline={onIncline} bounds={() => [38, 58]} flipflops={3} />
+      <Scene sky={sky} colours={colours} still={still} quality={quality} />
       <AdaptiveDpr pixelated={false} />
-
-      <Suspense fallback={null}>
-        <Scene
-          products={products}
-          sky={sky}
-          quality={quality}
-          activeViewpoint={viewpoint}
-          onViewpoint={onViewpoint}
-          onSelect={onSelect}
-          selected={selected}
-          showHotspots={introDone || reducedMotion}
-        />
-        <Preload all />
-      </Suspense>
-
-      <CameraRig
-        viewpoint={viewpoint}
-        intro={!reducedMotion}
-        reducedMotion={reducedMotion}
-        onIntroDone={onIntroDone}
-        lookAmount={selected ? 0.25 : 1}
-        /* Drag to turn, a full 360°. Only here: the homepage walk belongs to
-           the scroll, and the backdrop sits behind forms where a drag means
-           "select this text". */
-        orbit={!selected}
-      />
-
-      {showEffects ? (
-        <CinematicGrade
-          quality={quality}
-          phase={sky.phase}
-          bloom={rig.bloom}
-          reducedMotion={reducedMotion}
-        />
-      ) : null}
+      <AdaptiveEvents />
+      <Preload all />
     </Canvas>
   );
 }
