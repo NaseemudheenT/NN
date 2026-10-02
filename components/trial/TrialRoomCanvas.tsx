@@ -129,17 +129,39 @@ function Room() {
             }
           />
 
-          {/* the bench */}
+          {/* The bench: a fumed oak frame with a burgundy velvet pad, which is
+              how an upholstered bench is actually built — timber carries the
+              load, cloth takes the sitting. The frame rail has dropped from
+              0.44 to 0.38 so the pad lands on top of it and the finished seat
+              is still 0.465 m off the floor; the bench gets upholstered, not
+              taller, and 0.465 is already the right height to sit and change
+              a shoe on.
+
+              Velvet is the one saturated thing in a room of lime, travertine
+              and linen, and it is here rather than on a wall because it can
+              be: measured against the finishes around it the pad is 7.9:1 on
+              the limewash, 6.6:1 on the travertine floor and 9.6:1 on the
+              curtain, so it anchors the room instead of tinting it. Its hue
+              sits at 355°, on the red side of the showroom's brick and
+              terracotta at 10–16°, so it reads as the house red and not as
+              more fired clay. Against its own oak frame it is only 1.3:1,
+              which is the point — a pad and its frame are one object. */}
           <OptionalModel
             path={TRIAL_MODELS.bench}
             placeholder={
               <group position={[0.82, 0, 0.72]}>
-                <Mat material="oak" position={[0, 0.44, 0]} castShadow receiveShadow>
+                {/* the frame rail the pad sits on */}
+                <Mat material="oak" position={[0, 0.38, 0]} castShadow receiveShadow>
                   <boxGeometry args={[0.44, 0.05, 1.0]} />
                 </Mat>
+                {/* The velvet pad, inset 10 mm so the oak shows as a lip all
+                    the way round rather than the cloth running to the arris. */}
+                <Mat material="velvet" position={[0, 0.435, 0]} castShadow receiveShadow>
+                  <boxGeometry args={[0.42, 0.06, 0.98]} />
+                </Mat>
                 {[-0.42, 0.42].map((z) => (
-                  <Mat key={z} material="oak" position={[0, 0.21, z]} castShadow>
-                    <boxGeometry args={[0.38, 0.42, 0.05]} />
+                  <Mat key={z} material="oak" position={[0, 0.18, z]} castShadow>
+                    <boxGeometry args={[0.38, 0.36, 0.05]} />
                   </Mat>
                 ))}
               </group>

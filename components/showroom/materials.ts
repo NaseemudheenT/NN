@@ -194,12 +194,30 @@ export const MATERIALS = {
   velvet: { colour: "#5c1f24", roughness: 0.94, metalness: 0, sheen: 0.85, sheenColour: "#b06a70" },
 
   /* ═══ LIGHT SOURCES ══════════════════════════════════════════════ */
-  /** The backlit NN sign face. */
+  /** The diffuser of the backlit NN sign box: `colour` is the acrylic's own
+      ivory, which is what you see in daylight with the box off, and
+      `emissive` is the colour of the light coming through it when it is on.
+      The light is a cool ivory and NOT gold, which is the whole point. Gold
+      is the board's MATERIAL, so it belongs on the letters standing in front
+      of this panel, where it can catch a highlight; a gold-tinted glow would
+      make it a flat fill instead.
+      It also has to be a cool ivory to be visible at all. The sign hangs on
+      the limewash counter wall, and measured against that wall the old gold
+      glow (#c9a43a) was both DARKER than the lime it sat on — luminance
+      0.393 against 0.615 — and far warmer, red-minus-blue 0.56 against the
+      wall's 0.08. A backlit sign dimmer and warmer than its own wall is the
+      dissolve this file warns about two blocks down. This ivory is brighter
+      than the lime (0.843) and a shade cooler (0.067), so the panel reads as
+      a lit thing on a wall rather than a warm patch of the wall, by day and
+      at night (5.11:1 against limewashNight). Hue is no help here and is not
+      being asked to do any: every gold in this table sits within 6° of
+      limewash, champagne within 0.4°, so luminance is the only axis a sign on
+      this wall can separate on. */
   signFace: {
     colour: "#efe9dd",
     roughness: 0.6,
     metalness: 0,
-    emissive: "#c9a43a",
+    emissive: "#f2ece1",
     emissiveIntensity: 1,
   },
   /** Lamp shade, lit from inside. */

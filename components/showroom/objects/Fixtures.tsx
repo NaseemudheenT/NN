@@ -46,6 +46,10 @@ export function Counter({ position = [3.4, 0, 2.9] as [number, number, number] }
 
 /* ── the backlit NN wall sign ─────────────────────────────────── */
 
+/** The sign box's diffuser, from the materials table: its acrylic ivory and
+    the colour of the light that comes through it. */
+const SIGN = MATERIALS.signFace;
+
 export function WallSign({
   intensity,
   position = [3.4, 2.5, ROOM.halfD - 0.08] as [number, number, number],
@@ -54,14 +58,23 @@ export function WallSign({
   position?: [number, number, number];
 }) {
   // 0.52 m tall letters, deep enough to catch the light box behind them.
-  const brass = useMemo(
+  //
+  // Champagne, not brass. This is the one fitting in the room that has to
+  // hold its own against limewash from across the floor, and the materials
+  // table is explicit that champagne is the house metal against warm lime
+  // where brass belongs to the black-walled room this sign outlived. The
+  // letters also stand in FRONT of a lit panel, so they are mostly in their
+  // own shadow with light caught on the bevels — a modest emissive in the
+  // box's own light colour, not the old intensity * 1.5 of yellow gold,
+  // which flooded the faces and turned the monogram into a flat fill.
+  const champagne = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: MATERIALS.brass.colour,
-        roughness: MATERIALS.brass.roughness,
+        color: MATERIALS.champagne.colour,
+        roughness: MATERIALS.champagne.roughness,
         metalness: 1,
-        emissive: new THREE.Color("#c9a43a"),
-        emissiveIntensity: intensity * 1.5,
+        emissive: new THREE.Color(SIGN.emissive),
+        emissiveIntensity: intensity * 0.5,
       }),
     [intensity],
   );
@@ -71,26 +84,43 @@ export function WallSign({
       path={ROOM_MODELS.wallSign}
       placeholder={
         <group position={position}>
-          {/* the light box behind the letters */}
+          {/* The acrylic diffuser. It is there whether the box is lit or not,
+              which is what the sign looks like in daylight with the light
+              off — the old single plane faded to a ghost at low intensity
+              because it was carrying both the acrylic and the light. */}
+          <mesh position={[0, 0, -0.032]}>
+            <planeGeometry args={[1.5, 0.78]} />
+            <meshPhysicalMaterial
+              color={SIGN.colour}
+              roughness={SIGN.roughness}
+              metalness={SIGN.metalness}
+            />
+          </mesh>
+          {/* The light coming through it. An emitter, so a basic material
+              with tone mapping off, for the reason the note at the foot of
+              materials.ts gives: the exposure that makes the room look right
+              crushes a tone-mapped emitter to a dull band. */}
           <mesh position={[0, 0, -0.03]}>
             <planeGeometry args={[1.5, 0.78]} />
             <meshBasicMaterial
-              color="#efe9dd"
+              color={SIGN.emissive}
               toneMapped={false}
               transparent
-              opacity={0.1 + intensity * 0.55}
+              opacity={Math.min(1, intensity * SIGN.emissiveIntensity * 0.65)}
             />
           </mesh>
-          {/* letters, in brass, glowing when the box is lit */}
-          <MonogramMesh height={0.52} depth={0.02} bevel={0.11} material={brass} castShadow />
+          {/* letters, in champagne, catching the box light */}
+          <MonogramMesh height={0.52} depth={0.02} bevel={0.11} material={champagne} castShadow />
           {/* a shallow reveal so the box sits in the wall, not on it */}
           <Surface material="steel" position={[0, 0, -0.045]}>
             <boxGeometry args={[1.62, 0.9, 0.03]} />
           </Surface>
-          {/* the wash the sign throws onto the wall */}
+          {/* The wash the sign throws onto the wall, in the sign's own light
+              rather than the old #e8c864 — one light source, one colour, and
+              a gold wash on warm lime lit the dissolve from both sides. */}
           <pointLight
             position={[0, 0, 0.35]}
-            color="#e8c864"
+            color={SIGN.emissive}
             intensity={intensity * 2.2}
             distance={3.4}
             decay={2}
