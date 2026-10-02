@@ -1,10 +1,25 @@
 /**
- * Does the camera ever stand inside the furniture?
+ * Is the showroom actually built, and does the camera stay out of it?
  *
  * Checks every fixed viewpoint, every station of the homepage walk, and every
  * routed path between them against the floor plan. A camera placed inside a
  * dressed mannequin is the kind of defect that is invisible in code review,
  * obvious the moment someone scrolls, and trivially catchable here.
+ *
+ * Two things, both of them the kind of defect that is invisible in code
+ * review and obvious the moment someone scrolls.
+ *
+ * THE CAMERA. Every fixed viewpoint, every station of the homepage walk, and
+ * every routed path between them, against the floor plan. A camera placed
+ * inside a dressed mannequin is trivially catchable here and nowhere else.
+ *
+ * THE ARCHITECTURE. The arcade's piers, the rails fitting their openings, the
+ * beam angles against the brief's 15°–24°, whether the cove strips are
+ * genuinely hidden from eye height, and whether the windows are genuinely
+ * deep-set. Each of these is a number someone could "tidy" later without
+ * realising it was load-bearing — the spots were a 39° flood before this
+ * check existed, which is nearly twice the brief and lit the walkways as
+ * brightly as the merchandise.
  *
  *   npm run showroom:check
  */
@@ -22,7 +37,8 @@ import {
 } from "../components/showroom/choreography";
 import { VIEWPOINTS, INTRO } from "../components/showroom/viewpoints";
 import { HOME_WALK } from "../components/showroom/ScrollCamera";
-import { ROOM } from "../components/showroom/objects/Room";
+import { ARCADE, ARCADE_BAYS, ROOM, WINDOW } from "../components/showroom/objects/Room";
+import { MASONRY } from "../components/showroom/objects/Masonry";
 import * as THREE from "three";
 
 let failures = 0;
@@ -34,6 +50,17 @@ const fail = (s: string) => {
 
 /** A camera standing still may be closer to things than one walking past. */
 const STANDING_CLEARANCE = 0.3;
+
+/* Numbers the scene holds privately, restated here so a change to either
+   side shows up as a failure rather than as a silent disagreement. */
+const BEAM_ANGLES = { narrow: 0.148, medium: 0.209 };
+const COVE_LIP = { proud: 0.12, rise: 0.18 };
+const COVE_Y = ROOM.height - 0.34;
+/** [x, length] of each garment rail, from Scene.tsx. */
+const RAILS: [number, number][] = [
+  [-3.3, 1.4],
+  [-1.0, 1.4],
+];
 
 /** Outside the portal, on the approach. The entry shots start out here. */
 function outdoors(p: readonly [number, number, number]): boolean {
@@ -218,9 +245,121 @@ note("\nTHE ENTRY PUSH");
   }
 }
 
+/* ══ THE ARCHITECTURE ═════════════════════════════════════════════ */
+
+note("\nTHE ARCADE");
+{
+  const piers: [number, number][] = [];
+  let cursor = -ROOM.halfW;
+  for (const bay of [...ARCADE_BAYS].sort((a, b) => a.x - b.x)) {
+    const left = bay.x - bay.width / 2 - ARCADE.ring;
+    const right = bay.x + bay.width / 2 + ARCADE.ring;
+    if (left > cursor + 0.01) piers.push([cursor, left]);
+    cursor = Math.max(cursor, right);
+    const crown = ARCADE.springing + bay.width / 2;
+    // Romanesque means the rise is exactly half the span. Not a style note:
+    // it is the definition, and it is what makes these read as heavy.
+    const rise = bay.width / 2;
+    const romanesque = Math.abs(crown - ARCADE.springing - rise) < 1e-9;
+    if (!romanesque) fail(`bay x=${bay.x} is not a true semicircle`);
+    if (crown + ARCADE.ring > ROOM.height - 0.3) {
+      fail(`bay x=${bay.x} crowns at ${crown.toFixed(2)} m — no room for a spandrel`);
+    } else {
+      note(
+        `  ok    bay x=${bay.x.toFixed(2).padStart(5)}  opening ${bay.width.toFixed(2)} m  ` +
+          `crown ${crown.toFixed(2)} m  spandrel ${(ROOM.height - crown - ARCADE.ring).toFixed(2)} m  ${bay.clay}`,
+      );
+    }
+  }
+  if (cursor < ROOM.halfW - 0.01) piers.push([cursor, ROOM.halfW]);
+
+  /* A pier thinner than 300 mm stops reading as structure and starts
+     reading as a mullion, at which point the wall is a partition with
+     holes in it again and the whole exercise is undone. */
+  const MIN_PIER = 0.3;
+  for (const [a, b] of piers) {
+    const w = b - a;
+    if (w < MIN_PIER) {
+      fail(`pier ${a.toFixed(2)}..${b.toFixed(2)} is only ${w.toFixed(2)} m — reads as a mullion`);
+    } else {
+      note(`  ok    pier ${a.toFixed(2).padStart(5)}..${b.toFixed(2).padStart(5)}  ${w.toFixed(2)} m solid`);
+    }
+  }
+}
+
+note("\nDO THE RAILS FIT THEIR OPENINGS?");
+for (const [x, len] of RAILS) {
+  const bay = ARCADE_BAYS.find((b) => Math.abs(b.x - x) < 0.01);
+  if (!bay) {
+    fail(`the rail at x=${x} has no arch around it`);
+    continue;
+  }
+  const margin = bay.width / 2 - len / 2;
+  if (margin < 0.03) {
+    fail(`the rail at x=${x} is ${(-margin * 2).toFixed(2)} m wider than its opening`);
+  } else {
+    note(`  ok    rail x=${x.toFixed(2)}  ${len.toFixed(2)} m in a ${bay.width.toFixed(2)} m opening, ${margin.toFixed(2)} m each side`);
+  }
+}
+
+note("\nTHE BEAMS  (the brief asks 15°–24°, quoted as the full cone)");
+for (const [name, half] of Object.entries(BEAM_ANGLES)) {
+  const full = (half * 180) / Math.PI * 2;
+  if (full < 15 || full > 24) {
+    fail(`the ${name} beam is ${full.toFixed(1)}° — outside 15°–24°`);
+  } else {
+    // What it actually puts on the floor from the ceiling track.
+    const pool = 2 * (ROOM.height - 0.06 - 1.5) * Math.tan(half);
+    note(`  ok    ${name.padEnd(7)} ${full.toFixed(1)}°  lights a ${pool.toFixed(2)} m pool on a garment`);
+  }
+}
+
+note("\nARE THE COVE STRIPS HIDDEN?");
+{
+  // The lip hides the strip if a sight line grazing the lip's top edge
+  // passes above the strip, from anywhere a person's eye can be.
+  const lipTop = COVE_Y + COVE_LIP.rise / 2;
+  const stripY = COVE_Y + 0.07;
+  let worst: { eye: number; at: number } | null = null;
+  for (const eye of [1.5, 1.6, 1.75, 1.9, 2.1, 2.6]) {
+    for (let d = 0.25; d <= ROOM.depth; d += 0.05) {
+      const t = (d - 0.03) / (d - COVE_LIP.proud);
+      if (eye + (lipTop - eye) * t < stripY) {
+        worst = { eye, at: d };
+        break;
+      }
+    }
+    if (worst) break;
+  }
+  if (worst) {
+    fail(`a strip is visible to an eye at ${worst.eye} m from ${worst.at.toFixed(2)} m out`);
+  } else {
+    note(`  ok    lip ${COVE_LIP.proud * 1000} mm proud, ${COVE_LIP.rise * 1000} mm rise — hidden from every eye height up to 2.6 m`);
+  }
+}
+
+note("\nARE THE WINDOWS DEEP-SET?");
+{
+  const glassZ = -ROOM.halfD + 0.06;
+  const innerFace = -ROOM.halfD + MASONRY.deep;
+  const setBack = innerFace - glassZ;
+  const rise = WINDOW.arch;
+  const halfSpan = WINDOW.width / 2;
+  if (Math.abs(rise - halfSpan) > 1e-9) {
+    fail(`the window head rises ${rise} m on a ${WINDOW.width} m span — not a true semicircle`);
+  } else {
+    note(`  ok    head rises ${rise.toFixed(2)} m on a ${WINDOW.width.toFixed(2)} m span — Romanesque, same as the arcade`);
+  }
+  if (setBack < 0.3) {
+    fail(`the glass is only ${setBack.toFixed(2)} m behind the wall face — not deep-set`);
+  } else {
+    note(`  ok    ${(MASONRY.deep * 1000).toFixed(0)} mm of masonry, glass set ${setBack.toFixed(2)} m back from the room`);
+  }
+}
+
 note(
   failures === 0
-    ? "\nThe camera never stands in the furniture.\n"
+    ? "\nThe house is built, and the camera never stands in the furniture.\n"
     : `\n${failures} problem${failures === 1 ? "" : "s"}.\n`,
 );
 process.exit(failures === 0 ? 0 : 1);

@@ -230,9 +230,9 @@ function ArchedWindow({
 
    The clay alternates sage and terracotta. Four identical openings in
    one colour read as a corridor; alternating them reads as a room.   */
-const ARCADE = { springing: 2.05, ring: 0.14 } as const;
+export const ARCADE = { springing: 2.05, ring: 0.14 } as const;
 
-const ARCADE_BAYS: readonly { x: number; width: number; clay: "sage" | "terracotta" }[] = [
+export const ARCADE_BAYS: readonly { x: number; width: number; clay: "sage" | "terracotta" }[] = [
   { x: -3.3, width: 1.5, clay: "sage" },
   { x: -1.0, width: 1.5, clay: "terracotta" },
   { x: 1.3, width: 1.5, clay: "terracotta" },
@@ -292,6 +292,7 @@ export function Room({
   const brickTrim = night ? "brickNight" : "brick";
   const beam = night ? "timberNight" : "timber";
   const soffit = night ? "ceilingNight" : "ceiling";
+  const stoneSill = night ? "travertineNight" : "travertine";
   const windowXs = [-4.4, -1.5, 1.5, 4.4];
 
   return (
@@ -472,38 +473,97 @@ export function Room({
             <planeGeometry args={[ROOM.depth, ROOM.height]} />
           </Surface>
 
-          {/* window wall, z = −4, built as piers between the openings so the
-              light genuinely comes through gaps in a wall */}
+          {/* ══ THE WINDOW WALL ═════════════════════════════════════
+              Deep-set openings, as the brief asks: 450 mm of masonry
+              with the glass at the far face, so from inside the room you
+              look down an embrasure of stucco before you reach the
+              daylight.
+
+              That depth is not decoration either. A window in a thin
+              wall is a bright rectangle, and a bright rectangle in a
+              dark room is a glare source — it flattens everything near
+              it and the eye goes to the hole instead of the clothes. Set
+              the glass back 450 mm and the reveal does two things at
+              once: it shades the opening so the glass is no longer the
+              brightest thing in frame, and it catches the daylight on
+              its own jamb and soffit, which puts a graded wash of real
+              sunlight on the wall beside every window. That wash is the
+              best light in the building and it is free.
+
+              The arch is Romanesque here too, and it already was: a
+              0.95 m rise on a 1.9 m span is exactly half, so the window
+              heads and the arcade are the same geometry at two scales. */}
           <group>
-            {/* header above the windows */}
-            <Surface
-              material={lime}
-              position={[0, (WINDOW.sill + WINDOW.straight + WINDOW.arch + ROOM.height) / 2, -ROOM.halfD]}
-              receiveShadow
-            >
-              <planeGeometry
-                args={[ROOM.width, ROOM.height - (WINDOW.sill + WINDOW.straight + WINDOW.arch)]}
-              />
-            </Surface>
-            {/* dado below the sills */}
-            <Surface material={lime} position={[0, WINDOW.sill / 2, -ROOM.halfD]} receiveShadow>
-              <planeGeometry args={[ROOM.width, WINDOW.sill]} />
-            </Surface>
-            {/* piers: the solid wall left between the openings, worked out
-                from the openings themselves so the two can never disagree */}
+            {/* the thickness, as piers between the openings — worked out
+                from the openings themselves so the two can never
+                disagree */}
             {pierSegments(windowXs).map(([from, to]) => (
-              <Surface
-                key={`pier-${from}`}
-                material={lime}
-                position={[
-                  (from + to) / 2,
-                  WINDOW.sill + (WINDOW.straight + WINDOW.arch) / 2,
-                  -ROOM.halfD,
-                ]}
+              <BullnosedBox
+                key={`wpier-${from}`}
+                width={to - from}
+                height={ROOM.height}
+                depth={MASONRY.deep}
+                material={limeStucco}
+                position={[(from + to) / 2, ROOM.height / 2, -ROOM.halfD + MASONRY.deep / 2]}
+                castShadow
                 receiveShadow
-              >
-                <planeGeometry args={[to - from, WINDOW.straight + WINDOW.arch]} />
-              </Surface>
+              />
+            ))}
+            {/* the header above the openings, and the dado below the sills */}
+            <BullnosedBox
+              width={ROOM.width}
+              height={ROOM.height - (WINDOW.sill + WINDOW.straight + WINDOW.arch)}
+              depth={MASONRY.deep}
+              material={limeStucco}
+              position={[
+                0,
+                (WINDOW.sill + WINDOW.straight + WINDOW.arch + ROOM.height) / 2,
+                -ROOM.halfD + MASONRY.deep / 2,
+              ]}
+              castShadow
+              receiveShadow
+            />
+            <BullnosedBox
+              width={ROOM.width}
+              height={WINDOW.sill}
+              depth={MASONRY.deep}
+              material={limeStucco}
+              position={[0, WINDOW.sill / 2, -ROOM.halfD + MASONRY.deep / 2]}
+              castShadow
+              receiveShadow
+            />
+
+            {/* the embrasures: the same thick-arch primitive as the
+                arcade, in stucco rather than brick, so the reveal is a
+                real curved soffit the daylight grades across */}
+            {windowXs.map((x) => (
+              <group key={`reveal-${x}`}>
+                <MasonryArch
+                  spec={{
+                    width: WINDOW.width,
+                    springing: WINDOW.straight,
+                    depth: MASONRY.deep,
+                    ring: 0.18,
+                  }}
+                  material={limeStucco}
+                  ringMaterial={limeStucco}
+                  position={[x, WINDOW.sill, -ROOM.halfD + MASONRY.deep / 2]}
+                />
+                {/* a travertine sill, sloped out so water would run off
+                    it — which is why a real sill is never flat, and why
+                    a flat one reads as a render rather than a building */}
+                <BullnosedBox
+                  width={WINDOW.width + 0.42}
+                  height={0.09}
+                  depth={MASONRY.deep + 0.08}
+                  radius={BULLNOSE.trim}
+                  material={stoneSill}
+                  position={[x, WINDOW.sill - 0.03, -ROOM.halfD + MASONRY.deep / 2 + 0.02]}
+                  rotation={[0.035, 0, 0]}
+                  castShadow
+                  receiveShadow
+                />
+              </group>
             ))}
           </group>
 

@@ -31,6 +31,19 @@
  *      head of the wall. The fixture is never visible from anywhere a
  *      customer can stand; only the glow is. This is the system that makes
  *      the lime read as velvet.
+ *   4. A GRAZING STRIP INSIDE EACH NICHE, concealed behind the arch soffit
+ *      and washing down the clay at the back of the recess.
+ *
+ * The fourth one exists because of a measurement, not a hunch. With the clay
+ * backs lit only by bounce they land around sRGB 74–93, and a charcoal
+ * trouser in front of one separates at 1.28:1 — a dark garment on a dark
+ * ground, which is the oldest mistake in visual merchandising. The strip
+ * lifts the clay to a mid-tone and, because it washes down from just inside
+ * the opening, it also puts a rim of light along the shoulders of whatever is
+ * hanging there. Pale garments were never the problem: a white Oxford under a
+ * tight beam already separates from shadowed clay at 3.5:1. Dark ones need
+ * the ground lifted behind them, and that is exactly what a real boutique
+ * does with a lit niche.
  *
  * Every fixture here is a real object with a real emitter in it. The light and
  * the thing making the light are never separated, because a pool of light on a
@@ -41,7 +54,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { MATERIALS } from "../materials";
-import { ROOM, Surface } from "./Room";
+import { ARCADE, ARCADE_BAYS, ROOM, Surface } from "./Room";
 import { MASONRY } from "./Masonry";
 
 /** How far the pierced wall stands into the room. */
@@ -324,6 +337,51 @@ export function ArchitecturalLighting({
             />
           )),
         )}
+
+      {/* ── 4. the niche grazers ────────────────────────────────
+          One concealed strip just inside each arch, tucked up behind
+          the soffit where the curve of the opening hides it, washing
+          down the clay at the back of the recess.
+
+          Two jobs, and the second is the one that matters. It lifts the
+          clay out of near-black so a dark garment has a ground to read
+          against — measured, the backs were sitting at sRGB 74–93 and a
+          charcoal trouser in front of one was 1.28:1. And because the
+          light arrives from above and in front, it rims the shoulders
+          of whatever hangs there, which is what separates a dark
+          garment by its edge rather than by its tone.
+
+          Deliberately cooler and weaker than the cove: this is fill,
+          not a feature. If a visitor can see where it comes from, it is
+          too strong. */}
+      {quality !== "low" &&
+        ARCADE_BAYS.map((bay) => (
+          <group key={`niche-${bay.x}`}>
+            {/* the strip, hidden behind the soffit */}
+            <mesh
+              position={[bay.x, ARCADE.springing + bay.width / 2 - 0.1, ROOM.halfD - MASONRY_FACE - 0.02]}
+            >
+              <boxGeometry args={[bay.width - 0.3, 0.025, 0.04]} />
+              <meshBasicMaterial
+                color={lampColour}
+                toneMapped={false}
+                transparent
+                opacity={0.22 + level * 0.3}
+              />
+            </mesh>
+            {/* the wash down the clay */}
+            <spotLight
+              position={[bay.x, ARCADE.springing + bay.width / 2 - 0.14, ROOM.halfD - MASONRY_FACE - 0.04]}
+              target-position={[bay.x, 0.5, ROOM.halfD - 0.06]}
+              angle={0.62}
+              penumbra={1}
+              distance={3.4}
+              decay={2}
+              intensity={(0.55 + level * 1.1) * 2.4}
+              color={beamColour}
+            />
+          </group>
+        ))}
 
       {/* ── 3. the hidden cove ──────────────────────────────────
           A continuous strip tucked BEHIND a plaster upstand at the head
