@@ -5,6 +5,9 @@ import { readShowroomSettings } from "@/lib/supabase";
 import { env } from "@/lib/env";
 
 import { ShowroomWalk } from "@/components/home/ShowroomWalk";
+import { ShowroomExperience } from "@/components/home/ShowroomExperience";
+import { CraftDetail } from "@/components/home/CraftDetail";
+import { Generations } from "@/components/home/Generations";
 import { Section } from "@/components/layout/Section";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { OutfitBuilder } from "@/components/shop/OutfitBuilder";
@@ -83,6 +86,9 @@ export default async function HomePage() {
 
       <CatalogueNotice catalogue={arranged} />
 
+      {/* ═══ the house you walk through ═══ */}
+      <ShowroomExperience products={products} />
+
       {/* ═══ the collection ═══ */}
       <Section
         id="collection"
@@ -128,6 +134,12 @@ export default async function HomePage() {
       >
         <FitFinder products={products} />
       </Section>
+
+      {/* ═══ the making ═══ */}
+      <CraftDetail />
+
+      {/* ═══ men and boys ═══ */}
+      <Generations />
 
       {/* ═══ the house ═══ */}
       <Section
