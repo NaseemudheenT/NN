@@ -27,6 +27,7 @@ import {
 } from "./objects/Fixtures";
 import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
 import { ArchitecturalLighting } from "./objects/ArchitecturalLighting";
+import { LightShafts } from "./objects/LightShafts";
 import { Portal } from "./objects/Portal";
 import { Concierge } from "./objects/Concierge";
 import { openStylist } from "@/components/stylist/StylistDock";
@@ -105,6 +106,11 @@ export function Scene({
       <Portal progress={entryProgress} night={night} />
 
       {/* recessed spots, pilaster uplights and the perimeter cove */}
+      {/* Sunlight made visible: shafts leaning in through the deep-set
+          windows, angled by the same solar calculation that aims the key
+          light. See ./objects/LightShafts. */}
+      <LightShafts sky={sky} quality={quality} />
+
       <ArchitecturalLighting
         lampColour={rig.lampColour}
         level={sky.lampLevel}
