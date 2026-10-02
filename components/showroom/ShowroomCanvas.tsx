@@ -120,6 +120,10 @@ export default function ShowroomCanvas({
         reducedMotion={reducedMotion}
         onIntroDone={onIntroDone}
         lookAmount={selected ? 0.25 : 1}
+        /* Drag to turn, a full 360°. Only here: the homepage walk belongs to
+           the scroll, and the backdrop sits behind forms where a drag means
+           "select this text". */
+        orbit={!selected}
       />
 
       {showEffects ? (

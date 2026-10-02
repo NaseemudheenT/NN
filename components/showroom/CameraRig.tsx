@@ -39,6 +39,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { exposeCamera } from "./devCamera";
 import { focus } from "./focus";
+import { useOrbit } from "./useOrbit";
 import gsap from "gsap";
 import { INTRO, type Viewpoint } from "./viewpoints";
 import {
@@ -55,8 +56,16 @@ interface CameraRigProps {
   intro: boolean;
   reducedMotion: boolean;
   onIntroDone?: () => void;
-  /** 0–1 how much the visitor may look around. */
+  /** 0–1 how much the visitor may look around with the pointer at rest. */
   lookAmount?: number;
+  /**
+   * Let the visitor drag to turn a full 360° on the spot.
+   *
+   * Off by default, and off for the backdrop: a room behind a checkout form
+   * that spins when you drag-select an address field is a room actively
+   * getting in the way.
+   */
+  orbit?: boolean;
 }
 
 /** Walking frequency, in steps per second. A slow showroom pace. */
@@ -70,6 +79,7 @@ export function CameraRig({
   reducedMotion,
   onIntroDone,
   lookAmount = 1,
+  orbit = false,
 }: CameraRigProps) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
@@ -96,12 +106,21 @@ export function CameraRig({
 
   const look = useRef({ x: 0, y: 0 });
   const pointer = useRef({ x: 0, y: 0 });
+
+  /* Drag to turn, all the way round. Disabled under reduced motion: a view
+     that keeps coasting after the hand has stopped is exactly the kind of
+     unrequested movement that preference is asking us not to make. */
+  const turn = useOrbit(orbit && !reducedMotion);
   const introPlayed = useRef(false);
   /** True while the entry move owns the camera, so nothing else tweens it. */
   const introRunning = useRef(intro);
   const timeline = useRef<gsap.core.Timeline | null>(null);
   /** Reused every frame — allocating a vector 60 times a second is pure waste. */
-  const scratch = useRef({ eye: new THREE.Vector3(), target: new THREE.Vector3() });
+  const scratch = useRef({
+    eye: new THREE.Vector3(),
+    target: new THREE.Vector3(),
+    turned: new THREE.Vector3(),
+  });
 
   /* The callback is held in a ref rather than listed as a dependency. It
      usually arrives as an inline arrow, so depending on it would re-run the
@@ -267,6 +286,10 @@ export function CameraRig({
     const from: [number, number, number] = [eye.x, eye.y, eye.z];
     const fromTarget: [number, number, number] = [rig.current.tx, rig.current.ty, rig.current.tz];
 
+    /* Face the new subject. Carrying the old angle over would walk someone
+       to the mirror and leave them looking at a wall, having never asked to. */
+    turn.recentre();
+
     const sweep = sweepBetween(from, fromTarget, viewpoint.position, viewpoint.target);
     const curve = curveBetween(from, viewpoint.position);
 
@@ -316,6 +339,33 @@ export function CameraRig({
       r.ty - look.current.y * 0.9,
       r.tz,
     );
+
+    /* The turn. Rather than rotating the camera after it has aimed — which
+       fights the lookAt and drifts — the TARGET is swung around the camera.
+       The eye stays exactly where the walk put it and the subject orbits it,
+       which is what turning your head actually does to the view. */
+    if (orbit) {
+      const o = turn.settle();
+      if (o.yaw !== 0 || o.pitch !== 0) {
+        const offset = scratch.current.turned;
+        offset.subVectors(target, camera.position);
+        const radius = offset.length();
+        /* Spherical, from the walk's own direction rather than from a fixed
+           axis: the orbit is relative to wherever the composition points, so
+           zero yaw is always the shot the viewpoint was written for. */
+        const baseYaw = Math.atan2(offset.x, offset.z);
+        const basePitch = Math.asin(THREE.MathUtils.clamp(offset.y / radius, -1, 1));
+        const yaw = baseYaw + o.yaw;
+        const pitch = THREE.MathUtils.clamp(basePitch + o.pitch, -1.2, 1.2);
+        const horizontal = Math.cos(pitch) * radius;
+        target.set(
+          camera.position.x + Math.sin(yaw) * horizontal,
+          camera.position.y + Math.sin(pitch) * radius,
+          camera.position.z + Math.cos(yaw) * horizontal,
+        );
+      }
+    }
+
     camera.lookAt(target);
 
     /* Hand the lens its subject — see ./focus. Measured to the look
