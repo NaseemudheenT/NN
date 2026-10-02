@@ -226,8 +226,12 @@ export function useDayPhase(): {
   phase: DayPhase;
   theme: ThemeName;
   sky: SkyState;
+  /** What it is doing outside, for anything that has to SHOW the weather
+      rather than just be lit by it — the rain on the window glass. */
+  weather: WeatherState;
+  season: Season;
   reducedMotion: boolean;
 } {
-  const { phase, theme, sky, reducedMotion } = useThemeContext();
-  return { phase, theme, sky, reducedMotion };
+  const { phase, theme, sky, weather, season, reducedMotion } = useThemeContext();
+  return { phase, theme, sky, weather, season, reducedMotion };
 }

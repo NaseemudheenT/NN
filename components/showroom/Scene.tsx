@@ -28,6 +28,9 @@ import { FoldedTrouser, HangingShirt, WornGarment } from "./objects/Garments";
 import { ArchitecturalLighting } from "./objects/ArchitecturalLighting";
 import { ReflectiveMirror } from "./objects/ReflectiveMirror";
 import { Topiary } from "./objects/Topiary";
+import { RainOnGlass } from "./objects/RainOnGlass";
+import { WINDOW_XS } from "./objects/Room";
+import { useDayPhase } from "@/components/theme/ThemeProvider";
 import { LightShafts } from "./objects/LightShafts";
 import { Portal } from "./objects/Portal";
 import { Concierge } from "./objects/Concierge";
@@ -77,6 +80,9 @@ export function Scene({
   entryProgress = 1,
 }: SceneProps) {
   const rig = rigFromSky(sky);
+  /* The weather, for the glass. The lighting already has it folded in via
+     the sky; this is the only place that needs the raw reading. */
+  const { weather } = useDayPhase();
   const night = sky.phase === "night";
 
   const at = (placement: Product["placement"]) =>
@@ -107,6 +113,16 @@ export function Scene({
       <Portal progress={entryProgress} night={night} />
 
       {/* recessed spots, pilaster uplights and the perimeter cove */}
+      {/* Rain on the window, when it is actually raining where the visitor
+          is. See ./objects/RainOnGlass — it is on the pane rather than in
+          the air, because from inside a building that is what you see. */}
+      <RainOnGlass
+        weather={weather}
+        windowColour={rig.windowColour}
+        windowXs={WINDOW_XS}
+        quality={quality}
+      />
+
       {/* Olive topiary. The only thing in the room that was not
           manufactured, which is what the eye calibrates the rest against —
           see ./objects/Topiary for why it barely moves. */}

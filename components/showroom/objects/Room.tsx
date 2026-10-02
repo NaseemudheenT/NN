@@ -109,12 +109,17 @@ function FloorMonogram({ intensity = 1 }: { intensity?: number }) {
 
 const WINDOW = { width: 1.9, sill: 0.85, straight: 2.2, arch: 0.95 };
 
+/* Where the openings are. Exported because the rain on the glass has to land
+   on the same four panes the wall is pierced for — two lists that could
+   disagree are two lists that eventually will. */
+export const WINDOW_XS = [-4.4, -1.5, 1.5, 4.4] as const;
+
 /**
  * The solid stretches of the window wall: everything from one edge of the room
  * to the next opening, and between openings. Derived from the opening centres
  * so a window can be moved without leaving a hole in the masonry.
  */
-function pierSegments(centres: number[]): [number, number][] {
+function pierSegments(centres: readonly number[]): [number, number][] {
   const half = WINDOW.width / 2;
   const openings = [...centres].sort((a, b) => a - b).map((c) => [c - half, c + half] as const);
   const segments: [number, number][] = [];
@@ -293,7 +298,7 @@ export function Room({
   const beam = night ? "timberNight" : "timber";
   const soffit = night ? "ceilingNight" : "ceiling";
   const stoneSill = night ? "travertineNight" : "travertine";
-  const windowXs = [-4.4, -1.5, 1.5, 4.4];
+  const windowXs = WINDOW_XS;
 
   return (
     <OptionalModel
