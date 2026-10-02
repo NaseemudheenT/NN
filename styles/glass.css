@@ -281,7 +281,11 @@
     isolation: isolate;
     overflow: hidden;
     border: 1px solid var(--edge-line);
-    border-radius: 0;
+    /* A full pill. This was 0 — square, on the same misreading of the brand
+       board that made --glass-radius 0: the board's square corners are a
+       property of CUT PAPER, and its physical objects (the button, the bag,
+       the phone) are all curved. A control is an object. */
+    border-radius: var(--radius-pill);
     background: transparent;
     font-family: var(--font-ui);
     font-weight: 500;
@@ -296,11 +300,14 @@
       box-shadow var(--duration-hover) var(--ease-architect);
   }
 
-  /* the rising fill */
+  /* The rising fill, clipped to the button's own curve — without the
+     inherited radius it rises as a square and clips the corners off the
+     control as it arrives. */
   .nn-btn__fill {
     position: absolute;
     inset: 0;
     z-index: 0;
+    border-radius: inherit;
     transform: translateY(101%);
     transition: transform var(--duration-panel) var(--ease-architect);
   }
@@ -314,7 +321,10 @@
   .nn-btn:hover .nn-btn__fill,
   .nn-btn:focus-visible .nn-btn__fill { transform: translateY(0); }
 
-  .nn-btn--icon { padding: 0; gap: 0; }
+  /* An icon button is a disc. At equal width and height a pill radius
+     already resolves to a circle, but saying so explicitly means it stays
+     one if the radius scale is ever retuned. */
+  .nn-btn--icon { padding: 0; gap: 0; border-radius: 50%; }
   .nn-btn--icon svg { width: 1.05rem; height: 1.05rem; }
 
   /* ── metal: the primary action ────────────────────────────────────
@@ -433,6 +443,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    border-radius: var(--radius-pill);
     padding: 0.32rem 0.7rem;
     border: 1px solid var(--edge-hair);
     background: color-mix(in srgb, var(--ink-primary) 5%, transparent);
@@ -926,6 +937,11 @@
     align-items: stretch;
     gap: 0.15rem;
     padding: 0.3rem;
+    /* The dock is a floating object, so it is a pill. It was inheriting
+       --glass-radius from .glass, which is a PANEL radius — correct for a
+       sheet of glass lying against the page and too tight for something
+       that hovers over it. */
+    border-radius: var(--radius-pill);
     /* phone: along the bottom, inside the safe area, where a thumb is */
     inset-inline: clamp(0.75rem, 4vw, 1.25rem);
     bottom: var(--nn-dock-inset);
