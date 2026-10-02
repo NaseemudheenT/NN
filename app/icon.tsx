@@ -38,14 +38,15 @@ export default function Icon() {
           height={(size.height - pad * 2) * (100 / markWidth)}
           viewBox={`0 0 ${markWidth} 100`}
         >
-          <defs>
-            <linearGradient id="icon-metal" x1="0" y1="0" x2="1" y2="0.42">
-              <stop offset="0%" stopColor="#8a6d22" />
-              <stop offset="42%" stopColor="#e8cd82" />
-              <stop offset="100%" stopColor="#8a6d22" />
-            </linearGradient>
-          </defs>
-          <g fill="url(#icon-metal)">
+          {/* Stark Ivory on Deep Black, flat.
+
+              This was a gold gradient. Two things were wrong with that. The
+              brief is explicit that the monogram is black or white and never
+              gold — and at the 32 px this is actually rendered at, a
+              three-stop gradient across a letterform resolves to mud anyway.
+              The board's own logo panel sets the mark solid, which is also
+              the only thing that survives being shrunk to a tab strip. */}
+          <g fill="#f7f5ef">
             <path d={N_PATH} />
             <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} />
           </g>

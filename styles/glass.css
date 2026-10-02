@@ -42,7 +42,10 @@
        dark mix of the ink. The override lives in the theme block below. */
     --glass-hairline: rgba(247, 245, 239, 0.08);
     --glass-fresnel: 0.1;
-    --glass-radius: 0;
+    /* Curved by default now. Was 0. See the radius scale in tokens.css
+       for why the board's square corners were a print constraint rather
+       than an instruction. */
+    --glass-radius: var(--radius-panel, 18px);
     /* the pointer, written by the interaction layer */
     --mx: 50%;
     --my: 50%;
@@ -58,9 +61,9 @@
 
     /* (2) the lit edge, (3) fresnel toward the rim, and the cast shadow */
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 60%), transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) calc(var(--glass-edge) * 60%), transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 22%, transparent),
-      inset 1px 0 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 18%), transparent),
+      inset 1px 0 0 color-mix(in srgb, var(--sheen-peak) calc(var(--glass-edge) * 18%), transparent),
       inset -1px 0 0 color-mix(in srgb, #000 12%, transparent),
       var(--shadow-panel);
 
@@ -84,7 +87,7 @@
     background: radial-gradient(
       120% 120% at 50% 50%,
       transparent 42%,
-      color-mix(in srgb, var(--metal-spec) calc(var(--glass-fresnel) * 100%), transparent) 100%
+      color-mix(in srgb, var(--sheen-peak) calc(var(--glass-fresnel) * 100%), transparent) 100%
     );
   }
 
@@ -99,7 +102,7 @@
     opacity: 0;
     background: radial-gradient(
       40% 55% at var(--mx) var(--my),
-      color-mix(in srgb, var(--metal-spec) 22%, transparent),
+      color-mix(in srgb, var(--sheen-peak) 22%, transparent),
       transparent 70%
     );
     transition: opacity var(--duration-hover) var(--ease-architect);
@@ -111,7 +114,7 @@
      each. Turn them off and the edge goes grey and dead. */
   .glass--dispersive {
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) calc(var(--glass-edge) * 60%), transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) calc(var(--glass-edge) * 60%), transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 22%, transparent),
       inset 1.5px 0 0 color-mix(in srgb, var(--light-warm) 14%, transparent),
       inset -1.5px 0 0 color-mix(in srgb, var(--light-cool) 12%, transparent),
@@ -191,7 +194,7 @@
     --glass-edge: 0.5;
     --glass-fresnel: 0.16;
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 34%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 34%, transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 14%, transparent);
   }
 
@@ -202,13 +205,13 @@
   .metal-foil {
     background: linear-gradient(
       104deg,
-      var(--metal-shadow) 0%,
-      var(--metal-body) 26%,
-      var(--metal-light) 44%,
-      var(--metal-spec) 50%,
-      var(--metal-light) 56%,
-      var(--metal-body) 74%,
-      var(--metal-shadow) 100%
+      var(--sheen-low) 0%,
+      var(--sheen-mid) 26%,
+      var(--sheen-high) 44%,
+      var(--sheen-peak) 50%,
+      var(--sheen-high) 56%,
+      var(--sheen-mid) 74%,
+      var(--sheen-low) 100%
     );
     background-size: 220% 100%;
     background-position: 60% 0;
@@ -221,23 +224,28 @@
   .metal-surface {
     background: linear-gradient(
       148deg,
-      var(--metal-shadow),
-      var(--metal-body) 38%,
-      var(--metal-light) 52%,
-      var(--metal-body) 66%,
-      var(--metal-shadow)
+      var(--sheen-low),
+      var(--sheen-mid) 38%,
+      var(--sheen-high) 52%,
+      var(--sheen-mid) 66%,
+      var(--sheen-low)
     );
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 46%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 46%, transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 34%, transparent);
   }
 
-  /* an engraved line, as on the button and the embossed bag */
+  /* An engraved line, as on the button and the embossed bag.
+
+     The ONE place in the stylesheet that is still gold, and it is gold
+     because it is not interface: it is the engraved metal button and the
+     foil on the bag, both of which the brand board shows in gold. Every
+     other gold in this file has become ink — see --sheen-* below. */
   .metal-engraved {
-    color: var(--metal-body);
+    color: var(--finish-body);
     text-shadow:
       0 1px 0 color-mix(in srgb, #000 55%, transparent),
-      0 -1px 0 color-mix(in srgb, var(--metal-spec) 24%, transparent);
+      0 -1px 0 color-mix(in srgb, var(--finish-spec) 24%, transparent);
   }
 }
 
@@ -337,20 +345,20 @@
   .nn-btn--metal .nn-btn__fill {
     background: linear-gradient(
       148deg,
-      var(--metal-shadow),
-      var(--metal-body) 34%,
-      var(--metal-light) 50%,
-      var(--metal-body) 68%,
-      var(--metal-shadow)
+      var(--sheen-low),
+      var(--sheen-mid) 34%,
+      var(--sheen-high) 50%,
+      var(--sheen-mid) 68%,
+      var(--sheen-low)
     );
   }
   .nn-btn--metal:hover,
   .nn-btn--metal:focus-visible {
     color: var(--ink-inverse);
-    border-color: color-mix(in srgb, var(--metal-light) 70%, transparent);
+    border-color: color-mix(in srgb, var(--sheen-high) 70%, transparent);
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 52%, transparent),
-      0 14px 34px -14px color-mix(in srgb, var(--metal-body) 42%, transparent);
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 52%, transparent),
+      0 14px 34px -14px color-mix(in srgb, var(--sheen-mid) 42%, transparent);
   }
 
   /* ── solid: the workhorse ─────────────────────────────────────── */
@@ -361,7 +369,7 @@
     box-shadow: var(--shadow-lift);
   }
   .nn-btn--solid .nn-btn__fill {
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(148deg, var(--sheen-mid), var(--sheen-high));
   }
   .nn-btn--solid:hover,
   .nn-btn--solid:focus-visible { color: var(--ink-inverse); }
@@ -373,7 +381,7 @@
     -webkit-backdrop-filter: blur(24px) saturate(1.8) brightness(1.04);
     color: var(--ink-primary);
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 22%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 22%, transparent),
       inset 0 -1px 0 color-mix(in srgb, #000 20%, transparent),
       var(--shadow-lift);
   }
@@ -406,7 +414,7 @@
     opacity: 0;
     background: radial-gradient(
       44% 62% at var(--mx) var(--my),
-      color-mix(in srgb, var(--metal-spec) 24%, transparent),
+      color-mix(in srgb, var(--sheen-peak) 24%, transparent),
       transparent 72%
     );
     transition: opacity var(--duration-hover) var(--ease-architect);
@@ -487,7 +495,7 @@
     outline: none;
     border-color: color-mix(in srgb, var(--ink-primary) 70%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink-primary) 40%, transparent),
-      inset 0 0 24px color-mix(in srgb, var(--metal-body) 8%, transparent);
+      inset 0 0 24px color-mix(in srgb, var(--sheen-mid) 8%, transparent);
   }
 }
 
@@ -560,7 +568,7 @@
     pointer-events: none;
     background: radial-gradient(
       52% 40% at 50% 38%,
-      color-mix(in srgb, var(--metal-body) 13%, transparent),
+      color-mix(in srgb, var(--sheen-mid) 13%, transparent),
       transparent 72%
     );
   }
@@ -700,7 +708,7 @@
     width: 100%;
     height: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(90deg, var(--sheen-mid), var(--sheen-high));
     transition: transform var(--duration-panel) var(--ease-out-quint);
   }
 
@@ -753,7 +761,7 @@
     backdrop-filter: blur(28px) saturate(1.7);
     -webkit-backdrop-filter: blur(28px) saturate(1.7);
     border-bottom-color: var(--edge-hair);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--metal-spec) 8%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 8%, transparent);
   }
 
   .nn-nav__inner {
@@ -811,7 +819,7 @@
     bottom: 0;
     height: 1px;
     width: 0;
-    background: var(--metal-body);
+    background: var(--sheen-mid);
     transition: width var(--duration-panel) var(--ease-architect);
   }
   .nn-nav__link:hover { color: var(--ink-primary); }
@@ -827,7 +835,7 @@
     right: -0.5rem;
     min-width: 1rem;
     padding: 0 0.2rem;
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(148deg, var(--sheen-mid), var(--sheen-high));
     color: var(--ink-inverse);
     font-family: var(--font-ui);
     font-size: 0.56rem;
@@ -988,7 +996,7 @@
     right: 0.45rem;
     min-width: 0.95rem;
     padding: 0 0.18rem;
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(148deg, var(--sheen-mid), var(--sheen-high));
     color: var(--ink-inverse);
     font-size: 0.54rem;
     font-weight: 600;
@@ -1120,7 +1128,7 @@
     width: 1px;
     height: 1.6rem;
     translate: -50% 0;
-    background: linear-gradient(180deg, transparent, var(--metal-body));
+    background: linear-gradient(180deg, transparent, var(--sheen-mid));
   }
 
   .nn-walk__discover {
@@ -1129,7 +1137,7 @@
     gap: 0.75rem;
     margin-top: 2.6rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--metal-body) 50%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sheen-mid) 50%, transparent);
     font-family: var(--font-ui);
     font-size: var(--text-micro);
     font-weight: 500;
@@ -1545,7 +1553,7 @@
   }
   .nn-card__flag--metal {
     color: var(--ink-inverse);
-    background: linear-gradient(148deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(148deg, var(--sheen-mid), var(--sheen-high));
     border-color: transparent;
   }
 
@@ -1583,7 +1591,7 @@
     height: 1px;
     width: 0;
     margin-top: 0.85rem;
-    background: linear-gradient(90deg, var(--metal-body), transparent);
+    background: linear-gradient(90deg, var(--sheen-mid), transparent);
     transition: width var(--duration-room) var(--ease-architect);
   }
   .nn-card[data-near="true"] .nn-card__rule { width: 100%; }
@@ -1763,7 +1771,7 @@
     font-size: 0.4rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--metal-shadow);
+    color: var(--sheen-low);
   }
 
   .nn-product__shadow {
@@ -1885,8 +1893,8 @@
   .nn-ops__gaps {
     margin-top: var(--space-room);
     padding: 1.4rem 1.6rem;
-    border-left: 2px solid var(--metal-body);
-    background: color-mix(in srgb, var(--metal-body) 6%, transparent);
+    border-left: 2px solid var(--sheen-mid);
+    background: color-mix(in srgb, var(--sheen-mid) 6%, transparent);
   }
   .nn-ops__gaps ul { display: grid; gap: 0.6rem; margin: 0.9rem 0 0; padding: 0; list-style: none; }
   .nn-ops__gaps li {
@@ -1902,7 +1910,7 @@
     top: 0.62em;
     width: 0.35rem;
     height: 1px;
-    background: var(--metal-body);
+    background: var(--sheen-mid);
   }
 
   /* the figures */
@@ -1951,7 +1959,7 @@
   .nn-ops__bar span {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, var(--metal-body), var(--metal-light));
+    background: linear-gradient(90deg, var(--sheen-mid), var(--sheen-high));
     transform-origin: left center;
     transition: transform var(--duration-room) var(--ease-architect);
   }
@@ -2100,7 +2108,7 @@
   box-shadow:
     0 0 0 1px rgba(247, 245, 239, 0.08),
     0 2px 10px -2px rgba(0, 0, 0, 0.5),
-    0 0 22px -6px color-mix(in srgb, var(--metal-gold, #c5a059) 70%, transparent);
+    0 0 22px -6px color-mix(in srgb, var(--sheen-high) 42%, transparent);
   transition: box-shadow var(--duration-panel, 520ms) var(--ease-architect, ease);
 }
 
@@ -2134,15 +2142,28 @@
   z-index: 2;
 }
 
+/* ── the iris sheets ────────────────────────────────────────────────
+   Three conic gradients at different speeds and phases. Where they
+   overlap under mix-blend-mode: screen, the hues beat against each
+   other and the orb appears to shift colour as it turns — which is
+   what iridescence actually is, and why it cannot be done with one
+   layer however carefully it is coloured.
+
+   These were champagne gold. The brief is explicit that the identity
+   carries no gold, so the iridescence is now built from the board's own
+   earth tones instead: Stone and Ivory carrying it, with the faintest
+   breath of Olive on one sheet and Burgundy on another, both pulled far
+   down toward Stone. The result is a pearl rather than a gold bead —
+   quieter, and considerably more expensive-looking for it. */
 .nn-orb__iris--a {
   background: conic-gradient(
     from 0deg,
-    #c5a059 0%,
-    #e8d39b 18%,
+    #b7b1a7 0%,
+    #f7f5ef 18%,
     transparent 42%,
-    #b98f4a 66%,
+    #6b5e52 66%,
     transparent 88%,
-    #c5a059 100%
+    #b7b1a7 100%
   );
   opacity: 0.85;
   animation: nn-orb-turn 9s linear infinite;
@@ -2152,9 +2173,11 @@
   background: conic-gradient(
     from 140deg,
     transparent 0%,
-    #9fb2c4 22%,
+    /* Olive, desaturated almost to Stone — present as a temperature
+       rather than as a colour you could name. */
+    #8fa888 22%,
     transparent 48%,
-    #d8bb7e 74%,
+    #cfc9bd 74%,
     transparent 100%
   );
   opacity: 0.5;
@@ -2167,7 +2190,9 @@
     transparent 0%,
     #efe9dd 16%,
     transparent 38%,
-    #a8895a 70%,
+    /* and Burgundy, pulled the same distance, so the two sheets beat
+       warm against cool as they cross */
+    #a98f93 70%,
     transparent 100%
   );
   opacity: 0.34;
@@ -2179,9 +2204,9 @@
   inset: 26%;
   background: radial-gradient(
     circle at 38% 34%,
-    #fdf6e4 0%,
-    #e8d39b 32%,
-    #c5a059 58%,
+    #ffffff 0%,
+    #f7f5ef 32%,
+    #b7b1a7 58%,
     transparent 78%
   );
   filter: blur(1.5px);
@@ -2206,7 +2231,7 @@
   box-shadow:
     0 0 0 1px rgba(247, 245, 239, 0.16),
     0 2px 12px -2px rgba(0, 0, 0, 0.5),
-    0 0 34px -4px color-mix(in srgb, var(--metal-gold, #c5a059) 92%, transparent);
+    0 0 34px -4px color-mix(in srgb, var(--sheen-peak) 58%, transparent);
 }
 .nn-orb--listening .nn-orb__core { animation-duration: 2.4s; }
 .nn-orb--listening .nn-orb__iris--a { animation-duration: 5s; }
@@ -2362,5 +2387,263 @@ button:focus-visible .nn-mark__n--b {
   .nn-mark__n {
     transition: none;
     transform: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS, AND BRUSHED METAL
+   The two physical controls. Both are pills, because a control is an
+   object and objects in this house are curved — see the radius scale
+   in tokens.css for why the board's square corners were a constraint
+   of print rather than an instruction.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  /* ── liquid glass ────────────────────────────────────────────────
+     A lens, not a frosted panel. The backdrop is DISPLACED by a
+     fractal noise field before it is blurred, which is the whole
+     difference: frosting scatters light, glass bends it, and a
+     straight line passing under this control comes out bent.
+
+     The displacement is applied through [data-liquid="on"], which
+     components/ui/glass/LiquidFilter sets only on engines that
+     actually resolve a filter reference inside backdrop-filter.
+     Safari does not, and a reference it cannot resolve makes the
+     backdrop vanish entirely — so Safari keeps the blur, which
+     already reads as glass. */
+  .nn-liquid {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    isolation: isolate;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--ink-primary);
+    font-family: var(--font-ui);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color var(--duration-hover) var(--ease-architect),
+      box-shadow var(--duration-hover) var(--ease-architect);
+    /* The rim. Eight inset shadows rather than a border, because a
+       border is one flat line and a rim of glass is lit differently
+       at the top than at the bottom — the top catches the room, the
+       bottom catches the bounce off whatever it is sitting on. */
+    box-shadow:
+      inset 0 1px 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 55%, transparent),
+      inset 0 -1px 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 28%, transparent),
+      inset 1px 0 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 18%, transparent),
+      inset -1px 0 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 18%, transparent),
+      inset 0 0 6px 2px color-mix(in srgb, var(--sheen-peak) 7%, transparent),
+      0 1px 2px color-mix(in srgb, #000 28%, transparent),
+      0 8px 24px -12px color-mix(in srgb, #000 60%, transparent);
+  }
+
+  .nn-liquid:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  /* the refracting pane itself */
+  .nn-liquid__pane {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--surface-panel) 26%, transparent);
+    backdrop-filter: blur(14px) saturate(1.7);
+    -webkit-backdrop-filter: blur(14px) saturate(1.7);
+  }
+  :root[data-liquid="on"] .nn-liquid__pane {
+    backdrop-filter: url(#nn-liquid-pane) blur(12px) saturate(1.7);
+    -webkit-backdrop-filter: url(#nn-liquid-pane) blur(12px) saturate(1.7);
+  }
+
+  /* The specular, swept across on approach. Parked off the left edge at
+     rest so it costs nothing until the pointer arrives. */
+  .nn-liquid__sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent 32%,
+      color-mix(in srgb, var(--sheen-peak) 22%, transparent) 48%,
+      transparent 64%
+    );
+    background-size: 280% 100%;
+    background-position: 130% 0;
+    transition: background-position 900ms var(--ease-architect);
+  }
+  .nn-liquid:hover .nn-liquid__sheen,
+  .nn-liquid:focus-visible .nn-liquid__sheen {
+    background-position: -30% 0;
+  }
+
+  .nn-liquid__label {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* A dark halo under the label, because the backdrop behind a glass
+       control is whatever the page happens to put there — and in the
+       showroom that can be a garment under a tight beam. */
+    text-shadow: 0 1px 3px color-mix(in srgb, var(--surface-void) 70%, transparent);
+  }
+
+  .nn-liquid:hover {
+    box-shadow:
+      inset 0 1px 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 75%, transparent),
+      inset 0 -1px 0.5px -0.5px color-mix(in srgb, var(--sheen-peak) 38%, transparent),
+      inset 0 0 8px 3px color-mix(in srgb, var(--sheen-peak) 11%, transparent),
+      0 2px 4px color-mix(in srgb, #000 30%, transparent),
+      0 14px 34px -14px color-mix(in srgb, #000 64%, transparent);
+  }
+
+  /* ── brushed metal ───────────────────────────────────────────────
+     Three layers in one element: an outer bezel (the border-image
+     gradient), a bright inner bevel (::before), and the face (::after).
+
+     The press is the part that matters. On [data-pressed="true"] the
+     whole control drops 2.5 px and the face compresses — a real button
+     travels, and one that only changes colour is a picture of a button.
+     Travel is deliberately small: anything more than about 3 px stops
+     reading as a mechanism and starts reading as the page jumping. */
+  .nn-metal {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    isolation: isolate;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    /* the bezel: a lit rim, brushed ivory over a near-black body */
+    background:
+      linear-gradient(var(--surface-base), var(--surface-base)) padding-box,
+      linear-gradient(
+        180deg,
+        var(--sheen-high) 0%,
+        var(--sheen-mid) 24%,
+        var(--sheen-low) 52%,
+        var(--sheen-mid) 86%,
+        var(--sheen-high) 100%
+      ) border-box;
+    color: var(--ink-primary);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 3px 8px color-mix(in srgb, #000 30%, transparent);
+    transition:
+      transform 250ms cubic-bezier(0.1, 0.4, 0.2, 1),
+      box-shadow 250ms cubic-bezier(0.1, 0.4, 0.2, 1),
+      filter 250ms cubic-bezier(0.1, 0.4, 0.2, 1);
+  }
+
+  /* the face, sitting inside the bezel */
+  .nn-metal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-inset) 92%, transparent),
+      var(--surface-base)
+    );
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--sheen-peak) 16%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, #000 55%, transparent);
+  }
+
+  .nn-metal:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 5px 14px color-mix(in srgb, #000 36%, transparent);
+  }
+
+  .nn-metal[data-pressed="true"] {
+    transform: translateY(2.5px) scale(0.99);
+    box-shadow: 0 1px 2px color-mix(in srgb, #000 34%, transparent);
+    filter: brightness(0.94);
+  }
+
+  .nn-metal:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  /* the shine that crosses the face as it is pressed */
+  .nn-metal__shine {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--sheen-peak) 20%, transparent),
+      transparent
+    );
+    transition: opacity 300ms var(--ease-architect);
+  }
+  .nn-metal[data-pressed="true"] .nn-metal__shine { opacity: 1; }
+
+  .nn-metal__label {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-shadow: 0 -1px 0 color-mix(in srgb, #000 90%, transparent);
+  }
+}
+
+/* The travel is movement, so it goes when movement is not wanted. The
+   button still reports its press through brightness, which is state
+   rather than motion. */
+@media (prefers-reduced-motion: reduce) {
+  .nn-metal,
+  .nn-metal[data-pressed="true"] { transform: none; }
+  .nn-liquid__sheen { transition: none; }
+}
+
+@layer components {
+  /* The pair of ways into the house. Stacks on a phone, where two
+     full-width controls read better than two half-width ones. */
+  .nn-walk__ways {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2.4rem;
+  }
+  @media (max-width: 520px) {
+    .nn-walk__ways { flex-direction: column; align-items: stretch; width: min(22rem, 100%); }
+    .nn-walk__ways > a { display: block; }
+    .nn-walk__ways .nn-liquid,
+    .nn-walk__ways .nn-metal { width: 100%; }
   }
 }

@@ -39,10 +39,10 @@ export function Awaiting({
         <svg className="nn-awaiting__mark" viewBox={`0 0 ${width} 100`} aria-hidden="true">
           <defs>
             <linearGradient id="nn-await-metal" x1="0" y1="0" x2="1" y2="0.42">
-              <stop offset="0%" stopColor="var(--metal-shadow)" />
-              <stop offset="40%" stopColor="var(--metal-body)" />
-              <stop offset="52%" stopColor="var(--metal-light)" />
-              <stop offset="100%" stopColor="var(--metal-shadow)" />
+              <stop offset="0%" stopColor="var(--sheen-low)" />
+              <stop offset="40%" stopColor="var(--sheen-mid)" />
+              <stop offset="52%" stopColor="var(--sheen-high)" />
+              <stop offset="100%" stopColor="var(--sheen-low)" />
             </linearGradient>
           </defs>
           <g fill="url(#nn-await-metal)" opacity="0.5">

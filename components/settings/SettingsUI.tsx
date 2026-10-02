@@ -136,7 +136,7 @@ export function SettingsUI() {
       >
         <Row
           icon={ICONS.sun}
-          tint="linear-gradient(160deg,#e8b87a,#c9a43a)"
+          tint="linear-gradient(160deg,#b7b1a7,#6b5e52)"
           label="Light"
           detail={LIGHT_DETAIL[phase]}
         />
@@ -156,7 +156,7 @@ export function SettingsUI() {
         />
         <Row
           icon={ICONS.sparkle}
-          tint="linear-gradient(160deg,#c9a43a,#8a6f1e)"
+          tint="linear-gradient(160deg,#6b5e52,#2e2e2e)"
           label="Play the opening again"
           detail="The monogram sequence, next time you arrive"
           onClick={replayIntro}
@@ -258,7 +258,7 @@ export function SettingsUI() {
       </Group>
 
       <Group title="Nero Noren">
-        <Row icon={ICONS.info} tint="linear-gradient(160deg,#c9a43a,#8a6f1e)" label="About the house" href="/about" />
+        <Row icon={ICONS.info} tint="linear-gradient(160deg,#6b5e52,#2e2e2e)" label="About the house" href="/about" />
         <Row icon={ICONS.ruler} tint="linear-gradient(160deg,#b8ae9c,#6e6a63)" label="How we size" href="/sizing" />
         <Row icon={ICONS.bag} tint="linear-gradient(160deg,#4a3526,#2a1d14)" label="Delivery and returns" href="/delivery" />
         <Row icon={ICONS.lock} tint="linear-gradient(160deg,#3a3a3d,#0a0a0a)" label="Terms" href="/terms" />

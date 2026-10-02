@@ -3,7 +3,7 @@
 /**
  * The NN monogram as a physical object.
  *
- * Two interlocked serif Ns in brushed gold, inside a thin gold ring. The idle
+ * Two interlocked serif Ns in brushed ivory metal, inside a thin ring. The idle
  * animation is a showroom spotlight travelling across the metal: it is a real
  * moving light, not an animated gradient, which is why the highlight bends
  * around the bevels and catches the inside of the ring as it passes.
@@ -40,10 +40,21 @@ function Monogram({ separation, spin }: { separation: number; spin: number }) {
     [pairWidth],
   );
 
-  const gold = useMemo(
+  /* The mark is INK, in three dimensions as in two.
+
+     This was brushed gold. The brief is explicit — "the NN monogram in Deep
+     Black (#0A0A0A) or stark white against dark surfaces. NO GOLD" — and the
+     brand board's own logo panel sets the monogram in solid black on ivory.
+
+     Rendering it as Ivory rather than as gold loses nothing, because what
+     made the 3D mark read as an OBJECT was never its hue: it was the
+     metalness, the brushed roughness and the travelling spotlight below.
+     Those all stay. An ivory metal reads as polished silver or as bright
+     enamel depending on the light, and either is more NN than brass. */
+  const ink = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color("#c9a43a"),
+        color: new THREE.Color("#f7f5ef"),
         // Brushed, not polished: a mirror finish on a logo looks like plastic.
         roughness: 0.26,
         metalness: 1,
@@ -53,10 +64,10 @@ function Monogram({ separation, spin }: { separation: number; spin: number }) {
     [],
   );
 
-  const goldBright = useMemo(
+  const inkBright = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color("#d9b85a"),
+        color: new THREE.Color("#ffffff"),
         roughness: 0.14,
         metalness: 1,
       }),
@@ -107,15 +118,15 @@ function Monogram({ separation, spin }: { separation: number; spin: number }) {
       <group>
         <mesh
           geometry={single}
-          material={gold}
+          material={ink}
           position={[offset + separation, 0, -0.06]}
           castShadow
         />
-        <mesh geometry={single} material={goldBright} position={[-separation, 0, 0.05]} castShadow />
+        <mesh geometry={single} material={inkBright} position={[-separation, 0, 0.05]} castShadow />
       </group>
 
       {/* the thin ring */}
-      <mesh ref={ring} geometry={ringGeometry} material={gold} />
+      <mesh ref={ring} geometry={ringGeometry} material={ink} />
     </group>
   );
 }

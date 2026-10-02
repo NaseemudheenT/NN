@@ -100,6 +100,32 @@
   --space-bay: clamp(3.5rem, 7vw, 7rem);
   --space-hall: clamp(5rem, 11vw, 11rem);
 
+  /* ── radius ────────────────────────────────────────────────────
+     The house was square — --glass-radius was literally 0, on the
+     reasoning that the brand board has no rounded corners in it.
+
+     That was a misreading of the board. The board has no rounded
+     corners because everything on it is PRINT: a hangtag, a label, a
+     business card, a bag. Cut paper has square corners. But the board's
+     own button is a circle, its packaging is a softened box, and its
+     phone mockup has the radius every phone has — the physical objects
+     are all curved, and an interface is closer to an object than to a
+     printed card.
+
+     So the scale is curved, and it is a scale rather than one number:
+     a 10 px radius on a 44 px button and the same 10 px on a full-sheet
+     panel read as completely different degrees of softness, because
+     what the eye judges is the radius relative to the shape. Larger
+     surfaces therefore take larger radii to look equally rounded.    */
+  --radius-hair: 3px;
+  --radius-chip: 8px;
+  --radius-control: 12px;
+  --radius-panel: 18px;
+  --radius-sheet: 26px;
+  --radius-room: 34px;
+  /** A true pill: larger than any control's half-height. */
+  --radius-pill: 999px;
+
   /* ── motion, centralised ───────────────────────────────────────
      Every duration and curve in NN comes from here. Motion that
      uses ad-hoc numbers reads as several websites at once.      */
@@ -164,10 +190,42 @@
      Three stops, because metal is never one colour: the shadowed
      side, the body, and the specular where the light lands. A flat
      fill of any single one of these looks like yellow plastic.  */
-  --metal-shadow: #6e561c;
-  --metal-body: #b4913a;
-  --metal-light: #e8cd82;
-  --metal-spec: #fff4d6;
+  /* ── the mark ──────────────────────────────────────────────────
+     The monogram is INK, never gold. --mark-spec is the specular the
+     sheen brightens toward as it crosses the letterforms: on a dark
+     ground that is a touch above Ivory, so the highlight reads as light
+     moving over the surface rather than as a colour change. */
+  --mark-spec: #ffffff;
+
+  /* ── the sheen ramp ────────────────────────────────────────────
+     Every gradient, edge highlight, rule and focus ring in the
+     INTERFACE runs on these four. They were a gold ramp; the brief is
+     explicit that the identity carries no gold, so they are now ink —
+     Taupe through Stone through Ivory to white.
+
+     Keeping the four-stop shape matters. A material is never one
+     colour: it has a shadowed side, a body, a lit side and a specular,
+     and that progression is what makes a rule or a button edge read as
+     a surface catching light rather than as a flat line. The ramp was
+     always doing that work; only its hue has changed, so every gradient
+     built on it still behaves — it is now brushed silver rather than
+     brushed brass. */
+  --sheen-low: #6b5e52;
+  --sheen-mid: #b7b1a7;
+  --sheen-high: #f7f5ef;
+  --sheen-peak: #ffffff;
+
+  /* ── gold, where it is genuinely a finish ──────────────────────
+     Not the logo, not the interface. These exist only for the physical
+     objects the board actually shows gold on — the foil on a hangtag,
+     the engraved button, the embroidery, the lit signage. In CSS the
+     sole consumer is .metal-engraved. The 3D showroom's metal is a
+     separate table in components/showroom/materials.ts and does not
+     read from here. */
+  --finish-shadow: #6e561c;
+  --finish-body: #b4913a;
+  --finish-light: #e8cd82;
+  --finish-spec: #fff4d6;
 
   /* the light in the room */
   --light-warm: #ffd9a0;
@@ -216,10 +274,21 @@
 
   /* On ivory, metal has to darken or it disappears. Same material,
      different light. */
-  --metal-shadow: #4e3c11;
-  --metal-body: #8a6d22;
-  --metal-light: #b4913a;
-  --metal-spec: #e8cd82;
+  /* On ivory the mark is Deep Black, so its specular goes the other
+     way — the sheen LIFTS toward a charcoal rather than toward white,
+     which is how a highlight crossing dark letterpress actually looks. */
+  --mark-spec: #3a3a3a;
+
+  /* The ramp inverts on a light ground: on ivory, "lit" is dark. */
+  --sheen-low: #b7b1a7;
+  --sheen-mid: #6b5e52;
+  --sheen-high: #2e2e2e;
+  --sheen-peak: #0a0a0a;
+
+  --finish-shadow: #4e3c11;
+  --finish-body: #8a6d22;
+  --finish-light: #b4913a;
+  --finish-spec: #e8cd82;
 
   --light-key: rgb(10 10 10 / 0.06);
 
@@ -250,9 +319,17 @@
   --edge-line: rgb(247 245 239 / 0.16);
   --edge-strong: rgb(247 245 239 / 0.28);
 
-  --metal-shadow: #7a5f1f;
-  --metal-body: #c19c3f;
-  --metal-light: #eed592;
+  --mark-spec: #ffffff;
+
+  --sheen-low: #7d7264;
+  --sheen-mid: #b7b1a7;
+  --sheen-high: #f7f5ef;
+  --sheen-peak: #ffffff;
+
+  --finish-shadow: #7a5f1f;
+  --finish-body: #c19c3f;
+  --finish-light: #eed592;
+  --finish-spec: #fff4d6;
 
   color-scheme: dark;
 }
@@ -274,9 +351,11 @@
   --color-edge-hair: var(--edge-hair);
   --color-edge-strong: var(--edge-strong);
 
-  --color-metal: var(--metal-body);
-  --color-metal-light: var(--metal-light);
-  --color-metal-shadow: var(--metal-shadow);
+  /* The interface sheen, as Tailwind utilities. Named for what it is —
+     a highlight ramp — rather than for the gold it used to be. */
+  --color-sheen: var(--sheen-mid);
+  --color-sheen-high: var(--sheen-high);
+  --color-sheen-low: var(--sheen-low);
 
   --color-positive: var(--state-positive);
   --color-critical: var(--state-critical);

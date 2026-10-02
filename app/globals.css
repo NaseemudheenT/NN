@@ -29,14 +29,16 @@
   --line: var(--edge-line);
   --line-strong: var(--edge-strong);
   /* The accent is CONTRAST, not gold.
-     This alias used to point at --metal-body, which put flat #c19c3f on
+     This alias used to point at --sheen-mid, which put flat #c19c3f on
      eyebrows, active filters and hover borders. The brand board is explicit
      that gold is a physical finish — foil, an engraved button, lit signage —
      and never a flat colour; its own web mockup carries no gold at all, just
      white type and a white rule on black. So the accent is the ink itself,
      and "active" reads as the brightest thing on the screen rather than the
-     most yellow. Gold still exists, in --metal-* , where it belongs: on
-     surfaces that respond to light. */
+     most yellow. And gold is now gone from the interface entirely: the
+     brief is explicit that the NN identity carries none, so the highlight
+     ramp the UI runs on is --sheen-*, which is ink. Gold survives only in
+     --finish-*, for the engraved button and the foil on the bag. */
   --accent: var(--ink-primary);
   --accent-soft: var(--ink-secondary);
   --accent-ink: var(--ink-inverse);
@@ -59,8 +61,8 @@
   --color-line: var(--edge-line);
   --color-line-strong: var(--edge-strong);
   /* Same correction as the alias above: the Tailwind `accent` utilities
-     must not paint flat gold either. A `--color-metal` ramp is still
-     exported below for anything that genuinely is metal. */
+     must not paint flat gold either. A `--color-sheen` ramp is exported
+     below for highlights, and it is ink. */
   --color-accent: var(--ink-primary);
   --color-accent-soft: var(--ink-secondary);
   --color-accent-ink: var(--ink-inverse);
@@ -128,13 +130,13 @@
   a { color: inherit; text-decoration: none; }
 
   ::selection {
-    background: var(--metal-body);
+    background: var(--sheen-mid);
     color: var(--ink-inverse);
   }
 
   /* a visible focus ring on both themes, never removed */
   :focus-visible {
-    outline: 2px solid var(--metal-light);
+    outline: 2px solid var(--sheen-high);
     outline-offset: 3px;
     border-radius: 1px;
   }
@@ -142,7 +144,7 @@
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--surface-void); }
   ::-webkit-scrollbar-thumb { background: var(--edge-strong); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--metal-body); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--sheen-mid); }
 
   img, svg, video { display: block; max-width: 100%; }
 }
@@ -172,7 +174,7 @@
     color: var(--ink-tertiary);
   }
   /* The house metadata label.
-     It used to be painted flat --metal-body, which is gold used as ink —
+     It used to be painted flat --sheen-mid, which is gold used as ink —
      the one thing the brand board forbids. The board sets its small caps in
      Stone, and that is what this is now. Gold survives in this stylesheet
      only where it is a real finish: the gradient on .nn-btn--metal and the
@@ -212,7 +214,7 @@
     bottom: 0;
     height: 1px;
     width: 0;
-    background: var(--metal-body);
+    background: var(--sheen-mid);
     transition: width var(--duration-panel) var(--ease-architect);
   }
   .nn-link:hover,

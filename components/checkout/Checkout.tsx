@@ -203,7 +203,10 @@ export function Checkout({
           email: fields.email,
           contact: mobileCheck.normalised ?? fields.phone,
         },
-        theme: { color: "#c9a43a" },
+        // The payment sheet's accent. Deep Black, the board's own primary —
+        // this is the one piece of NN chrome rendered by someone else's code,
+        // so it is the one place a wrong colour would be most obvious.
+        theme: { color: "#0a0a0a" },
         modal: {
           ondismiss: () => {
             // Cancelled, not failed. Say so, and leave everything alone.

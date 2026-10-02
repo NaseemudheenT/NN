@@ -30,25 +30,16 @@ export default function AppleIcon() {
         }}
       >
         <svg width={size.width} height={size.height} viewBox="0 0 180 180">
-          <defs>
-            <linearGradient id="apple-metal" x1="0" y1="0" x2="1" y2="0.42">
-              <stop offset="0%" stopColor="#6e561c" />
-              <stop offset="34%" stopColor="#b4913a" />
-              <stop offset="50%" stopColor="#e8cd82" />
-              <stop offset="68%" stopColor="#b4913a" />
-              <stop offset="100%" stopColor="#6e561c" />
-            </linearGradient>
-          </defs>
           <circle
             cx={90}
             cy={90}
             r={74}
             fill="none"
-            stroke="#8a6d22"
+            stroke="#6b5e52"
             strokeWidth={RING.thickness * 1.4}
           />
           <g
-            fill="url(#apple-metal)"
+            fill="#f7f5ef"
             transform={`translate(${90 - inner / 2} ${90 - (inner * (100 / markWidth)) / 2}) scale(${inner / markWidth})`}
           >
             <path d={N_PATH} />

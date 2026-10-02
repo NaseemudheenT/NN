@@ -43,16 +43,11 @@ export default async function Image() {
         />
 
         <svg width="150" height="107" viewBox={`0 0 ${markWidth} 100`} style={{ position: "relative" }}>
-          <defs>
-            <linearGradient id="og-metal" x1="0" y1="0" x2="1" y2="0.42">
-              <stop offset="0%" stopColor="#6e561c" />
-              <stop offset="34%" stopColor="#b4913a" />
-              <stop offset="50%" stopColor="#e8cd82" />
-              <stop offset="68%" stopColor="#b4913a" />
-              <stop offset="100%" stopColor="#6e561c" />
-            </linearGradient>
-          </defs>
-          <g fill="url(#og-metal)">
+          {/* Stark Ivory on Deep Black — the board's own logo panel, and
+              the brief's "NO GOLD", applied to the single most public
+              instance of the mark there is. Every link anyone shares
+              renders this image. */}
+          <g fill="#f7f5ef">
             <path d={N_PATH} />
             <path d={N_PATH} transform={`translate(${N_INTERLOCK_X} 0)`} />
           </g>

@@ -3,10 +3,23 @@
 /**
  * The 2D NN monogram — the header mark and every flat use of the logo.
  *
- * This is the one place in the interface where gold is correct, because here
- * it is not a colour choice: the mark is plated metal, and the sheen crossing
- * it is a showroom spotlight moving over that plate. It therefore reads from
- * --metal-* directly and never from --accent, which is ink.
+ * THE MARK IS INK. Deep Black on a light ground, Ivory on a dark one, and
+ * never gold — the brand board's own logo panel sets the monogram in solid
+ * black on ivory paper, and the written brief is explicit: "the NN monogram
+ * in Deep Black (#0A0A0A) or stark white against dark surfaces. NO GOLD."
+ *
+ * This file used to paint the mark in --metal-*, on the reasoning that the
+ * monogram was a plated object and the sheen was a spotlight crossing it.
+ * That reasoning was wrong, and the board says so: gold appears there on the
+ * hangtag foil, the engraved button, the embroidery and the lit signage — on
+ * PRODUCT — and the logo itself is never anything but black or white. A gold
+ * logo is the single most common way a menswear house looks like it is trying
+ * too hard, which is precisely what the board is avoiding.
+ *
+ * The sheen survives, because it was never really about gold: it is a
+ * specular highlight crossing a surface, and on ink it reads as light moving
+ * over letterpress rather than over plate. It simply brightens toward the
+ * ink's own specular instead of toward a metal one.
  *
  * Two motions. A spotlight crosses the metal and then rests, repeating slowly
  * enough that it reads as the light moving rather than as a loop. And on
@@ -95,7 +108,7 @@ export function LogoMark({
         <linearGradient id={`${uid}sheen`} x1="0" y1="0" x2="1" y2="0.35">
           <stop offset="0%" stopColor="currentColor" />
           <stop offset="38%" stopColor="currentColor" />
-          <stop offset="50%" stopColor="var(--metal-spec)" />
+          <stop offset="50%" stopColor="var(--mark-spec)" />
           <stop offset="62%" stopColor="currentColor" />
           <stop offset="100%" stopColor="currentColor" />
           {/* Looping, the sweep takes 2.2s of an 11s cycle and rests for the
@@ -141,9 +154,9 @@ export function LogoMark({
           cy={cy}
           r={r}
           fill="none"
-          stroke="var(--metal-body)"
+          stroke="currentColor"
           strokeWidth={RING.thickness}
-          opacity="0.85"
+          opacity="0.55"
         />
       ) : null}
 

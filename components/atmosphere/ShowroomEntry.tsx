@@ -200,9 +200,9 @@ export function ShowroomEntry() {
           />
           <defs>
             <linearGradient id="nn-entry-arch" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="var(--metal-shadow)" />
-              <stop offset="55%" stopColor="var(--metal-body)" />
-              <stop offset="100%" stopColor="var(--metal-light)" />
+              <stop offset="0%" stopColor="var(--sheen-low)" />
+              <stop offset="55%" stopColor="var(--sheen-mid)" />
+              <stop offset="100%" stopColor="var(--sheen-high)" />
             </linearGradient>
           </defs>
         </svg>
@@ -215,11 +215,11 @@ export function ShowroomEntry() {
         >
           <defs>
             <linearGradient id="nn-entry-metal" x1="0" y1="0" x2="1" y2="0.4">
-              <stop offset="0%" stopColor="var(--metal-shadow)" />
-              <stop offset="34%" stopColor="var(--metal-body)" />
-              <stop offset="50%" stopColor="var(--metal-spec)" />
-              <stop offset="66%" stopColor="var(--metal-body)" />
-              <stop offset="100%" stopColor="var(--metal-shadow)" />
+              <stop offset="0%" stopColor="var(--sheen-low)" />
+              <stop offset="34%" stopColor="var(--sheen-mid)" />
+              <stop offset="50%" stopColor="var(--sheen-peak)" />
+              <stop offset="66%" stopColor="var(--sheen-mid)" />
+              <stop offset="100%" stopColor="var(--sheen-low)" />
             </linearGradient>
           </defs>
           {/* two paths, one fill: the shared stem reads as one ligature */}

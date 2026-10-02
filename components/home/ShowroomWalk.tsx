@@ -24,6 +24,7 @@ import { useDayPhase } from "@/components/theme/ThemeProvider";
 import { usePrefersReducedMotion } from "@/components/motion/useReducedMotion";
 import { track } from "@/components/layout/ConsentBanner";
 import { GlassButton } from "@/components/ui/glass/GlassButton";
+import { LiquidButton, MetalButton } from "@/components/ui/glass/LiquidButton";
 import { ProductPanel } from "@/components/showroom/ProductPanel";
 import { N_INTERLOCK_X, N_PATH } from "@/components/brand/monogram";
 import type { Quality } from "./ShowroomWalkCanvas";
@@ -172,11 +173,11 @@ export function ShowroomWalk({ catalogue }: { catalogue: CatalogueResult }) {
             >
               <defs>
                 <linearGradient id="nn-hero-metal" x1="0" y1="0" x2="1" y2="0.42">
-                  <stop offset="0%" stopColor="var(--metal-shadow)" />
-                  <stop offset="32%" stopColor="var(--metal-body)" />
-                  <stop offset="50%" stopColor="var(--metal-spec)" />
-                  <stop offset="68%" stopColor="var(--metal-body)" />
-                  <stop offset="100%" stopColor="var(--metal-shadow)" />
+                  <stop offset="0%" stopColor="var(--sheen-low)" />
+                  <stop offset="32%" stopColor="var(--sheen-mid)" />
+                  <stop offset="50%" stopColor="var(--sheen-peak)" />
+                  <stop offset="68%" stopColor="var(--sheen-mid)" />
+                  <stop offset="100%" stopColor="var(--sheen-low)" />
                 </linearGradient>
               </defs>
               <g fill="url(#nn-hero-metal)">
@@ -193,12 +194,26 @@ export function ShowroomWalk({ catalogue }: { catalogue: CatalogueResult }) {
               builds character
             </p>
 
-            <Link href="/collection" className="nn-walk__discover">
-              <span>Discover the collection</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-                <path d="M4 12h15M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
+            {/* The two ways in, as the brief sets them: liquid glass for
+                the primary, brushed metal for the second. Two different
+                MATERIALS rather than two different colours is what makes a
+                pair of equal-weight actions readable at a glance — the eye
+                sorts them by substance before it reads either label. */}
+            <div className="nn-walk__ways">
+              <Link href="/collection" aria-label="Discover the collection">
+                <LiquidButton size="xl" tabIndex={-1}>
+                  Discover the collection
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true" width="16" height="16">
+                    <path d="M4 12h15M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </LiquidButton>
+              </Link>
+              <Link href="/showroom" aria-label="Enter the showroom">
+                <MetalButton size="xl" tabIndex={-1}>
+                  Enter the showroom
+                </MetalButton>
+              </Link>
+            </div>
           </motion.div>
 
           {/* the 2D way through, always one tap away */}
@@ -234,9 +249,9 @@ export function ShowroomWalk({ catalogue }: { catalogue: CatalogueResult }) {
               <p className="nn-walk__body">{beat.body}</p>
               {"action" in beat && beat.action ? (
                 <Link href={beat.action.href} className="mt-2 inline-block">
-                  <GlassButton tone="metal" size="md">
+                  <MetalButton size="md" tabIndex={-1}>
                     {beat.action.label}
-                  </GlassButton>
+                  </MetalButton>
                 </Link>
               ) : null}
               {i === 1 && mounted ? (
