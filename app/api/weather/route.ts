@@ -39,6 +39,10 @@ export async function GET(request: Request) {
     lat: Math.round(lat * 10) / 10,
     lon: Math.round(lon * 10) / 10,
     place,
+    /* The caller only reaches this route with coordinates it trusts — the
+       hook refuses to ask for an unlisted zone — so by the time a request
+       lands here the location is as known as it is going to get. */
+    known: true,
   };
 
   try {

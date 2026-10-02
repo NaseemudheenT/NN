@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
-import { GarmentArt } from "@/components/shop/GarmentArt";
+import { GarmentImage } from "@/components/shop/GarmentImage";
 import { SizePicker } from "@/components/shop/SizePicker";
 import { useBag } from "@/components/shop/BagProvider";
 
@@ -126,7 +126,7 @@ export function ProductPanel({
             className="nn-plate mx-auto grid max-w-[15rem] place-items-center p-6"
             style={{ background: "var(--paper)" }}
           >
-            <GarmentArt product={product} className="w-full drop-shadow-sm" />
+            <GarmentImage product={product} className="w-full drop-shadow-sm" />
           </div>
 
           <p className="nn-tabular mt-6 text-lead">{price}</p>

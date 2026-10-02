@@ -60,6 +60,9 @@ export function OutfitBuilder({
                     className="grid h-12 w-10 shrink-0 place-items-center"
                     style={{ background: "var(--paper)" }}
                   >
+                    {/* Forty pixels wide — the drawing reads better small
+                        than a photograph does. See the same call in
+                        TrialRoom for the reasoning. */}
                     <GarmentArt product={s} className="w-full" />
                   </span>
                   <span className="min-w-0">

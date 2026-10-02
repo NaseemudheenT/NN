@@ -13,7 +13,7 @@ import Link from "next/link";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
 import { useBag } from "./BagProvider";
-import { GarmentArt } from "./GarmentArt";
+import { GarmentImage } from "./GarmentImage";
 
 export function BagDrawer({ products }: { products: Product[] }) {
   const { isOpen, closeBag, lines, setQuantity, remove, count } = useBag();
@@ -132,7 +132,7 @@ export function BagDrawer({ products }: { products: Product[] }) {
                     className="grid w-20 shrink-0 place-items-center p-2"
                     style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
                   >
-                    <GarmentArt product={product} className="w-full" />
+                    <GarmentImage product={product} className="w-full" />
                   </div>
 
                   <div className="min-w-0 flex-1">

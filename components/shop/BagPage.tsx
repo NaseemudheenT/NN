@@ -11,7 +11,7 @@ import Link from "next/link";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
 import { useBag } from "./BagProvider";
-import { GarmentArt } from "./GarmentArt";
+import { GarmentImage } from "./GarmentImage";
 import { OrderSummary, type PricedLine } from "@/components/checkout/OrderSummary";
 
 export function BagPage({ products }: { products: Product[] }) {
@@ -68,7 +68,7 @@ export function BagPage({ products }: { products: Product[] }) {
               className="grid h-36 w-28 shrink-0 place-items-center p-3"
               style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
             >
-              <GarmentArt product={l.product} className="w-full" />
+              <GarmentImage product={l.product} className="w-full" />
             </Link>
 
             <div className="min-w-0 flex-1">

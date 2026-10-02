@@ -29,6 +29,12 @@ export function useWeather(): WeatherState {
     const read = async () => {
       try {
         const where = whereFromTimezone();
+        /* Only ask when we actually know where the visitor is. An unlisted
+           time zone falls back to a guessed latitude, and a guess put
+           Reykjavík at 40°N — roughly Madrid. Reporting Spanish weather to
+           an Icelandic visitor is worse than reporting none, so the room
+           keeps its clear sky instead. */
+        if (!where.known) return;
         const url = `/api/weather?lat=${where.lat}&lon=${where.lon}&place=${encodeURIComponent(where.place)}`;
         const response = await fetch(url);
         if (!response.ok) return;

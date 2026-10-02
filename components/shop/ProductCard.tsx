@@ -25,7 +25,7 @@ import { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
-import { GarmentArt } from "./GarmentArt";
+import { GarmentImage } from "./GarmentImage";
 import { SPRING } from "@/lib/motion";
 import { useHasHover, usePrefersReducedMotion } from "@/components/motion/useReducedMotion";
 
@@ -95,7 +95,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
           animate={{ y: near && interactive ? -14 : 0, scale: near && interactive ? 1.035 : 1 }}
           transition={SPRING.surface}
         >
-          <GarmentArt product={product} className="w-full" />
+          <GarmentImage product={product} className="w-full" />
         </motion.span>
 
         {/* the shadow it casts on the plinth, which is the depth cue that reads */}

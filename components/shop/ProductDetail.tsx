@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
 import { GarmentArt } from "./GarmentArt";
+import { GarmentImage, hasPhoto } from "./GarmentImage";
 import { SizePicker } from "./SizePicker";
 import { useBag } from "./BagProvider";
 import { LogoMark } from "@/components/brand/LogoMark";
@@ -56,21 +57,43 @@ export function ProductDetail({
             animate={{ rotateY: turned ? 180 : 0 }}
             transition={SPRING.heavy}
           >
-            {/* front */}
+            {/* Front. The real photograph when one exists — this is the
+                largest a garment is ever shown, so it is the one place a
+                drawing standing in for cloth is most obviously a drawing. */}
             <div className="nn-product__face">
-              <GarmentArt product={product} className="w-full" />
+              <GarmentImage
+                product={product}
+                className="w-full"
+                priority
+                sizes="(max-width: 768px) 92vw, 560px"
+              />
             </div>
 
-            {/* back, with the woven label at the neck */}
+            {/* Back, with the woven label at the neck.
+
+                A second photograph is the back view, so when the Founder has
+                shot one it is used directly. Without it the drawing is
+                re-rendered in a plainer cut, which is how the back of a shirt
+                differs from its front — no placket, no pocket. The label is
+                drawn over either, because it is on both. */}
             <div className="nn-product__face nn-product__face--back">
               <div className="relative w-full">
-                <GarmentArt
-                  product={{
-                    ...product,
-                    style: product.type === "shirt" ? "poplin" : product.style,
-                  }}
-                  className="w-full"
-                />
+                {hasPhoto(product, 1) ? (
+                  <GarmentImage
+                    product={product}
+                    index={1}
+                    className="w-full"
+                    sizes="(max-width: 768px) 92vw, 560px"
+                  />
+                ) : (
+                  <GarmentArt
+                    product={{
+                      ...product,
+                      style: product.type === "shirt" ? "poplin" : product.style,
+                    }}
+                    className="w-full"
+                  />
+                )}
                 <span className="nn-product__tag">
                   <LogoMark size={11} ring={false} sheen="none" title={null} />
                   <span>Nero Noren</span>

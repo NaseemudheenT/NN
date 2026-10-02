@@ -105,6 +105,38 @@ const ZONES: Record<string, { lat: number; lon: number; place: string }> = {
   "America/Mexico_City": { lat: 19.43, lon: -99.13, place: "Mexico City" },
   "Africa/Cairo": { lat: 30.04, lon: 31.24, place: "Cairo" },
   "Africa/Nairobi": { lat: -1.29, lon: 36.82, place: "Nairobi" },
+  "Africa/Accra": { lat: 5.6, lon: -0.19, place: "Accra" },
+  "Africa/Casablanca": { lat: 33.57, lon: -7.59, place: "Casablanca" },
+  "America/Bogota": { lat: 4.71, lon: -74.07, place: "Bogotá" },
+  "America/Lima": { lat: -12.05, lon: -77.04, place: "Lima" },
+  "America/Denver": { lat: 39.74, lon: -104.99, place: "Denver" },
+  "America/Phoenix": { lat: 33.45, lon: -112.07, place: "Phoenix" },
+  "America/Vancouver": { lat: 49.28, lon: -123.12, place: "Vancouver" },
+  "America/Halifax": { lat: 44.65, lon: -63.58, place: "Halifax" },
+  "Asia/Bangkok": { lat: 13.76, lon: 100.5, place: "Bangkok" },
+  "Asia/Manila": { lat: 14.6, lon: 120.98, place: "Manila" },
+  "Asia/Kuala_Lumpur": { lat: 3.14, lon: 101.69, place: "Kuala Lumpur" },
+  "Asia/Ho_Chi_Minh": { lat: 10.82, lon: 106.63, place: "Ho Chi Minh City" },
+  "Asia/Riyadh": { lat: 24.71, lon: 46.68, place: "Riyadh" },
+  "Asia/Qatar": { lat: 25.29, lon: 51.53, place: "Doha" },
+  "Asia/Jerusalem": { lat: 31.78, lon: 35.22, place: "Jerusalem" },
+  "Asia/Tehran": { lat: 35.69, lon: 51.39, place: "Tehran" },
+  "Asia/Kathmandu": { lat: 27.72, lon: 85.32, place: "Kathmandu" },
+  "Asia/Taipei": { lat: 25.03, lon: 121.57, place: "Taipei" },
+  "Atlantic/Reykjavik": { lat: 64.15, lon: -21.94, place: "Reykjavík" },
+  "Europe/Dublin": { lat: 53.35, lon: -6.26, place: "Dublin" },
+  "Europe/Brussels": { lat: 50.85, lon: 4.35, place: "Brussels" },
+  "Europe/Zurich": { lat: 47.38, lon: 8.54, place: "Zürich" },
+  "Europe/Vienna": { lat: 48.21, lon: 16.37, place: "Vienna" },
+  "Europe/Prague": { lat: 50.08, lon: 14.44, place: "Prague" },
+  "Europe/Warsaw": { lat: 52.23, lon: 21.01, place: "Warsaw" },
+  "Europe/Stockholm": { lat: 59.33, lon: 18.07, place: "Stockholm" },
+  "Europe/Oslo": { lat: 59.91, lon: 10.75, place: "Oslo" },
+  "Europe/Copenhagen": { lat: 55.68, lon: 12.57, place: "Copenhagen" },
+  "Europe/Helsinki": { lat: 60.17, lon: 24.94, place: "Helsinki" },
+  "Europe/Athens": { lat: 37.98, lon: 23.73, place: "Athens" },
+  "Europe/Kyiv": { lat: 50.45, lon: 30.52, place: "Kyiv" },
+  "Pacific/Honolulu": { lat: 21.31, lon: -157.86, place: "Honolulu" },
   "Africa/Lagos": { lat: 6.52, lon: 3.38, place: "Lagos" },
   "Africa/Johannesburg": { lat: -26.2, lon: 28.05, place: "Johannesburg" },
 };
@@ -113,6 +145,17 @@ export interface Where {
   lat: number;
   lon: number;
   place: string;
+  /**
+   * True when the time zone was in the table and these are real coordinates.
+   *
+   * False means we guessed, and a guess is NOT good enough to ask a weather
+   * service about. An unlisted zone falls back to a longitude from the UTC
+   * offset and a latitude from the hemisphere, which put Reykjavik at 40°N —
+   * roughly Madrid, 2,700 km and one climate away. Showing an Icelandic
+   * visitor Spanish weather is worse than showing them nothing, so when this
+   * is false the fetch is skipped and the room keeps its clear sky.
+   */
+  known: boolean;
 }
 
 /**
@@ -126,8 +169,8 @@ export interface Where {
  */
 export function whereFromTimezone(tz?: string, offsetMinutes?: number): Where {
   const zone = tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const known = ZONES[zone];
-  if (known) return known;
+  const listed = ZONES[zone];
+  if (listed) return { ...listed, known: true };
 
   const offset = offsetMinutes ?? -new Date().getTimezoneOffset();
   const lon = Math.max(-180, Math.min(180, (offset / 60) * 15));
@@ -139,7 +182,7 @@ export function whereFromTimezone(tz?: string, offsetMinutes?: number): Where {
      Rather than assert a hemisphere we cannot know, this reads it off the
      clock: see hemisphere() below. Unlisted zones get a representative mid-
      latitude in whichever half they actually belong to. */
-  return { lat: 40 * hemisphere(), lon, place };
+  return { lat: 40 * hemisphere(), lon, place, known: false };
 }
 
 /**

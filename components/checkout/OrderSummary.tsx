@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
-import { GarmentArt } from "@/components/shop/GarmentArt";
+import { GarmentImage } from "@/components/shop/GarmentImage";
 
 export interface PricedLine {
   handle: string;
@@ -46,7 +46,7 @@ export function OrderSummary({
               className="grid h-20 w-16 shrink-0 place-items-center"
               style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
             >
-              <GarmentArt product={l.product} className="w-full" />
+              <GarmentImage product={l.product} className="w-full" />
             </span>
             <span className="min-w-0 flex-1">
               {editable ? (

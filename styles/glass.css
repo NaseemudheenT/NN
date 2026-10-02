@@ -3060,3 +3060,24 @@ button:focus-visible .nn-mark__n--b {
       var(--surface-base) 100%
     );
 }
+
+@layer components {
+  /* A photographed garment. The frame is the same aspect the drawing uses,
+     so a range that is half shot and half illustrated still lines up in a
+     grid — which it will be, for as long as the photography takes. */
+  .nn-garment {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--radius-chip);
+  }
+  .nn-garment__photo {
+    object-fit: cover;
+    object-position: center;
+    /* Garments are shot on a seamless ground; letting the image sit on the
+       page's own surface rather than on white keeps a cream backdrop from
+       cutting a bright rectangle out of a dark room. */
+    background: var(--surface-raised);
+  }
+}

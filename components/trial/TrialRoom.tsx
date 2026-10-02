@@ -26,6 +26,7 @@ import {
 } from "@/lib/fit";
 import { useBag } from "@/components/shop/BagProvider";
 import { GarmentArt } from "@/components/shop/GarmentArt";
+import { GarmentImage } from "@/components/shop/GarmentImage";
 import { track } from "@/components/layout/ConsentBanner";
 import { toast } from "@/components/layout/Toaster";
 
@@ -166,7 +167,7 @@ export function TrialRoom({ products }: { products: Product[] }) {
             <TrialRoomCanvas body={body} product={product} fit={fit?.chosen ?? null} turn={turn} />
           ) : (
             <div className="grid h-full place-items-center p-10">
-              <GarmentArt product={product} className="w-2/3 opacity-90" />
+              <GarmentImage product={product} className="w-2/3 opacity-90" sizes="320px" />
             </div>
           )}
 
@@ -235,6 +236,10 @@ export function TrialRoom({ products }: { products: Product[] }) {
                     background: on ? "var(--surface)" : "transparent",
                   }}
                 >
+                  {/* Thirty-six pixels wide. A photograph at this size is a
+                      smudge; the drawing is a simplified silhouette and reads
+                      more clearly small than a real one does, which is the
+                      whole reason icons are drawn rather than photographed. */}
                   <span className="grid h-9 w-7 place-items-center" style={{ background: "var(--paper)" }}>
                     <GarmentArt product={p} className="w-full" />
                   </span>

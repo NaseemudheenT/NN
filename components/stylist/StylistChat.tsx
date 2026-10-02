@@ -22,7 +22,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/catalog/types";
 import { formatMinor } from "@/lib/money";
-import { GarmentArt } from "@/components/shop/GarmentArt";
+import { GarmentImage } from "@/components/shop/GarmentImage";
 import { track, readConsent } from "@/components/layout/ConsentBanner";
 import { useBag } from "@/components/shop/BagProvider";
 import { useDayPhase } from "@/components/theme/ThemeProvider";
@@ -411,7 +411,7 @@ export function StylistChat({
                         className="grid h-14 w-11 shrink-0 place-items-center"
                         style={{ background: "var(--paper)" }}
                       >
-                        <GarmentArt product={p} className="w-full" />
+                        <GarmentImage product={p} className="w-full" />
                       </span>
                       <span className="text-left">
                         <span className="block text-fine text-[var(--ink)]">{p.name}</span>
