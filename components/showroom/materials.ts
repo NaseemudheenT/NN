@@ -1,239 +1,121 @@
+import * as THREE from "three";
+
 /**
- * The materials the house is made of.
+ * The showroom's materials.
  *
- * NERO NOREN is a hand-sculpted Mediterranean flagship: troweled lime on
- * thick masonry, Romanesque arches trimmed in fired clay, pale microcement
- * underfoot giving way to dark walnut in the lounges, and heavy timber
- * overhead. Not a white box, and not the austere black-marble palace this
- * file used to describe.
+ * Roughness is the only property that actually tells a viewer what something
+ * is made of, so these are set from how each surface really behaves rather
+ * than from how it should look in one particular light:
  *
- * Physically based values, not arbitrary ones. Metalness is 1 for metal and 0
- * for everything else, because that is what the parameter means. Roughness
- * comes from how the real surface is finished, and the finishes here are
- * deliberately rough: limewash and Roman clay are among the most matte
- * surfaces in architecture, around 0.95, which is precisely why they hold
- * light like velvet and why a garment in front of one reads so cleanly.
+ *   limewash plaster   0.95  — chalky, holds no highlight at all
+ *   travertine         0.72  — porous stone, a wide dull sheen
+ *   honed stone floor  0.28  — polished but not a mirror; takes a reflection
+ *   walnut             0.52  — oiled, not lacquered
+ *   brushed steel      0.38, metalness 1 — anisotropic in life, so a mid
+ *                              roughness is the closest an isotropic
+ *                              material gets without a custom shader
+ *   wool / cotton      0.88–0.94 — cloth has no specular to speak of
  *
- * ── where the colours come from ────────────────────────────────────────
- * The brand board wins, so every colour here is derived from it rather than
- * invented alongside it:
- *
- *   Antico White, Travertine Cream  ←  Ivory #F7F5EF, warmed with Stone
- *   Warm Sand Beige                 ←  Ivory + Stone + a little Taupe
- *   Muted Sage Green                ←  Olive #3EA639, heavily desaturated
- *   Dark Walnut                     ←  Taupe #6B5E52, deepened
- *   Timber beams                    ←  Taupe toward Charcoal #2E2E2E
- *   Deep shadow                     ←  Deep Black #0A0A0A
- *
- * Terracotta is the one exception and it is a deliberate one. The board's
- * Burgundy #A41F34 has more blue in it than green, so no mixture of board
- * colours can reach fired clay, which needs the opposite. Terracotta is
- * therefore treated exactly as the board treats gold: not a palette colour
- * but a MATERIAL — the colour a clay body turns in a kiln — and it lives
- * here in the materials layer rather than in tokens.css. It is pulled toward
- * Burgundy's hue so it still reads as a cousin of the house red.
- *
- * ── a cream room is mostly dark, but not everywhere ───────────────────
- * Albedo is not luminance. These surfaces are pale, but the lighting rig is
- * a vignette schema: tight beams on the garments, soft walkways, deep shadow
- * in between. Measured against the rig, most of the frame stays genuinely
- * dark — the walkway floor lands near sRGB 19, a wall at mid-height near 33,
- * the timber beams near 2 — and ivory type over any of those is 14:1 or
- * better.
- *
- * The pools are the exception, and it would be wrong to pretend otherwise. A
- * garment under a tight beam in a lit niche reaches about sRGB 206, where
- * ivory type would be 1.45:1, and limewash directly under a cove reaches
- * about 119, where it would be 4.11:1 — under AA. So the room emphatically
- * does NOT guarantee legibility on its own, and no interface text may rely
- * on it. Chrome over the canvas carries its own protection: the walk's scrim
- * for the broad case, and a local shadow on the hero lockup for the case
- * where a bright pool lands behind it. See .nn-walk__hero in styles/glass.css.
+ * Colours are the brand's Mediterranean palette: Antico White, Travertine
+ * Cream, Warm Sand Beige, Muted Sage, Dusty Terracotta. Deep Black and Ivory
+ * are the identity and stay on the garments and the signage.
  */
 
-export interface MaterialSpec {
-  colour: string;
-  roughness: number;
-  metalness: number;
-  /** Clearcoat-like sheen for cloth, 0 for everything else. */
-  sheen?: number;
-  sheenColour?: string;
-  /** Emissive strength, for the backlit sign and lamp shades. */
-  emissive?: string;
-  emissiveIntensity?: number;
-  transparent?: boolean;
-  opacity?: number;
-  /** Index of refraction, for glass. */
-  ior?: number;
-  transmission?: number;
+/* ── the palette, pulled warm ────────────────────────────────────
+   The first pass was measured off the brand board's flat swatches, and it
+   rendered cold: a hall of grey plaster under a white sun. That is not what
+   a European stone interior looks like at any hour. Limestone is yellow,
+   travertine is pink-beige, and every bounce in a room like this comes off
+   a warm surface and arrives warmer still — so the whole set is shifted
+   toward amber and the cool is left to the windows, where it belongs.
+   The CONTRAST between warm stone and cool daylight is the picture. */
+export const PALETTE = {
+  anticoWhite: "#e4d9c6",
+  travertine: "#d9c9ad",
+  warmSand: "#c4ab88",
+  sage: "#8e9a7c",
+  terracotta: "#a9705a",
+  /* dark, warm, and polished — oiled stone, not black marble. Black marble
+     reads as a bank lobby; this reads as a floor somebody waxes. */
+  stoneFloor: "#2a211a",
+  stoneFloorLight: "#5c4a38",
+  walnut: "#3f2a1b",
+  timber: "#4a3220",
+  steel: "#8d8a85",
+  black: "#0a0a0a",
+  ivory: "#f7f5ef",
+  leather: "#6b3f22",
+  foliage: "#55603f",
+  trunk: "#463a2c",
+} as const;
+
+const std = (p: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial(p);
+
+export function buildMaterials() {
+  return {
+    /* hand-troweled limewash over stone — the walls of the nave */
+    plaster: std({ color: PALETTE.anticoWhite, roughness: 0.92, metalness: 0 }),
+    /* travertine — piers, arch voussoirs, the window reveals */
+    stone: std({ color: PALETTE.travertine, roughness: 0.72, metalness: 0 }),
+    /* the aisle walls sit in shade and are a warmer, deeper sand */
+    sand: std({ color: PALETTE.warmSand, roughness: 0.9, metalness: 0 }),
+    /* honed basalt, laid in large format. Polished enough to carry the
+       window as a long smear of light down the floor, which is most of
+       what makes the hall feel like it has volume. */
+    floor: std({ color: PALETTE.stoneFloor, roughness: 0.28, metalness: 0.04 }),
+    timber: std({ color: PALETTE.timber, roughness: 0.68, metalness: 0 }),
+    walnut: std({ color: PALETTE.walnut, roughness: 0.52, metalness: 0 }),
+    steel: std({ color: PALETTE.steel, roughness: 0.38, metalness: 1 }),
+    blackMetal: std({ color: "#1a1816", roughness: 0.45, metalness: 0.85 }),
+    /* cognac leather: worn, slightly sheened where hands and backs have been */
+    leather: std({ color: PALETTE.leather, roughness: 0.48, metalness: 0.02 }),
+    foliage: std({ color: PALETTE.foliage, roughness: 0.88, metalness: 0, flatShading: true }),
+    trunk: std({ color: PALETTE.trunk, roughness: 0.92, metalness: 0 }),
+      planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
+
+    /* ── champagne gold, as the board uses it ──────────────────────
+       A METAL, not a colour. metalness 1 means it has no diffuse term at
+       all: everything you see in it is a reflection, so it goes dull in a
+       dark corner and catches fire under a spot — which is the whole reason
+       the brand board puts gold on foil, on an engraved button and on lit
+       signage and never on a flat fill. Used here on the rails, the door
+       furniture and the lettering over the entrance, and nowhere in the
+       interface. */
+    gold: std({ color: "#c5a059", roughness: 0.28, metalness: 1 }),
+    goldDark: std({ color: "#8a6f3c", roughness: 0.42, metalness: 1 }),
+
+    /* Dark oiled stone, laid in large format and polished enough to carry
+       the windows down the hall as long warm smears. */
+    marble: std({ color: PALETTE.stoneFloor, roughness: 0.2, metalness: 0.06 }),
+    marbleLight: std({ color: "#c9b79a", roughness: 0.3, metalness: 0.04 }),
+
+    /* the glass in the entrance doors */
+    glass: new THREE.MeshPhysicalMaterial({
+      color: "#aebcc4",
+      roughness: 0.06,
+      metalness: 0,
+      transmission: 0.88,
+      thickness: 0.04,
+      ior: 1.5,
+      transparent: true,
+      opacity: 0.42,
+    }),
+  };
 }
 
-export const MATERIALS = {
-  /* ═══ THE LIVING WALLS ═══════════════════════════════════════════
-     Limewash and Roman clay, both troweled by hand. Roughness is
-     pinned near the top of the scale: these finishes have almost no
-     specular lobe at all, and that absence is the entire effect. A
-     limewash wall rendered at 0.6 roughness looks like paint; at 0.95
-     it looks like lime, because the light leaves it diffusely in
-     every direction and the surface reads as depth rather than film. */
+export type Materials = ReturnType<typeof buildMaterials>;
 
-  /** Warm Sand Beige limewash. The default wall of the house. */
-  limewash: { colour: "#d4cdc0", roughness: 0.96, metalness: 0 },
-  /** Night: the same wall with the daylight off it, not a darker wall. */
-  limewashNight: { colour: "#6a6256", roughness: 0.96, metalness: 0 },
+/** Cloth. One per garment colour, cached by hex so a rail of six shirts is one material. */
+const clothCache = new Map<string, THREE.MeshStandardMaterial>();
+export function cloth(hex: string): THREE.MeshStandardMaterial {
+  let m = clothCache.get(hex);
+  if (!m) {
+    m = std({ color: hex, roughness: 0.9, metalness: 0 });
+    clothCache.set(hex, m);
+  }
+  return m;
+}
 
-  /** Muted Sage Green Roman clay, for the niche backs and the lounge bay. */
-  sage: { colour: "#8b9d80", roughness: 0.95, metalness: 0 },
-  sageNight: { colour: "#454f3f", roughness: 0.95, metalness: 0 },
-
-  /** Dusty Terracotta Roman clay, for the deep reveals behind the rails. */
-  terracotta: { colour: "#ab6a52", roughness: 0.95, metalness: 0 },
-  terracottaNight: { colour: "#5a3729", roughness: 0.95, metalness: 0 },
-
-  /** Antico White troweled stucco — the facade, and the arch soffits. */
-  stucco: { colour: "#ece9e0", roughness: 0.93, metalness: 0 },
-  stuccoNight: { colour: "#787468", roughness: 0.93, metalness: 0 },
-
-  /* ═══ THE ARCHES ═════════════════════════════════════════════════
-     Rich Colonial Brick Red on the archivolts: the band of fired clay
-     that frames every opening. Rotated toward orange from the board's
-     Burgundy, and slightly less matte than the clay walls because a
-     brick trim is usually sealed where a wall is not.               */
-  brick: { colour: "#9a4634", roughness: 0.84, metalness: 0 },
-  brickNight: { colour: "#52251b", roughness: 0.84, metalness: 0 },
-  /** Slurried brick: the facade's brick, washed with thinned lime. */
-  brickSlurried: { colour: "#b07a63", roughness: 0.9, metalness: 0 },
-
-  /* ═══ THE FLOOR ══════════════════════════════════════════════════
-     Matte microcement on the circulation paths, seamless and almost
-     without reflection, running into dark walnut chevron where the
-     couture lounges are. Two floors in one room is how a Mediterranean
-     house tells you where to walk and where to stay.                */
-
-  /** Honed travertine / microcement path. Pale, warm, matte. */
-  microcement: { colour: "#a39d93", roughness: 0.88, metalness: 0 },
-  microcementNight: { colour: "#54504a", roughness: 0.88, metalness: 0 },
-  /** Travertine, for thresholds, sills and the stair nosings. */
-  travertine: { colour: "#c3bcae", roughness: 0.8, metalness: 0 },
-  travertineNight: { colour: "#635e55", roughness: 0.8, metalness: 0 },
-
-  /** Dark Walnut chevron parquet. Oiled, so it holds a low sheen. */
-  walnutParquet: { colour: "#382e26", roughness: 0.52, metalness: 0 },
-  /** The alternate chevron leaf, a shade apart so the pattern reads. */
-  walnutParquetAlt: { colour: "#2f261f", roughness: 0.56, metalness: 0 },
-
-  /* ═══ THE CEILING ════════════════════════════════════════════════
-     Heavy exposed timber beams over troweled lime. The beams are the
-     darkest thing in the room, which is what stops a pale interior
-     from feeling like a gallery.                                    */
-  timber: { colour: "#262019", roughness: 0.74, metalness: 0 },
-  timberNight: { colour: "#171310", roughness: 0.74, metalness: 0 },
-  /** The lime soffit between the beams. */
-  ceiling: { colour: "#ded7ca", roughness: 0.95, metalness: 0 },
-  ceilingNight: { colour: "#6b6659", roughness: 0.95, metalness: 0 },
-
-  /* ═══ JOINERY ════════════════════════════════════════════════════ */
-  /** Dark walnut: the counter, the architraves, the table. */
-  walnut: { colour: "#3a2f26", roughness: 0.42, metalness: 0 },
-  /** Fumed oak, for the table and the bench. */
-  oak: { colour: "#54412f", roughness: 0.48, metalness: 0 },
-
-  /* ═══ METAL ══════════════════════════════════════════════════════
-     Brushed champagne-gold is the house fitting metal. Against warm
-     lime it needs to stay on the cool side of gold or it dissolves
-     into the wall — the reason the old black-walled room could carry
-     a yellower brass than this one can.                             */
-  champagne: { colour: "#c5a059", roughness: 0.32, metalness: 1 },
-  champagneBright: { colour: "#d8bb7e", roughness: 0.18, metalness: 1 },
-  brass: { colour: "#c9a43a", roughness: 0.26, metalness: 1 },
-  brassBright: { colour: "#e0c063", roughness: 0.1, metalness: 1 },
-  /** Antique bronze, for the mirror frame. */
-  bronze: { colour: "#6b5431", roughness: 0.34, metalness: 1 },
-  /** Blackened steel, for the window frames and the grilles. */
-  steel: { colour: "#16161a", roughness: 0.38, metalness: 1 },
-  /** Brushed stainless, for the entrance portal furniture. */
-  brushedSteel: { colour: "#8f9299", roughness: 0.34, metalness: 1 },
-
-  /* ═══ GLASS ══════════════════════════════════════════════════════ */
-  glass: {
-    colour: "#eef3f6",
-    roughness: 0.03,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.16,
-    ior: 1.52,
-    transmission: 0.93,
-  },
-  mirror: { colour: "#f4f5f4", roughness: 0.015, metalness: 1 },
-  /** The entrance doors: dark enough that the room is a suggestion
-      from the pavement rather than a display. You have to come in. */
-  smokedGlass: {
-    colour: "#20222a",
-    roughness: 0.05,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.55,
-    ior: 1.52,
-    transmission: 0.62,
-  },
-
-  /* ═══ THE FORMS ══════════════════════════════════════════════════
-     Matte black mannequins. Against pale lime they now separate on
-     their own, so the roughness lift the old black floor needed is
-     gone and they are properly matte again.                        */
-  mannequin: { colour: "#1a1a1c", roughness: 0.58, metalness: 0 },
-
-  /* ═══ CLOTH ══════════════════════════════════════════════════════
-     Sheen is what makes fabric read as fabric: real fibres scatter
-     light off their ends at grazing angles, and a material without it
-     reads as painted plastic.                                       */
-  linen: { colour: "#e8e1d2", roughness: 0.88, metalness: 0, sheen: 0.45, sheenColour: "#fffaf0" },
-  cotton: { colour: "#f3f2ee", roughness: 0.72, metalness: 0, sheen: 0.55, sheenColour: "#ffffff" },
-  twill: { colour: "#3a3a3d", roughness: 0.82, metalness: 0, sheen: 0.25, sheenColour: "#d8d2c6" },
-  /** Burgundy velvet on the fitting-room bench — the board's own red. */
-  velvet: { colour: "#5c1f24", roughness: 0.94, metalness: 0, sheen: 0.85, sheenColour: "#b06a70" },
-
-  /* ═══ LIGHT SOURCES ══════════════════════════════════════════════ */
-  /** The diffuser of the backlit NN sign box: `colour` is the acrylic's own
-      ivory, which is what you see in daylight with the box off, and
-      `emissive` is the colour of the light coming through it when it is on.
-      The light is a cool ivory and NOT gold, which is the whole point. Gold
-      is the board's MATERIAL, so it belongs on the letters standing in front
-      of this panel, where it can catch a highlight; a gold-tinted glow would
-      make it a flat fill instead.
-      It also has to be a cool ivory to be visible at all. The sign hangs on
-      the limewash counter wall, and measured against that wall the old gold
-      glow (#c9a43a) was both DARKER than the lime it sat on — luminance
-      0.393 against 0.615 — and far warmer, red-minus-blue 0.56 against the
-      wall's 0.08. A backlit sign dimmer and warmer than its own wall is the
-      dissolve this file warns about two blocks down. This ivory is brighter
-      than the lime (0.843) and a shade cooler (0.067), so the panel reads as
-      a lit thing on a wall rather than a warm patch of the wall, by day and
-      at night (5.11:1 against limewashNight). Hue is no help here and is not
-      being asked to do any: every gold in this table sits within 6° of
-      limewash, champagne within 0.4°, so luminance is the only axis a sign on
-      this wall can separate on. */
-  signFace: {
-    colour: "#efe9dd",
-    roughness: 0.6,
-    metalness: 0,
-    emissive: "#f2ece1",
-    emissiveIntensity: 1,
-  },
-  /** Lamp shade, lit from inside. */
-  lampShade: {
-    colour: "#f0e6cf",
-    roughness: 0.7,
-    metalness: 0,
-    emissive: "#ffd9a0",
-    emissiveIntensity: 1,
-  },
-  /* No entry for the cove strips. A strip IS a light source, so it must not
-     be tone-mapped — otherwise the exposure that makes the room look right
-     crushes the emitter to a dull band. They are drawn with a basic material
-     and toneMapped={false} in ArchitecturalLighting, which is the correct
-     tool; a physically based MaterialSpec is the wrong one and having one
-     here only invited somebody to use it. */
-} as const satisfies Record<string, MaterialSpec>;
-
-export type MaterialName = keyof typeof MATERIALS;
+export function disposeMaterials(m: Materials) {
+  Object.values(m).forEach((mat) => mat.dispose());
+}

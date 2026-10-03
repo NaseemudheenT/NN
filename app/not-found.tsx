@@ -1,30 +1,24 @@
 import Link from "next/link";
-import { LogoMark } from "@/components/brand/LogoMark";
+import { Monogram } from "@/components/brand/Monogram";
 
 export const metadata = { title: "Not found" };
 
 export default function NotFound() {
   return (
-    <div className="nn-wrap grid min-h-[72svh] place-items-center py-28 text-center">
-      <div className="max-w-[42ch]">
-        <div className="flex justify-center">
-          <LogoMark size={48} sheen="loop" />
-        </div>
-        <p className="nn-eyebrow mt-10">404</p>
-        <h1 className="mt-4 text-title">This room does not exist</h1>
-        <p className="mt-5 text-[var(--ink-soft)]">
+    <section className="miss band">
+      <div className="wrap miss__in">
+        <Monogram size={44} className="miss__mark" />
+        <p className="label label--soft">404</p>
+        <h1 className="d-h1">This room does not exist</h1>
+        <p className="lead">
           The page you were looking for is not here. The showroom is, and so is the whole
           collection.
         </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link href="/" className="nn-btn nn-btn--gold">
-            <span>Back to the showroom</span>
-          </Link>
-          <Link href="/collection" className="nn-btn nn-btn--quiet">
-            <span>See Collection 001</span>
-          </Link>
+        <div className="miss__acts">
+          <Link href="/" className="btn btn--solid btn--lg">Back to the showroom</Link>
+          <Link href="/collection" className="btn btn--line btn--lg">See Collection 001</Link>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

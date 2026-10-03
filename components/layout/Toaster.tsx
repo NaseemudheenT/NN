@@ -1,50 +1,50 @@
 "use client";
 
-/**
- * A single quiet line of confirmation, bottom centre. Announced politely to
- * screen readers so an "added to bag" is never silent.
- */
-
 import { useEffect, useState } from "react";
 
-const EVENT = "nn:toast";
+/**
+ * Confirmations.
+ *
+ * A module-level emitter rather than a context, because the thing that needs
+ * to say "added" is often three providers below the thing that renders it,
+ * and threading a callback through all of them to move one line of text is
+ * not a design, it is plumbing.
+ *
+ * Announced politely to assistive technology: a confirmation should reach a
+ * screen reader without interrupting whatever it was reading.
+ */
 
-export function toast(message: string) {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent<string>(EVENT, { detail: message }));
+export interface Toast { id: number; text: string; href?: string; label?: string }
+
+type Listener = (t: Toast) => void;
+const listeners = new Set<Listener>();
+let nextId = 1;
+
+export function toast(text: string, action?: { href: string; label: string }) {
+  const t: Toast = { id: nextId++, text, href: action?.href, label: action?.label };
+  listeners.forEach((l) => l(t));
 }
 
 export function Toaster() {
-  const [message, setMessage] = useState<string | null>(null);
+  const [items, setItems] = useState<Toast[]>([]);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    const onToast = (e: Event) => {
-      setMessage((e as CustomEvent<string>).detail);
-      clearTimeout(timer);
-      timer = setTimeout(() => setMessage(null), 2800);
+    const on: Listener = (t) => {
+      setItems((list) => [...list.slice(-2), t]);
+      window.setTimeout(() => setItems((list) => list.filter((x) => x.id !== t.id)), 4200);
     };
-    window.addEventListener(EVENT, onToast);
-    return () => {
-      window.removeEventListener(EVENT, onToast);
-      clearTimeout(timer);
-    };
+    listeners.add(on);
+    return () => { listeners.delete(on); };
   }, []);
 
   return (
-    <div
-      aria-live="polite"
-      aria-atomic="true"
-      className="pointer-events-none fixed inset-x-0 bottom-8 z-50 flex justify-center px-4"
-    >
-      {message ? (
-        <p
-          className="nn-panel nn-fade-up m-0 px-5 py-3 text-fine"
-          style={{ borderColor: "var(--accent)" }}
-        >
-          {message}
-        </p>
-      ) : null}
+    <div className="toasts" role="status" aria-live="polite">
+      {items.map((t) => (
+        <div key={t.id} className="toast glass">
+          <span>{t.text}</span>
+          {t.href ? <a href={t.href} className="ul-grow label">{t.label}</a> : null}
+        </div>
+      ))}
     </div>
   );
 }

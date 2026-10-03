@@ -1,222 +1,125 @@
 "use client";
 
-/**
- * The bag drawer.
- *
- * Prices are looked up from the catalogue the page was rendered with, never
- * read from storage, so a price change on Shopify is reflected the moment the
- * bag is next opened rather than being frozen at the moment of adding.
- */
-
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import type { Product } from "@/lib/catalog/types";
+import { useMemo } from "react";
+import { Bag as BagIcon, Close, Minus, Plus, Trash, Truck } from "@/components/ui/icons";
+import { useBag } from "@/lib/bag/BagProvider";
 import { formatMinor } from "@/lib/money";
-import { useBag } from "./BagProvider";
-import { GarmentImage } from "./GarmentImage";
+import type { Product } from "@/lib/catalog/types";
+import { useEscape, useFocusTrap, useLockScroll } from "@/lib/ui/overlay";
 
-export function BagDrawer({ products }: { products: Product[] }) {
-  const { isOpen, closeBag, lines, setQuantity, remove, count } = useBag();
-  const drawer = useRef<HTMLDivElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
+/**
+ * The bag.
+ *
+ * Prices are READ FROM THE CATALOGUE every time this opens — never stored on
+ * the line. A bag kept on a device for three weeks must not quote a price
+ * from three weeks ago, and more to the point, the number the customer sees
+ * here is only a display: the server prices the order again at checkout from
+ * the handles and sizes, and that figure is the one that is charged.
+ */
+export function BagDrawer({ catalogue }: { catalogue: Product[] }) {
+  const { lines, isOpen, closeBag, setQuantity, remove, count } = useBag();
 
-  const byHandle = useMemo(
-    () => new Map(products.map((p) => [p.handle, p])),
-    [products],
-  );
+  const ref = useFocusTrap<HTMLDivElement>(isOpen);
+  useEscape(isOpen, closeBag);
+  useLockScroll(isOpen);
 
-  const priced = useMemo(
+  const rows = useMemo(
     () =>
-      lines.flatMap((line) => {
-        const product = byHandle.get(line.handle);
-        if (!product) return [];
-        const variant = product.variants.find((v) => v.size === line.size);
-        const unitMinor = variant?.priceMinor ?? product.priceMinor;
-        return [{ line, product, unitMinor, totalMinor: unitMinor * line.quantity }];
-      }),
-    [lines, byHandle],
+      lines
+        .map((l) => {
+          const product = catalogue.find((p) => p.handle === l.handle);
+          if (!product) return null;
+          const variant = product.variants.find((v) => v.size === l.size);
+          const unit = variant?.priceMinor ?? product.priceMinor;
+          return { line: l, product, unit, total: unit * l.quantity };
+        })
+        .filter(Boolean) as { line: (typeof lines)[number]; product: Product; unit: number; total: number }[],
+    [lines, catalogue],
   );
 
-  const subtotalMinor = priced.reduce((a, p) => a + p.totalMinor, 0);
-  const currency = priced[0]?.product.currency ?? "INR";
-
-  /* focus management, the same contract as the product panel */
-  useEffect(() => {
-    if (isOpen) {
-      opener.current = document.activeElement as HTMLElement | null;
-      drawer.current
-        ?.querySelector<HTMLElement>('button, [href], input, [tabindex]:not([tabindex="-1"])')
-        ?.focus();
-    } else {
-      opener.current?.focus?.();
-    }
-  }, [isOpen]);
-
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeBag();
-        return;
-      }
-      if (e.key !== "Tab" || !drawer.current) return;
-      const focusable = Array.from(
-        drawer.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((el) => el.offsetParent !== null);
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    },
-    [closeBag],
-  );
+  const subtotal = rows.reduce((a, r) => a + r.total, 0);
+  const currency = rows[0]?.product.currency ?? "INR";
 
   if (!isOpen) return null;
 
   return (
-    <>
-      <button
-        type="button"
-        aria-label="Close the bag"
-        onClick={closeBag}
-        tabIndex={-1}
-        className="fixed inset-0 z-40 cursor-default border-0 p-0"
-        style={{ background: "color-mix(in srgb, #000 42%, transparent)" }}
-      />
-
+    <div className="sheet" role="presentation">
+      <button type="button" className="sheet__scrim" aria-label="Close bag" onClick={closeBag} />
       <div
-        ref={drawer}
+        ref={ref}
+        className="sheet__panel sheet__panel--right glass glass--light"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="nn-bag-title"
-        onKeyDown={onKeyDown}
-        className="nn-panel fixed right-0 top-0 z-50 flex h-full w-full max-w-[28rem] flex-col"
-        style={{ animation: "nn-slide-in 480ms var(--ease-showroom) both" }}
+        aria-label="Your bag"
+        tabIndex={-1}
       >
-        <div className="flex items-baseline justify-between gap-4 border-b p-6">
-          <h2 id="nn-bag-title" className="text-lead">
-            Your bag
-            <span className="nn-tabular ml-2 text-fine text-[var(--ink-faint)]">
-              {count} {count === 1 ? "item" : "items"}
-            </span>
-          </h2>
-          <button
-            type="button"
-            onClick={closeBag}
-            className="nn-link text-eyebrow uppercase tracking-[0.16em]"
-          >
-            Close
-          </button>
-        </div>
+        <header className="sheet__head">
+          <span className="label">Your bag {count > 0 ? `(${count})` : ""}</span>
+          <span className="bagd__sub">
+            <span className="label label--soft">Subtotal</span>{" "}
+            <strong className="tnum">{formatMinor(subtotal, currency)}</strong>
+          </span>
+          <button type="button" className="icon-btn" onClick={closeBag} aria-label="Close"><Close /></button>
+        </header>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {priced.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-[var(--ink-soft)]">Your bag is empty.</p>
-              <Link href="/collection" onClick={closeBag} className="nn-btn nn-btn--sm mt-6">
-                <span>See Collection 001</span>
-              </Link>
-            </div>
-          ) : (
-            <ul className="m-0 flex list-none flex-col gap-6 p-0">
-              {priced.map(({ line, product, unitMinor, totalMinor }) => (
-                <li key={`${line.handle}-${line.size}`} className="flex gap-4 border-b pb-6">
-                  <div
-                    className="grid w-20 shrink-0 place-items-center p-2"
-                    style={{ background: "var(--paper)", border: "1px solid var(--line)" }}
-                  >
-                    <GarmentImage product={product} className="w-full" />
+        {rows.length === 0 ? (
+          <div className="bagd__empty">
+            <BagIcon size={34} />
+            <h2 className="d-h3">Nothing in the bag yet</h2>
+            <p className="lead">Collection 001 is eight pieces, cut to go with each other.</p>
+            <Link href="/collection" className="btn btn--solid" onClick={closeBag}>See the collection</Link>
+          </div>
+        ) : (
+          <>
+            <ul className="bagd__list">
+              {rows.map(({ line, product, total }) => (
+                <li key={`${line.handle}-${line.size}`} className="bagd__row">
+                  <Link href={`/product/${product.handle}`} className="bagd__img" onClick={closeBag}>
+                    {product.images[0] ? (
+                      <Image src={product.images[0].url} alt={product.images[0].alt} width={88} height={116} />
+                    ) : (
+                      <span className="bagd__swatch" style={{ background: product.hex }} />
+                    )}
+                  </Link>
+                  <div className="bagd__body">
+                    <Link href={`/product/${product.handle}`} className="bagd__name" onClick={closeBag}>
+                      {product.name}
+                    </Link>
+                    <span className="small muted">{product.colour} · {line.size}</span>
+                    <strong className="tnum bagd__price">{formatMinor(total, product.currency)}</strong>
                   </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link
-                          href={`/product/${product.handle}`}
-                          onClick={closeBag}
-                          className="block truncate text-[var(--ink)] no-underline hover:text-[var(--accent)]"
-                        >
-                          {product.name}
-                        </Link>
-                        <p className="mt-0.5 text-fine text-[var(--ink-soft)]">
-                          {product.colour} · {product.type === "shirt" ? "Size" : "Waist"} {line.size}
-                        </p>
-                      </div>
-                      <p className="nn-tabular shrink-0 text-fine">
-                        {formatMinor(totalMinor, product.currency)}
-                      </p>
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-3">
-                      <div
-                        className="inline-flex items-center"
-                        style={{ border: "1px solid var(--line)" }}
-                      >
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 text-[var(--ink-soft)] hover:text-[var(--accent)]"
-                          onClick={() => setQuantity(line.handle, line.size, line.quantity - 1)}
-                          aria-label={`Reduce the quantity of ${product.name}, size ${line.size}`}
-                        >
-                          −
-                        </button>
-                        <span className="nn-tabular min-w-[2rem] text-center text-fine">
-                          {line.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 text-[var(--ink-soft)] hover:text-[var(--accent)]"
-                          onClick={() => setQuantity(line.handle, line.size, line.quantity + 1)}
-                          aria-label={`Increase the quantity of ${product.name}, size ${line.size}`}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="nn-tabular text-[0.72rem] text-[var(--ink-faint)]">
-                        {formatMinor(unitMinor, product.currency)} each
-                      </span>
+                  <div className="bagd__acts">
+                    <div className="stepper">
                       <button
-                        type="button"
-                        onClick={() => remove(line.handle, line.size)}
-                        className="nn-link ml-auto text-[0.72rem] uppercase tracking-[0.14em]"
-                      >
-                        Remove
-                      </button>
+                        type="button" className="icon-btn" aria-label="One fewer"
+                        onClick={() => setQuantity(line.handle, line.size, line.quantity - 1)}
+                      ><Minus size={14} /></button>
+                      <span className="tnum" aria-label={`Quantity ${line.quantity}`}>{line.quantity}</span>
+                      <button
+                        type="button" className="icon-btn" aria-label="One more"
+                        onClick={() => setQuantity(line.handle, line.size, line.quantity + 1)}
+                      ><Plus size={14} /></button>
                     </div>
+                    <button
+                      type="button" className="icon-btn" aria-label={`Remove ${product.name}`}
+                      onClick={() => remove(line.handle, line.size)}
+                    ><Trash size={16} /></button>
                   </div>
                 </li>
               ))}
             </ul>
-          )}
-        </div>
 
-        {priced.length > 0 ? (
-          <div className="border-t p-6">
-            <div className="flex items-baseline justify-between">
-              <span className="nn-eyebrow">Subtotal</span>
-              <span className="nn-tabular text-lead">
-                {formatMinor(subtotalMinor, currency)}
-              </span>
-            </div>
-            <p className="mt-2 text-[0.72rem] text-[var(--ink-faint)]">
-              Includes GST. Delivery is calculated at checkout.
-            </p>
-            <Link href="/checkout" onClick={closeBag} className="nn-btn nn-btn--solid mt-5 w-full">
-              <span>Checkout</span>
-            </Link>
-            <Link href="/bag" onClick={closeBag} className="nn-link mt-4 block text-center text-fine">
-              See the full bag
-            </Link>
-          </div>
-        ) : null}
+            <footer className="bagd__foot">
+              <p className="small muted bagd__eta"><Truck size={15} /> Estimated delivery 2–4 days</p>
+              <Link href="/checkout" className="btn btn--solid btn--block btn--lg" onClick={closeBag}>
+                Checkout · {formatMinor(subtotal, currency)}
+              </Link>
+            </footer>
+          </>
+        )}
       </div>
-    </>
+    </div>
   );
 }

@@ -23,6 +23,10 @@ export default async function OwnerPage() {
     products: business.products.map((p) => ({
       handle: p.handle,
       title: p.title,
+      /* null means "we do not know" — Shopify orders are not connected, or
+         there are too few views for a rate to mean anything. The console
+         prints an em dash for these rather than a zero, because a zero is a
+         claim and a dash is not. */
       unitsSold: p.unitsSold,
       revenueMinor: p.revenueMinor,
       views: p.views,

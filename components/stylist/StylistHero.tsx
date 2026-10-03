@@ -1,38 +1,62 @@
 "use client";
 
+import Link from "next/link";
+import { Monogram } from "@/components/brand/Monogram";
+import { ArrowRight } from "@/components/ui/icons";
+import { useStylist } from "./StylistProvider";
+
+const PROMPTS = ["Wedding look", "Business attire", "European style", "Winter outfit"];
+
 /**
- * The stylist's own entrance.
+ * The stylist's own page.
  *
- * The NN Stylist button, at the head of the stylist page. Activating it puts
- * the cursor in the question field, which is the one thing a customer arriving
- * here actually wants.
- *
- * It sits on the stylist page rather than the home page deliberately: the home
- * page already runs the showroom and the living monogram, and a third WebGL
- * context there would cost more than it returns.
+ * The conversation itself lives in the panel, so that an answer given on a
+ * product page and an answer given here are the same conversation — opening
+ * this page and losing the thread you started two clicks ago would be a
+ * different assistant wearing the same name.
  */
-
-import { useCallback } from "react";
-import { NNAiButton } from "@/components/brand/NNAiButton";
-
-export function StylistHero() {
-  const focusInput = useCallback(() => {
-    const input = document.getElementById("nn-stylist-input") as HTMLInputElement | null;
-    input?.focus();
-    input?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, []);
+export function StylistHero({ live, count }: { live: boolean; count: number }) {
+  const { open } = useStylist();
 
   return (
-    <div
-      className="relative mx-auto w-full overflow-hidden border"
-      style={{
-        maxWidth: "46rem",
-        aspectRatio: "16 / 7",
-        borderColor: "var(--line)",
-        background: "#0b0b0c",
-      }}
-    >
-      <NNAiButton onActivate={focusInput} label="Ask the NN stylist" />
-    </div>
+    <section className="sty nn-room">
+      <div className="wrap sty__in">
+        <div className="sty__body">
+          <p className="sty__badge label"><Monogram size={18} /> AI stylist</p>
+          <h1 className="d-h1">Your personal styling assistant</h1>
+          <p className="lead sty__lead">
+            Tell us what you are looking for and we will put together a look from the Nero Noren
+            collection. Everything suggested is one of the {count} pieces actually in the catalogue —
+            in a size that is actually in stock.
+          </p>
+
+          <button type="button" className="sty__ask" onClick={open}>
+            <span className="sty__ask-text">e.g. &ldquo;I need a look for a formal dinner&rdquo;</span>
+            <span className="sty__ask-go" aria-hidden><ArrowRight size={17} /></span>
+          </button>
+
+          <p className="label label--soft sty__popular">Popular requests</p>
+          <ul className="sty__chips">
+            {PROMPTS.map((p) => (
+              <li key={p}><button type="button" className="chip" onClick={open}>{p}</button></li>
+            ))}
+          </ul>
+
+          {!live ? (
+            <p className="small sty__offline">
+              The stylist is not connected yet. Until it is,{" "}
+              <Link href="/collection" className="ul-grow">the collection</Link> is eight pieces and
+              they all go together — that is what it was cut for.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="sty__orb" aria-hidden>
+          <span className="sty__orb-core" />
+          <span className="sty__orb-halo" />
+        </div>
+      </div>
+      <p className="wrap label label--soft sty__sig">Style, refined by AI</p>
+    </section>
   );
 }

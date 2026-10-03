@@ -1,43 +1,19 @@
 "use client";
 
-/**
- * The owner console.
- *
- * Sign in with a magic link to an email on the OWNER_EMAILS list. Anyone else is
- * refused — and refused clearly, because a vague "access denied" wastes the
- * owner's time when they mistype their own address.
- *
- * Every figure shown here is either real or labelled as unavailable. There is no
- * placeholder data anywhere in this screen: a dashboard that shows an invented
- * conversion rate is actively harmful, because it gets acted on.
- */
-
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Product } from "@/lib/catalog/types";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { Monogram } from "@/components/brand/Monogram";
 import { formatMinor } from "@/lib/money";
-import { LogoMark } from "@/components/brand/LogoMark";
-
-interface Metric {
-  label: string;
-  value: number | null;
-  kind: "currency" | "count" | "percent" | "ratio";
-  unavailable?: string;
-  basis?: string;
-}
-
-interface ProductPerformance {
-  handle: string;
-  title: string;
-  unitsSold: number | null;
-  revenueMinor: number | null;
-  views: number;
-  addsToBag: number;
-  addRate: number | null;
-}
+import { askInsight, readSettings, writeSettings } from "@/lib/owner-client";
+import type { Metric } from "@/lib/business";
+import type { Product } from "@/lib/catalog/types";
 
 export interface OwnerData {
   metrics: Metric[];
-  products: ProductPerformance[];
+  products: {
+    handle: string; title: string; unitsSold: number | null; revenueMinor: number | null;
+    views: number; addsToBag: number; addRate: number | null;
+  }[];
   gaps: string[];
   windowDays: number;
   analyticsSource: string;
@@ -45,22 +21,40 @@ export interface OwnerData {
   currency: string;
 }
 
-interface Settings {
-  featuredHandle: string | null;
-  forcedPhase: string | null;
-  placements: Record<string, string>;
-}
-
-const PLACEMENT_LABELS: Record<string, string> = {
-  "rail-a": "Rail one",
-  "rail-b": "Rail two",
-  table: "The oak table",
-  "mannequin-1": "Mannequin one",
-  "mannequin-2": "Mannequin two",
-};
-
 const PHASES = ["morning", "afternoon", "evening", "night"] as const;
 
+/**
+ * A figure, or an em dash.
+ *
+ * `null` from the business layer means the number cannot be computed from
+ * the data we hold — Shopify orders are not connected, or there are too few
+ * views for a rate to mean anything. Printing 0 there would be a claim about
+ * the business that is not true. A dash, with the reason under it, is.
+ */
+function renderMetric(m: Metric, currency: string): string {
+  if (m.value === null) return "—";
+  switch (m.kind) {
+    case "currency": return formatMinor(m.value, currency);
+    case "percent":  return `${(m.value * 100).toFixed(1)}%`;
+    case "ratio":    return m.value.toFixed(2);
+    default:         return new Intl.NumberFormat("en-IN").format(m.value);
+  }
+}
+
+/**
+ * The operations room.
+ *
+ * Not an admin dashboard with the showroom's wallpaper on it. It is plain,
+ * dense and fast, because the Founder opens it to answer a question and
+ * close it again — and because the one thing a business console must never
+ * do is make a number harder to read than it has to be.
+ *
+ * Sign-in is a Supabase magic link. The anon key below is publishable by
+ * design: it is what a browser needs to START a sign-in. It authorises
+ * nothing on its own. Every route this console calls re-checks the returned
+ * token server-side against OWNER_EMAILS, so holding the key gets you a
+ * login form and nothing else.
+ */
 export function OwnerConsole({
   data,
   products,
@@ -68,7 +62,7 @@ export function OwnerConsole({
   supabaseUrl,
   supabaseAnonKey,
   ownerListConfigured,
-  settings: initialSettings,
+  settings,
   settingsNote,
 }: {
   data: OwnerData;
@@ -77,569 +71,225 @@ export function OwnerConsole({
   supabaseUrl: string;
   supabaseAnonKey: string;
   ownerListConfigured: boolean;
-  settings: Settings;
+  settings: { placements?: Record<string, string>; featuredHandle?: string | null; forcedPhase?: string | null };
   settingsNote?: string;
 }) {
+  const [client, setClient] = useState<SupabaseClient | null>(null);
   const [email, setEmail] = useState("");
-  const [authState, setAuthState] = useState<"out" | "sending" | "sent" | "in" | "refused">("out");
-  const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const [who, setWho] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+  const [note, setNote] = useState("");
 
-  const [settings, setSettings] = useState<Settings>(initialSettings);
-  const [saving, setSaving] = useState(false);
-  const [saveNote, setSaveNote] = useState<string | null>(settingsNote ?? null);
-
+  const [featured, setFeatured] = useState(settings.featuredHandle ?? "");
+  const [forced, setForced] = useState(settings.forcedPhase ?? "");
   const [question, setQuestion] = useState("");
-  const [insight, setInsight] = useState<string>("");
+  const [answer, setAnswer] = useState("");
   const [thinking, setThinking] = useState(false);
 
-  /* ── auth ── */
-
-  /** Supabase returns the session in the URL fragment after a magic link. */
   useEffect(() => {
-    if (!window.location.hash.includes("access_token")) return;
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    const accessToken = params.get("access_token");
-    if (!accessToken) return;
+    if (!supabaseConfigured || !supabaseUrl || !supabaseAnonKey) return;
+    const c = createClient(supabaseUrl, supabaseAnonKey);
+    setClient(c);
+    void c.auth.getSession().then(({ data: s }) => {
+      setToken(s.session?.access_token ?? null);
+      setWho(s.session?.user?.email ?? null);
+    });
+    const { data: sub } = c.auth.onAuthStateChange((_e, session) => {
+      setToken(session?.access_token ?? null);
+      setWho(session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [supabaseConfigured, supabaseUrl, supabaseAnonKey]);
 
-    // Clear the fragment so the token is not left in the address bar or history.
-    window.history.replaceState(null, "", window.location.pathname);
+  /* Read the live settings once signed in — the server-rendered copy above
+     was read without a token and may be the defaults. */
+  useEffect(() => {
+    if (!token) return;
+    void readSettings(token).then((s) => {
+      if (!s) return;
+      setFeatured(s.featuredHandle ?? "");
+      setForced(s.forcedPhase ?? "");
+    });
+  }, [token]);
 
-    void (async () => {
-      try {
-        const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-          headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${accessToken}` },
-        });
-        const user = (await res.json()) as { email?: string };
-        if (!res.ok || !user.email) {
-          setAuthState("refused");
-          setAuthMessage("That sign-in link could not be verified. Ask for a new one.");
-          return;
-        }
-        // Confirm with the server that this email is actually an owner.
-        const check = await fetch("/api/owner/settings", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (check.status === 403) {
-          setAuthState("refused");
-          setAuthMessage(
-            `${user.email} is not on the owner list. Add it to OWNER_EMAILS in .env.local if it should be.`,
-          );
-          return;
-        }
-        setToken(accessToken);
-        setSignedInAs(user.email);
-        setAuthState("in");
-        const payload = (await check.json()) as { settings?: Settings };
-        if (payload.settings) setSettings(payload.settings);
-      } catch {
-        setAuthState("refused");
-        setAuthMessage("We could not complete the sign-in.");
-      }
-    })();
-  }, [supabaseUrl, supabaseAnonKey]);
+  const signIn = useCallback(async () => {
+    if (!client || !email) return;
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/owner` },
+    });
+    setNote(error ? error.message : "Check your email for the link.");
+    setSent(!error);
+  }, [client, email]);
 
-  const sendLink = useCallback(async () => {
-    const address = email.trim().toLowerCase();
-    if (!address) return;
-    setAuthState("sending");
-    setAuthMessage(null);
-    try {
-      const res = await fetch(`${supabaseUrl}/auth/v1/otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: supabaseAnonKey },
-        body: JSON.stringify({
-          email: address,
-          create_user: false,
-          options: { email_redirect_to: window.location.href.split("#")[0] },
-        }),
-      });
-      if (!res.ok) {
-        const detail = (await res.json().catch(() => null)) as { msg?: string } | null;
-        setAuthState("out");
-        setAuthMessage(detail?.msg ?? "Supabase would not send the link.");
-        return;
-      }
-      setAuthState("sent");
-      // Deliberately the same message whatever the address, so this page cannot
-      // be used to find out which emails are owners.
-      setAuthMessage(
-        "If that address is on the owner list, a sign-in link is on its way. It is valid for one hour.",
-      );
-    } catch {
-      setAuthState("out");
-      setAuthMessage("We could not reach Supabase to send the link.");
-    }
-  }, [email, supabaseUrl, supabaseAnonKey]);
-
-  /* ── settings ── */
-
-  const saveSettings = useCallback(
-    async (next: Partial<Settings>) => {
+  const save = useCallback(
+    async (patch: Parameters<typeof writeSettings>[1]) => {
       if (!token) return;
-      setSaving(true);
-      setSaveNote(null);
-      const merged = { ...settings, ...next };
-      setSettings(merged);
-      try {
-        const res = await fetch("/api/owner/settings", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(merged),
-        });
-        const payload = (await res.json()) as { message?: string; settings?: Settings };
-        if (!res.ok) {
-          setSaveNote(payload.message ?? "The settings could not be saved.");
-        } else {
-          setSaveNote("Saved. The live showroom will pick this up within the hour.");
-          if (payload.settings) setSettings(payload.settings);
-        }
-      } catch {
-        setSaveNote("The settings could not be saved.");
-      } finally {
-        setSaving(false);
-      }
+      const res = await writeSettings(token, patch);
+      setNote(res.ok ? "Saved." : res.message ?? "Could not save.");
     },
-    [token, settings],
+    [token],
   );
 
-  /* ── the command centre ── */
+  const ask = useCallback(async () => {
+    if (!token || !question.trim()) return;
+    setThinking(true);
+    const res = await askInsight(token, question.trim());
+    setAnswer(res.answer);
+    setThinking(false);
+  }, [token, question]);
 
-  const ask = useCallback(
-    async (q: string) => {
-      if (!token || thinking) return;
-      setThinking(true);
-      setInsight("");
-      try {
-        const res = await fetch("/api/owner/insight", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ question: q }),
-        });
-        if (!res.ok || !res.body) {
-          const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-          setInsight(payload?.message ?? "The command centre is unavailable.");
-          return;
-        }
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const frames = buffer.split("\n\n");
-          buffer = frames.pop() ?? "";
-          for (const frame of frames) {
-            const dataLine = frame.split("\n").find((l) => l.startsWith("data: "));
-            if (!dataLine) continue;
-            try {
-              const payload = JSON.parse(dataLine.slice(6)) as {
-                visible?: string;
-                reply?: string;
-                message?: string;
-              };
-              if (payload.visible) setInsight(payload.visible);
-              else if (payload.reply) setInsight(payload.reply);
-              else if (payload.message) setInsight(payload.message);
-            } catch {
-              /* ignore a malformed frame */
-            }
-          }
-        }
-      } catch {
-        setInsight("The command centre could not answer just then.");
-      } finally {
-        setThinking(false);
-      }
-    },
-    [token, thinking],
+  const topProducts = useMemo(
+    () => [...data.products].sort((a, b) => (b.revenueMinor ?? -1) - (a.revenueMinor ?? -1)),
+    [data.products],
   );
 
-  const render = useCallback(
-    (m: Metric) => {
-      if (m.value === null) return null;
-      if (m.kind === "currency") return formatMinor(m.value, data.currency);
-      if (m.kind === "percent") return `${(m.value * 100).toFixed(2)}%`;
-      return new Intl.NumberFormat("en-IN").format(m.value);
-    },
-    [data.currency],
-  );
-
-  const byHandle = useMemo(() => new Map(products.map((p) => [p.handle, p])), [products]);
-
-  /* ── not signed in ── */
-
-  if (authState !== "in") {
+  /* ── not signed in ──────────────────────────────────────────── */
+  if (!token) {
     return (
-      <div className="nn-wrap grid min-h-[70svh] place-items-center py-24">
-        <div className="w-full max-w-[26rem]">
-          <div className="flex justify-center">
-            <LogoMark size={44} sheen="loop" />
-          </div>
-          <h1 className="mt-9 text-center text-title">Owner console</h1>
-          <p className="mt-4 text-center text-fine text-[var(--ink-soft)]">
-            Sign in with a link sent to your email. There is no password to remember, and none
-            for us to store.
-          </p>
-
-          {!supabaseConfigured || !ownerListConfigured ? (
-            <div
-              className="mt-8 border p-5 text-fine text-[var(--ink-soft)]"
-              style={{ borderColor: "var(--accent)" }}
-            >
-              <p className="nn-eyebrow" style={{ color: "var(--accent)" }}>
-                Not configured yet
-              </p>
-              <ul className="mt-3 flex list-none flex-col gap-2 p-0">
-                {!supabaseConfigured ? (
-                  <li>
-                    Set <code className="text-[var(--ink)]">SUPABASE_URL</code> and{" "}
-                    <code className="text-[var(--ink)]">SUPABASE_ANON_KEY</code> in{" "}
-                    <code className="text-[var(--ink)]">.env.local</code>.
-                  </li>
-                ) : null}
-                {!ownerListConfigured ? (
-                  <li>
-                    Set <code className="text-[var(--ink)]">OWNER_EMAILS</code> to the addresses
-                    allowed in here, comma separated.
-                  </li>
-                ) : null}
-              </ul>
-            </div>
-          ) : (
-            <form
-              className="mt-8 flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void sendLink();
-              }}
-            >
-              <div>
-                <label className="nn-label" htmlFor="nn-owner-email">
-                  Your email
-                </label>
-                <input
-                  id="nn-owner-email"
-                  className="nn-field"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="nn-btn nn-btn--solid w-full"
-                disabled={authState === "sending"}
-              >
-                <span>{authState === "sending" ? "Sending…" : "Send me a link"}</span>
-              </button>
-            </form>
-          )}
-
-          {authMessage ? (
-            <p
-              className="mt-6 text-center text-fine"
-              role="status"
-              style={{
-                color: authState === "refused" ? "var(--color-nn-burgundy)" : "var(--ink-soft)",
-              }}
-            >
-              {authMessage}
+      <div className="own own--gate">
+        <div className="own__gate glass glass--light">
+          <Monogram size={30} />
+          <h1 className="d-h3">Operations</h1>
+          {!supabaseConfigured ? (
+            <p className="small">
+              Sign-in is not connected. Set SUPABASE_URL and SUPABASE_ANON_KEY, and put your email
+              on OWNER_EMAILS.
             </p>
-          ) : null}
+          ) : !ownerListConfigured ? (
+            <p className="small">
+              OWNER_EMAILS is empty, so no account can be an owner yet. Add your email to it.
+            </p>
+          ) : sent ? (
+            <p className="small">{note}</p>
+          ) : (
+            <>
+              <p className="small muted">A sign-in link will be emailed to you.</p>
+              <input
+                className="field" type="email" value={email} placeholder="you@neronoren.com"
+                onChange={(e) => setEmail(e.target.value)} autoComplete="email"
+              />
+              <button type="button" className="btn btn--solid btn--block" onClick={() => void signIn()}>
+                Email me a link
+              </button>
+              {note ? <p className="small">{note}</p> : null}
+            </>
+          )}
         </div>
       </div>
     );
   }
 
-  /* ── signed in ── */
-
+  /* ── signed in ──────────────────────────────────────────────── */
   return (
-    <div className="nn-wrap nn-ops">
-      <header className="nn-ops__head">
+    <div className="own wrap band">
+      <header className="own__head">
         <div>
-          <p className="nn-label nn-label--metal">Operations</p>
-          <h1 className="nn-ops__title">Nero Noren</h1>
+          <p className="label label--soft">Operations · last {data.windowDays} days</p>
+          <h1 className="d-h2">Nero Noren</h1>
         </div>
-        <p className="nn-ops__who">
-          {signedInAs} · last {data.windowDays} days
+        <p className="small muted">
+          {who}
+          <button type="button" className="ul-grow label own__out" onClick={() => void client?.auth.signOut()}>
+            Sign out
+          </button>
         </p>
       </header>
 
-      {/* what we cannot tell you, said first */}
-      {data.gaps.length ? (
-        <section className="nn-ops__gaps" aria-label="Data gaps">
-          <h2 className="nn-label nn-label--metal">
-            What this dashboard cannot tell you yet
-          </h2>
-          <ul>
-            {data.gaps.map((g) => (
-              <li key={g}>{g}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <ul className="own__metrics">
+        {data.metrics.map((m) => (
+          <li key={m.label} className="own__metric glass glass--light">
+            <p className="label label--soft">{m.label}</p>
+            <p className="own__value tnum">{renderMetric(m, data.currency)}</p>
+            {m.value === null && m.unavailable ? (
+              <p className="small muted">{m.unavailable}</p>
+            ) : m.basis ? (
+              <p className="small muted">{m.basis}</p>
+            ) : null}
+          </li>
+        ))}
+      </ul>
 
-      {/* the figures */}
-      <section className="mt-10" aria-label="Headline figures">
-        <div className="nn-ops__metrics">
-          {data.metrics.map((m) => (
-            <div key={m.label} className="nn-ops__metric">
-              <p className="nn-label">{m.label}</p>
-              {m.value === null ? (
-                <>
-                  <p className="nn-ops__value nn-ops__value--none">Not available</p>
-                  <p className="nn-ops__basis">{m.unavailable}</p>
-                </>
-              ) : (
-                <>
-                  <p className="nn-ops__value">{render(m)}</p>
-                  {/* a rate also gets a bar, because a percentage is easier
-                      to judge against a line than against another number */}
-                  {m.kind === "percent" ? (
-                    <div className="nn-ops__bar" aria-hidden="true">
-                      <span style={{ transform: `scaleX(${Math.min(1, Math.max(0.01, m.value * 4))})` }} />
-                    </div>
-                  ) : null}
-                  {m.basis ? <p className="nn-ops__basis">{m.basis}</p> : null}
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* per product */}
-      <section className="mt-14" aria-label="Product performance">
-        <h2 className="text-lead">By piece</h2>
-        <div className="mt-6 overflow-x-auto">
-          <table className="nn-ops__table">
+      <section className="own__block" aria-labelledby="own-prod">
+        <h2 id="own-prod" className="d-h3">By piece</h2>
+        <div className="own__tablewrap">
+          <table className="own__table">
             <thead>
               <tr>
-                <th scope="col">Piece</th>
-                <th scope="col">Sold</th>
-                <th scope="col">Revenue</th>
-                <th scope="col">Views</th>
-                <th scope="col">Added</th>
-                <th scope="col">Add rate</th>
+                <th scope="col">Piece</th><th scope="col">Views</th><th scope="col">Added</th>
+                <th scope="col">Add rate</th><th scope="col">Sold</th><th scope="col">Revenue</th>
               </tr>
             </thead>
             <tbody>
-              {data.products.map((p) => (
+              {topProducts.map((p) => (
                 <tr key={p.handle}>
-                  <th scope="row" >
-                    {p.title}
-                  </th>
-                  <td >
-                    {p.unitsSold ?? <span className="nn-ops__none">—</span>}
-                  </td>
-                  <td >
-                    {p.revenueMinor === null ? (
-                      <span className="nn-ops__none">—</span>
-                    ) : (
-                      formatMinor(p.revenueMinor, data.currency)
-                    )}
-                  </td>
-                  <td >{p.views}</td>
-                  <td >{p.addsToBag}</td>
-                  <td >
-                    {p.addRate === null ? (
-                      <span className="nn-ops__none" title="Too few views to state a rate">
-                        —
-                      </span>
-                    ) : (
-                      `${(p.addRate * 100).toFixed(1)}%`
-                    )}
+                  <th scope="row">{p.title}</th>
+                  <td className="tnum">{p.views}</td>
+                  <td className="tnum">{p.addsToBag}</td>
+                  <td className="tnum">{p.addRate === null ? "—" : `${(p.addRate * 100).toFixed(1)}%`}</td>
+                  <td className="tnum">{p.unitsSold ?? "—"}</td>
+                  <td className="tnum">
+                    {p.revenueMinor === null ? "—" : formatMinor(p.revenueMinor, data.currency)}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-[0.68rem] text-[var(--ink-faint)]">
-          A dash means the figure cannot be computed from the data held, not that it is zero.
+        <p className="small muted">
+          Figures from {data.analyticsSource}; catalogue is {data.catalogueSource}.
         </p>
-      </section>
-
-      {/* showroom controls */}
-      <section className="mt-14" aria-label="Showroom controls">
-        <h2 className="text-lead">The showroom floor</h2>
-        <p className="mt-3 max-w-[60ch] text-fine text-[var(--ink-soft)]">
-          What sits where, and which piece the showroom leads with. Saved to Supabase; the live
-          site reads it.
-        </p>
-
-        <div className="mt-8 grid gap-10 lg:grid-cols-2">
-          <div>
-            <label className="nn-label" htmlFor="nn-featured">Featured piece</label>
-            <select
-              id="nn-featured"
-              className="nn-field"
-              value={settings.featuredHandle ?? ""}
-              disabled={saving}
-              onChange={(e) => void saveSettings({ featuredHandle: e.target.value || null })}
-            >
-              <option value="">No featured piece</option>
-              {products.map((p) => (
-                <option key={p.handle} value={p.handle}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-
-            <fieldset className="mt-8 border-0 p-0">
-              <legend className="nn-label">Preview a time of day</legend>
-              <p className="mb-3 text-[0.68rem] text-[var(--ink-faint)]">
-                Forcing a phase overrides every visitor&rsquo;s own clock. Leave it on
-                &ldquo;follow the visitor&rdquo; unless you are running a campaign.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void saveSettings({ forcedPhase: null })}
-                  className="border px-3 py-2 text-[0.72rem] uppercase tracking-[0.14em]"
-                  style={{
-                    borderColor: settings.forcedPhase === null ? "var(--btn-bg)" : "var(--line)",
-                    background: settings.forcedPhase === null ? "var(--btn-bg)" : "transparent",
-                    color: settings.forcedPhase === null ? "var(--btn-ink)" : "var(--ink-soft)",
-                  }}
-                >
-                  Follow the visitor
-                </button>
-                {PHASES.map((phase) => {
-                  const on = settings.forcedPhase === phase;
-                  return (
-                    <button
-                      key={phase}
-                      type="button"
-                      disabled={saving}
-                      onClick={() => void saveSettings({ forcedPhase: phase })}
-                      className="border px-3 py-2 text-[0.72rem] uppercase tracking-[0.14em]"
-                      style={{
-                        borderColor: on ? "var(--btn-bg)" : "var(--line)",
-                        background: on ? "var(--btn-bg)" : "transparent",
-                        color: on ? "var(--btn-ink)" : "var(--ink-soft)",
-                      }}
-                    >
-                      {phase}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-3 text-[0.68rem] text-[var(--ink-faint)]">
-                To look at a phase yourself without changing anything for anyone, open{" "}
-                <code className="text-[var(--ink)]">/?phase=night</code>.
-              </p>
-            </fieldset>
-          </div>
-
-          <div>
-            <p className="nn-label">Where each piece stands</p>
-            <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {products.map((p) => {
-                const current = settings.placements[p.handle] ?? p.placement;
-                return (
-                  <li key={p.handle} className="flex items-center justify-between gap-4 border-b py-2">
-                    <span className="min-w-0 truncate text-fine">{p.title}</span>
-                    <select
-                      className="nn-field w-auto py-1.5 text-[0.8rem]"
-                      value={current}
-                      disabled={saving}
-                      aria-label={`Where ${p.title} stands`}
-                      onChange={(e) =>
-                        void saveSettings({
-                          placements: { ...settings.placements, [p.handle]: e.target.value },
-                        })
-                      }
-                    >
-                      {Object.entries(PLACEMENT_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-
-        {saveNote ? (
-          <p className="mt-6 text-fine text-[var(--ink-soft)]" role="status">
-            {saveNote}
-          </p>
+        {data.gaps.length ? (
+          <ul className="own__gaps small">{data.gaps.map((g) => <li key={g}>{g}</li>)}</ul>
         ) : null}
       </section>
 
-      {/* the command centre */}
-      <section className="mt-14" aria-label="NN Command Centre">
-        <h2 className="text-lead">NN Command Centre</h2>
-        <p className="mt-3 max-w-[60ch] text-fine text-[var(--ink-soft)]">
-          Ask about the business. It is given exactly the figures above and nothing else, so it
-          cannot invent one — where a number is missing it will say so.
-        </p>
-
-        <div className="mt-6 flex flex-wrap gap-2">
-          {[
-            "Give me today's summary.",
-            "What is selling and what is not?",
-            "Anything unusual this week?",
-            "Which piece should I restock first?",
-          ].map((q) => (
-            <button
-              key={q}
-              type="button"
-              disabled={thinking}
-              onClick={() => void ask(q)}
-              className="border px-3 py-2 text-[0.72rem] text-[var(--ink-soft)] transition-colors duration-500 hover:border-[var(--accent)] hover:text-[var(--ink)] disabled:opacity-40"
-              style={{ borderColor: "var(--line)" }}
+      <section className="own__block" aria-labelledby="own-room">
+        <h2 id="own-room" className="d-h3">The showroom</h2>
+        <div className="own__controls">
+          <label className="own__ctl">
+            <span className="label label--soft">Featured piece</span>
+            <select
+              className="field" value={featured}
+              onChange={(e) => { setFeatured(e.target.value); void save({ featuredHandle: e.target.value || null }); }}
             >
-              {q}
-            </button>
-          ))}
-        </div>
+              <option value="">None</option>
+              {products.map((p) => <option key={p.handle} value={p.handle}>{p.title}</option>)}
+            </select>
+          </label>
 
-        <form
-          className="mt-5 flex gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const q = question;
-            setQuestion("");
-            void ask(q);
-          }}
-        >
-          <label className="sr-only" htmlFor="nn-owner-question">Ask the command centre</label>
+          <label className="own__ctl">
+            <span className="label label--soft">
+              Pin the hour <span className="muted">— for photography. Leave on Automatic for customers.</span>
+            </span>
+            <select
+              className="field" value={forced}
+              onChange={(e) => { setForced(e.target.value); void save({ forcedPhase: e.target.value || null }); }}
+            >
+              <option value="">Automatic — the visitor&rsquo;s own hour</option>
+              {PHASES.map((p) => <option key={p} value={p}>{p[0].toUpperCase() + p.slice(1)}</option>)}
+            </select>
+          </label>
+        </div>
+        {settingsNote ? <p className="small muted">{settingsNote}</p> : null}
+        {note ? <p className="small">{note}</p> : null}
+      </section>
+
+      <section className="own__block" aria-labelledby="own-ask">
+        <h2 id="own-ask" className="d-h3">Ask about the business</h2>
+        <form className="own__ask" onSubmit={(e) => { e.preventDefault(); void ask(); }}>
           <input
-            id="nn-owner-question"
-            className="nn-field flex-1"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask about the numbers…"
-            maxLength={500}
-            disabled={thinking}
+            className="field" value={question} onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Which piece is viewed most but bought least?"
+            aria-label="Ask about the business"
           />
-          <button type="submit" className="nn-btn" disabled={thinking || !question.trim()}>
-            <span>{thinking ? "Thinking" : "Ask"}</span>
+          <button type="submit" className="btn btn--solid" disabled={thinking || !question.trim()}>
+            {thinking ? "Thinking…" : "Ask"}
           </button>
         </form>
-
-        {insight || thinking ? (
-          <div className="nn-ops__answer glass glass--panel" aria-live="polite">
-            {insight || "Reading the dashboard…"}
-          </div>
-        ) : null}
+        {answer ? <p className="own__answer prose">{answer}</p> : null}
       </section>
-
-      <p className="mt-16 border-t pt-6 text-[0.68rem] text-[var(--ink-faint)]">
-        Catalogue source: {data.catalogueSource}. Visitor figures: {data.analyticsSource}, and
-        only from visitors who agreed to be counted. {byHandle.size} pieces in the range.
-      </p>
     </div>
   );
 }

@@ -3,6 +3,8 @@
 ## What this is
 The official website of NERO NOREN, an online-first, European-inspired menswear brand from India (company: NERO NOREN Private Limited, founder: Naseemudheen). The home page IS a 3D European elite showroom. Customers walk through it, see garments on racks and mannequins, try pieces in a trial room, get help from an AI stylist, and buy.
 
+**This folder (`Projects/NN`) is the only live product.** `Projects/nero-noren` is archived. Do not implement features there.
+
 ## Locked stack
 Next.js (App Router) + TypeScript (strict), React Three Fiber + drei + @react-three/postprocessing, GSAP, Framer Motion, Tailwind CSS, Shopify Storefront API (headless) for products and cart, Razorpay for payments, Claude API (server-side only) for AI, Supabase for owner auth and analytics, Vercel for hosting.
 

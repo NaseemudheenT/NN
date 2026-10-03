@@ -1,315 +1,188 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 @import "../styles/glass.css";
-@import "../styles/legacy.css";
+@import "../styles/stage.css";
+@import "../styles/shell.css";
+@import "../styles/pages.css";
+@import "../styles/shop.css";
+@import "../styles/world.css";
 
 /* ═══════════════════════════════════════════════════════════════════
-   NERO NOREN
-   Timeless style builds character.
-
-   The design system lives in ../styles: tokens.css holds the palette,
-   type, spacing and motion from the brand board; glass.css holds the
-   optical material and the controls built from it. This file is the
-   base layer and the typography.
+   NERO NOREN — base layer and typography
    ═══════════════════════════════════════════════════════════════════ */
-
-/* ── legacy aliases ──────────────────────────────────────────────────
-   The previous design system's variable names, pointed at the new
-   palette. Components still on the old names therefore adopt the
-   brand board's colours the moment this file loads, and each one can
-   be rebuilt properly without the site going to pieces in between.
-   Every alias here is a migration debt to be deleted, not an API. */
-:root {
-  --bg: var(--surface-base);
-  --surface: var(--surface-raised);
-  --paper: var(--surface-panel);
-  --ink: var(--ink-primary);
-  --ink-soft: var(--ink-secondary);
-  --ink-faint: var(--ink-tertiary);
-  --line: var(--edge-line);
-  --line-strong: var(--edge-strong);
-  /* The accent is CONTRAST, not gold.
-     This alias used to point at --sheen-mid, which put flat #c19c3f on
-     eyebrows, active filters and hover borders. The brand board is explicit
-     that gold is a physical finish — foil, an engraved button, lit signage —
-     and never a flat colour; its own web mockup carries no gold at all, just
-     white type and a white rule on black. So the accent is the ink itself,
-     and "active" reads as the brightest thing on the screen rather than the
-     most yellow. And gold is now gone from the interface entirely: the
-     brief is explicit that the NN identity carries none, so the highlight
-     ramp the UI runs on is --sheen-*, which is ink. Gold survives only in
-     --finish-*, for the engraved button and the foil on the bag. */
-  --accent: var(--ink-primary);
-  --accent-soft: var(--ink-secondary);
-  --accent-ink: var(--ink-inverse);
-  --btn-bg: var(--ink-primary);
-  --btn-ink: var(--ink-inverse);
-  --shadow-plate: var(--shadow-panel);
-  --ease-showroom: var(--ease-architect);
-  --ease-curtain: var(--ease-in-out-quint);
-}
 
 @theme inline {
-  /* the two names from the old type scale that have no new equivalent */
-  --text-eyebrow: var(--text-label);
-  --text-hero: var(--text-display);
-
-  --color-bg: var(--surface-base);
-  --color-surface: var(--surface-raised);
-  --color-ink-soft: var(--ink-secondary);
-  --color-ink-faint: var(--ink-tertiary);
-  --color-line: var(--edge-line);
-  --color-line-strong: var(--edge-strong);
-  /* Same correction as the alias above: the Tailwind `accent` utilities
-     must not paint flat gold either. A `--color-sheen` ramp is exported
-     below for highlights, and it is ink. */
-  --color-accent: var(--ink-primary);
-  --color-accent-soft: var(--ink-secondary);
-  --color-accent-ink: var(--ink-inverse);
-  --color-btn-bg: var(--ink-primary);
-  --color-btn-ink: var(--ink-inverse);
-  --color-paper: var(--surface-panel);
+  --color-black: var(--black);
+  --color-ivory: var(--ivory);
+  --color-charcoal: var(--charcoal);
+  --color-stone: var(--stone);
+  --color-taupe: var(--taupe);
+  --color-olive: var(--olive);
+  --color-burgundy: var(--burgundy);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --font-serif: var(--serif);
+  --font-sans: var(--sans);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   BASE
-   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
 
-@layer base {
-  *,
-  *::before,
-  *::after { box-sizing: border-box; }
-
-  html {
-    -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
-    /* the atmosphere is fixed behind everything and must not be
-       painted over by the document's own background */
-    background: var(--surface-void);
-  }
-
-  body {
-    margin: 0;
-    /* transparent, so LiveAtmosphere shows through from -z-10 */
-    background: transparent;
-    color: var(--ink-primary);
-    /* The hour changes under the visitor, never at them: ink and rules
-       cross-fade over minutes rather than switching. */
-    transition:
-      color var(--chrono-fade) linear,
-      border-color var(--chrono-fade) linear;
-    font-family: var(--font-ui);
-    font-size: var(--text-body);
-    font-weight: 400;
-    line-height: 1.62;
-    letter-spacing: var(--tracking-body);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    transition: color var(--duration-room) var(--ease-architect);
-  }
-
-  /* ── editorial typography ────────────────────────────────────────
-     A fashion editorial sets the headline enormous and the caption
-     tiny with almost nothing in between. Display type tightens as it
-     grows, the way metal type does, because letterforms that are
-     correctly spaced at 16px are too loose at 160px.            */
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-    font-family: var(--font-display);
-    font-weight: 300;
-    line-height: 1.04;
-    text-wrap: balance;
-  }
-  h1 { font-size: var(--text-display); letter-spacing: var(--tracking-display); }
-  h2 { font-size: var(--text-title); letter-spacing: var(--tracking-title); }
-  h3 { font-size: var(--text-sub); letter-spacing: var(--tracking-title); }
-  h4 { font-size: var(--text-lead); letter-spacing: 0; }
-
-  p { margin: 0; text-wrap: pretty; }
-  a { color: inherit; text-decoration: none; }
-
-  ::selection {
-    background: var(--sheen-mid);
-    color: var(--ink-inverse);
-  }
-
-  /* a visible focus ring on both themes, never removed */
-  :focus-visible {
-    outline: 2px solid var(--sheen-high);
-    outline-offset: 3px;
-    border-radius: 1px;
-  }
-
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--surface-void); }
-  ::-webkit-scrollbar-thumb { background: var(--edge-strong); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--sheen-mid); }
-
-  img, svg, video { display: block; max-width: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
-
-/* ═══════════════════════════════════════════════════════════════════
-   LAYOUT
-   ═══════════════════════════════════════════════════════════════════ */
-
-@layer components {
-  /* the architectural measure: everything aligns to this */
-  .nn-wrap {
-    width: 100%;
-    max-width: 1440px;
-    margin-inline: auto;
-    padding-inline: clamp(1.25rem, 4.5vw, 4.5rem);
-  }
-  .nn-wrap--narrow { max-width: 880px; }
-  .nn-wrap--text { max-width: 62ch; }
-
-  /* wide-tracked uppercase. Labels and metadata only, never prose. */
-  .nn-label {
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    font-weight: 500;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: var(--ink-tertiary);
-  }
-  /* The house metadata label.
-     It used to be painted flat --sheen-mid, which is gold used as ink —
-     the one thing the brand board forbids. The board sets its small caps in
-     Stone, and that is what this is now. Gold survives in this stylesheet
-     only where it is a real finish: the gradient on .nn-btn--metal and the
-     highlight-and-shadow of .metal-engraved, both of which respond to light
-     the way plated metal does. */
-  .nn-label--metal { color: var(--ink-secondary); }
-
-  /* the wordmark, at the board's tracking */
-  .nn-wordmark {
-    font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: var(--tracking-wordmark);
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  /* a hairline rule */
-  .nn-rule {
-    height: 1px;
-    border: 0;
-    margin: 0;
-    background: var(--edge-hair);
-  }
-
-  /* a link whose underline draws from the left */
-  .nn-link {
-    position: relative;
-    display: inline-block;
-    padding-block: 0.3rem;
-    color: var(--ink-secondary);
-    transition: color var(--duration-hover) var(--ease-architect);
-  }
-  .nn-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 1px;
-    width: 0;
-    background: var(--sheen-mid);
-    transition: width var(--duration-panel) var(--ease-architect);
-  }
-  .nn-link:hover,
-  .nn-link[data-active="true"] { color: var(--ink-primary); }
-  .nn-link:hover::after,
-  .nn-link[data-active="true"]::after { width: 100%; }
-
-  /* kept for components not yet rebuilt */
-  .nn-eyebrow {
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    font-weight: 500;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: var(--ink-tertiary);
-  }
-  .nn-panel {
-    background: color-mix(in srgb, var(--surface-panel) 88%, transparent);
-    backdrop-filter: blur(24px) saturate(1.6);
-    -webkit-backdrop-filter: blur(24px) saturate(1.6);
-    border: 1px solid var(--edge-line);
-  }
-  .nn-plate {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    background: var(--surface-raised);
-    border: 1px solid var(--edge-hair);
-    overflow: hidden;
-    transform-style: preserve-3d;
-    transition:
-      transform var(--duration-room) var(--ease-architect),
-      box-shadow var(--duration-room) var(--ease-architect),
-      border-color var(--duration-room) var(--ease-architect);
-  }
-  .nn-tabular { font-variant-numeric: tabular-nums; }
-
-  .nn-skip {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    z-index: 100;
-  }
-  .nn-skip:focus {
-    left: 1rem;
-    top: 1rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--ink-primary);
-    color: var(--ink-inverse);
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   MOTION UTILITIES
-   Entrance animations move transform only. Both requestAnimationFrame
-   and the CSS animation timeline are frozen in a hidden tab — measured
-   — so anything that animated opacity from 0 would leave the page
-   unreadable for a customer returning to a background tab.
-   ═══════════════════════════════════════════════════════════════════ */
-
-@layer utilities {
-  .nn-rise { animation: nn-rise 620ms var(--ease-architect) both; }
-  @keyframes nn-rise {
-    from { transform: translate3d(0, 18px, 0); }
-    to   { transform: none; }
-  }
-
-  .nn-page-enter {
-    animation: nn-page-enter 520ms var(--ease-architect) both;
-    will-change: transform;
-  }
-  @keyframes nn-page-enter {
-    from { transform: translate3d(0, 16px, 0); }
-    to   { transform: none; }
-  }
-
-  /* the specular that crosses metal type once, on load */
-  .nn-sheen {
-    background-size: 240% 100%;
-    background-position: 130% 0;
-    animation: nn-sheen 2600ms var(--ease-architect) 240ms 1 both;
-  }
-  @keyframes nn-sheen {
-    from { background-position: 130% 0; }
-    to   { background-position: -30% 0; }
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+  html { scroll-behavior: auto; }
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  font-weight: 350;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+
+/* ── display type ───────────────────────────────────────────────
+   Cormorant is a high-contrast old-style face: it wants light weight
+   at display size and a tight leading, or the thin strokes break up. */
+.d-display, .d-h1, .d-h2, .d-h3 {
+  font-family: var(--serif);
+  font-weight: 300;
+  letter-spacing: var(--track-display);
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+.d-display { font-size: var(--t-display); }
+.d-h1 { font-size: var(--t-h1); }
+.d-h2 { font-size: var(--t-h2); line-height: 1.1; }
+.d-h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: 0; }
+
+/* ── the label ──────────────────────────────────────────────────
+   Wide-tracked uppercase, for metadata and eyebrows only. Never prose. */
+.label {
+  font-family: var(--sans);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1.5;
+  margin: 0;
+}
+.label--wide { letter-spacing: var(--track-wide); }
+.label--soft { color: var(--ink-3); }
+
+.lead { font-size: var(--t-lead); line-height: 1.65; color: var(--ink-2); margin: 0; }
+.small { font-size: var(--t-small); color: var(--ink-2); }
+.muted { color: var(--ink-3); }
+
+/* numbers that must line up in a column — prices, quantities */
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ── layout ─────────────────────────────────────────────────── */
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.wrap--narrow { max-width: 920px; }
+.band { padding-block: clamp(3.5rem, 2rem + 6vw, 7rem); }
+.band--tight { padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem); }
+
+.prose { max-width: var(--max-prose); }
+.prose p { margin: 0 0 1.1em; color: var(--ink-2); }
+.prose p:last-child { margin-bottom: 0; }
+.prose h2 { font-family: var(--serif); font-weight: 300; font-size: var(--t-h2); margin: 2.2em 0 0.6em; line-height: 1.15; }
+.prose h3 { font-family: var(--serif); font-weight: 400; font-size: var(--t-h3); margin: 1.8em 0 0.5em; }
+.prose ul, .prose ol { margin: 0 0 1.1em; padding-left: 1.3em; color: var(--ink-2); }
+.prose li { margin-bottom: 0.4em; }
+.prose a { color: var(--ink); text-underline-offset: 3px; }
+
+/* ── the quiet underline ────────────────────────────────────────
+   Grows from the left on hover. Used on nav and on inline actions. */
+.ul-grow {
+  position: relative;
+  text-decoration: none;
+  padding-bottom: 2px;
+}
+.ul-grow::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-base) var(--ease);
+}
+.ul-grow:hover::after,
+.ul-grow[data-on="true"]::after { transform: scaleX(1); }
+
+/* ── skip link ─────────────────────────────────────────────── */
+.skip {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translate(-50%, -120%);
+  z-index: 200;
+  padding: 0.75rem 1.5rem;
+  background: var(--black);
+  color: var(--ivory);
+  font-size: var(--t-small);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  transition: transform var(--d-base) var(--ease);
+}
+.skip:focus { transform: translate(-50%, 0); }
+
+/* ── reveal ─────────────────────────────────────────────────────
+   One entrance, used everywhere, driven by a single IntersectionObserver
+   in the shell.
+
+   Note which way round this is. A .reveal is VISIBLE by default, and only
+   becomes hidden once the observer is actually running and has stamped
+   data-reveal on the root. Written the obvious way — hidden by default,
+   revealed by script — every section of this website disappears forever
+   the moment the JavaScript fails to arrive, errors on an older browser,
+   or is switched off. An animation is worth nothing; the content is worth
+   everything, and it must not be the thing that depends on the animation
+   working. */
+[data-reveal] .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.reveal {
+  transition:
+    opacity var(--d-slow) var(--ease),
+    transform var(--d-slow) var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal] .reveal[data-shown="true"] { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] .reveal { opacity: 1; transform: none; }
+}
+
+::selection { background: var(--black); color: var(--ivory); }
+.nn-room ::selection { background: var(--ivory); color: var(--black); }
+
+/* a scrollbar that belongs to the brand rather than to the OS */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--taupe) 36%, transparent);
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
-  .nn-sheen { animation: none; background-position: 50% 0; }
+  ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--taupe) 60%, transparent); background-clip: content-box; }
 }

@@ -1,399 +1,133 @@
 /* ═══════════════════════════════════════════════════════════════════
    NERO NOREN — design tokens
-   Taken from the NN brand board. Where anything disagrees with the
-   board, the board wins.
-   ═══════════════════════════════════════════════════════════════════ */
+   Timeless style builds character.
 
-@theme {
-  /* ── the palette, exactly as the board states it ──────────────
-     Earth tones inspired by European heritage. Seven colours, and
-     not one of them is gold: on the board gold appears only as a
-     physical finish — foil, engraved metal, lit signage — so it
-     lives in the materials layer below, not here.              */
-  --color-nn-black: #0a0a0a;
-  --color-nn-ivory: #f7f5ef;
-  --color-nn-charcoal: #2e2e2e;
-  --color-nn-stone: #b7b1a7;
-  --color-nn-taupe: #6b5e52;
-  --color-nn-olive: #3ea639;
-  --color-nn-burgundy: #a41f34;
-
-  /* ── the house materials ───────────────────────────────────────
-     The showroom is troweled lime, Roman clay, fired brick, travertine
-     and dark timber. These are MATERIAL colours, not palette colours —
-     the same distinction the board already makes for gold — and every
-     one is derived from a board colour rather than invented beside it:
-
-       limewash    Ivory + Stone + a little Taupe   (Warm Sand Beige)
-       stucco      Ivory warmed with Stone          (Antico White)
-       travertine  Ivory + Stone                    (Travertine Cream)
-       sage        Olive, heavily desaturated       (Muted Sage Green)
-       walnut      Taupe, deepened
-       timber      Taupe toward Charcoal
-
-     Terracotta and brick are the exception, and a deliberate one. The
-     board's Burgundy #a41f34 carries more blue than green, so no mix of
-     board colours can reach fired clay, which needs the reverse. They
-     are pulled toward Burgundy's hue so they still read as cousins of
-     the house red, and they live here as materials rather than being
-     promoted into the palette. Full reasoning in
-     components/showroom/materials.ts.                              */
-  --color-nn-limewash: #d4cdc0;
-  --color-nn-stucco: #ece9e0;
-  --color-nn-travertine: #c3bcae;
-  --color-nn-sage: #8b9d80;
-  --color-nn-terracotta: #ab6a52;
-  --color-nn-brick: #9a4634;
-  --color-nn-walnut: #382e26;
-  --color-nn-timber: #262019;
-
-  /* ── architectural darks ───────────────────────────────────────
-     Where most of the interface lives. These used to be cool blue-
-     greys, which is the right family for a concrete-and-glass box and
-     the wrong one for this house: the shadows in a lime-and-clay
-     interior are lit by 2700 K bouncing off terracotta, so they fall
-     warm. Each of these is the old value rotated to the warm side at
-     the same luminance, which changes the temperature of the whole
-     interface without moving a single contrast ratio.             */
-  --color-nn-graphite: #1a1714;
-  --color-nn-slate: #221e19;
-  --color-nn-concrete: #3e3a35;
-  --color-nn-midnight: #191410;
-
-  /* ── type ──────────────────────────────────────────────────── */
-  --font-display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
-  --font-ui: var(--font-hanken), ui-sans-serif, system-ui, -apple-system, sans-serif;
-
-  /* ── the editorial type scale ──────────────────────────────────
-     Two ratios: a tight one for interface text, a wide one for
-     display. A fashion editorial sets a headline enormous and the
-     caption tiny, with nothing in between — the gap is the style. */
-  --text-micro: 0.6875rem;
-  --text-label: 0.75rem;
-  --text-fine: clamp(0.8125rem, 0.8rem + 0.08vw, 0.875rem);
-  --text-body: clamp(0.9375rem, 0.91rem + 0.14vw, 1.0625rem);
-  --text-lead: clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem);
-  --text-sub: clamp(1.5rem, 1.3rem + 0.9vw, 2.125rem);
-  --text-title: clamp(2rem, 1.6rem + 1.9vw, 3.5rem);
-  --text-display: clamp(2.75rem, 1.9rem + 4.2vw, 6rem);
-  --text-monument: clamp(3.5rem, 1.8rem + 8vw, 11rem);
-
-  /* ── tracking ──────────────────────────────────────────────────
-     The wordmark is wide-tracked; so is every uppercase label.
-     Display type tightens as it grows, the way metal type does. */
-  --tracking-monument: -0.035em;
-  --tracking-display: -0.022em;
-  --tracking-title: -0.014em;
-  --tracking-body: 0em;
-  --tracking-label: 0.18em;
-  --tracking-wordmark: 0.34em;
-
-  /* ── the spatial scale ─────────────────────────────────────────
-     An architectural rhythm rather than a UI one: rooms are
-     measured in larger units than buttons.                      */
-  --space-hair: 0.25rem;
-  --space-tight: 0.5rem;
-  --space-snug: 0.75rem;
-  --space-base: 1rem;
-  --space-gap: 1.5rem;
-  --space-room: clamp(2rem, 4vw, 3.5rem);
-  --space-bay: clamp(3.5rem, 7vw, 7rem);
-  --space-hall: clamp(5rem, 11vw, 11rem);
-
-  /* ── radius ────────────────────────────────────────────────────
-     The house was square — --glass-radius was literally 0, on the
-     reasoning that the brand board has no rounded corners in it.
-
-     That was a misreading of the board. The board has no rounded
-     corners because everything on it is PRINT: a hangtag, a label, a
-     business card, a bag. Cut paper has square corners. But the board's
-     own button is a circle, its packaging is a softened box, and its
-     phone mockup has the radius every phone has — the physical objects
-     are all curved, and an interface is closer to an object than to a
-     printed card.
-
-     So the scale is curved, and it is a scale rather than one number:
-     a 10 px radius on a 44 px button and the same 10 px on a full-sheet
-     panel read as completely different degrees of softness, because
-     what the eye judges is the radius relative to the shape. Larger
-     surfaces therefore take larger radii to look equally rounded.    */
-  --radius-hair: 3px;
-  --radius-chip: 8px;
-  --radius-control: 12px;
-  --radius-panel: 18px;
-  --radius-sheet: 26px;
-  --radius-room: 34px;
-  /** A true pill: larger than any control's half-height. */
-  --radius-pill: 999px;
-
-  /* ── motion, centralised ───────────────────────────────────────
-     Every duration and curve in NN comes from here. Motion that
-     uses ad-hoc numbers reads as several websites at once.      */
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
-  --ease-architect: cubic-bezier(0.16, 0.84, 0.24, 1);
-  --ease-material: cubic-bezier(0.34, 1.26, 0.64, 1);
-
-  --duration-instant: 120ms;
-  --duration-tap: 180ms;
-  --duration-hover: 320ms;
-  --duration-panel: 520ms;
-  --duration-room: 820ms;
-  --duration-cinematic: 1400ms;
-
-  /* ── the chrono fade ───────────────────────────────────────────
-     How long the room takes to change hour. Deliberately measured in
-     minutes, not milliseconds: the sun does not step, and a showroom
-     that visibly re-themes itself reads as a website with a toggle.
-     Two minutes is slow enough that nobody catches it moving and fast
-     enough that a visitor who arrives at 20:59 is in the night lounge
-     before they have finished reading the first panel.            */
-  --chrono-fade: 120s;
-  --chrono-fade-fast: 40s;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   SEMANTIC LAYER
-   The interface never reaches for a brand colour directly. It asks
-   for a role, and the role resolves per theme.
+   Every value here comes from the brand board (2026) or from the
+   approved website layout. Nothing is invented. Gold appears only as
+   --finish-*, which is a MATERIAL for lit signage and foil — never a
+   flat fill, never type.
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── the night showroom: the brand's default state ─────────────
-     The board is overwhelmingly black. This is NN at rest.      */
-  --surface-void: #070605;
-  --surface-base: #0a0a0a;
-  --surface-raised: #141210;
-  --surface-panel: #1a1714;
-  --surface-inset: #221e19;
+  /* ── the board palette, exactly as stated ──────────────────────── */
+  --black:      #0a0a0a;
+  --ivory:      #f7f5ef;
+  --charcoal:   #2e2e2e;
+  --stone:      #b7b1a7;
+  --taupe:      #6b5e52;
+  --olive:      #3ea639;
+  --burgundy:   #a41f34;
 
-  --ink-primary: #f7f5ef;
-  --ink-secondary: #b7b1a7;
-  /* Taupe 35% / Stone 65%.
-     This role carries .nn-label — 12 px uppercase metadata, which WCAG
-     counts as normal text and therefore wants 4.5:1, not the 3:1 that
-     large text gets. Board Taupe #6b5e52 gave 2.85 on a panel and 3.16
-     on the base: a real AA failure on every metadata label on the site,
-     and one that predates the Mediterranean rebuild rather than coming
-     from it. Lightened toward Stone until the worst pairing clears 4.5
-     (it reaches 4.64 on the dusk panel) while staying 50 RGB units off
-     Stone itself, so --ink-tertiary and --ink-secondary are still two
-     distinguishable roles rather than one colour with two names. */
-  --ink-tertiary: #9c9489;
-  --ink-inverse: #0a0a0a;
+  /* ── surfaces ───────────────────────────────────────────────────
+     The site is ivory with dark immersive rooms cut into it, which is
+     how the approved layout reads: cream for browsing and buying, deep
+     black for the showroom, the stylist and the trial room. */
+  --paper:      #f5f2ea;   /* page ground — a shade under ivory so cards lift */
+  --card:       #ffffff;
+  --panel:      #faf8f3;
+  --room:       #0a0a0a;   /* the dark rooms */
+  --room-2:     #141210;   /* their raised surface */
+  --room-3:     #1d1a16;
 
-  --edge-hair: rgb(247 245 239 / 0.09);
-  --edge-line: rgb(247 245 239 / 0.14);
-  --edge-strong: rgb(247 245 239 / 0.26);
+  /* ── ink ────────────────────────────────────────────────────────
+     On paper. Tertiary is Taupe 35% over Stone, measured at 4.6:1 on
+     --panel — it carries 12px labels, which need 4.5:1. */
+  --ink:        #0a0a0a;
+  --ink-2:      #44403a;
+  --ink-3:      #6f685e;
+  --ink-on-room:    #f7f5ef;
+  --ink-on-room-2:  #c9c3b8;
+  --ink-on-room-3:  #8b8479;
 
-  /* ── gold as a material ────────────────────────────────────────
-     Three stops, because metal is never one colour: the shadowed
-     side, the body, and the specular where the light lands. A flat
-     fill of any single one of these looks like yellow plastic.  */
-  /* ── the mark ──────────────────────────────────────────────────
-     The monogram is INK, never gold. --mark-spec is the specular the
-     sheen brightens toward as it crosses the letterforms: on a dark
-     ground that is a touch above Ivory, so the highlight reads as light
-     moving over the surface rather than as a colour change. */
-  --mark-spec: #ffffff;
+  /* ── lines ──────────────────────────────────────────────────── */
+  --line:        rgba(10, 10, 10, 0.10);
+  --line-soft:   rgba(10, 10, 10, 0.06);
+  --line-strong: rgba(10, 10, 10, 0.20);
+  --line-room:        rgba(247, 245, 239, 0.12);
+  --line-room-soft:   rgba(247, 245, 239, 0.07);
+  --line-room-strong: rgba(247, 245, 239, 0.26);
 
-  /* ── the sheen ramp ────────────────────────────────────────────
-     Every gradient, edge highlight, rule and focus ring in the
-     INTERFACE runs on these four. They were a gold ramp; the brief is
-     explicit that the identity carries no gold, so they are now ink —
-     Taupe through Stone through Ivory to white.
+  /* ── gold as a finish, not a colour ─────────────────────────────
+     Used only where the board uses it: engraved metal, foil, and the
+     illuminated letters on the facade. It is a three-stop ramp so it
+     can be a gradient that catches light, which is what metal does.
+     Never set `color` from these. */
+  --finish-low:  #6d5527;
+  --finish-mid:  #b08d4a;
+  --finish-high: #e8d4a4;
 
-     Keeping the four-stop shape matters. A material is never one
-     colour: it has a shadowed side, a body, a lit side and a specular,
-     and that progression is what makes a rule or a button edge read as
-     a surface catching light rather than as a flat line. The ramp was
-     always doing that work; only its hue has changed, so every gradient
-     built on it still behaves — it is now brushed silver rather than
-     brushed brass. */
-  --sheen-low: #6b5e52;
-  --sheen-mid: #b7b1a7;
-  --sheen-high: #f7f5ef;
-  --sheen-peak: #ffffff;
+  /* ── type ───────────────────────────────────────────────────────
+     Cormorant Garamond displays, Hanken Grotesk runs the interface. */
+  --serif: var(--font-cormorant), "Cormorant Garamond", "Times New Roman", serif;
+  --sans:  var(--font-hanken), "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* ── gold, where it is genuinely a finish ──────────────────────
-     Not the logo, not the interface. These exist only for the physical
-     objects the board actually shows gold on — the foil on a hangtag,
-     the engraved button, the embroidery, the lit signage. In CSS the
-     sole consumer is .metal-engraved. The 3D showroom's metal is a
-     separate table in components/showroom/materials.ts and does not
-     read from here. */
-  --finish-shadow: #6e561c;
-  --finish-body: #b4913a;
-  --finish-light: #e8cd82;
-  --finish-spec: #fff4d6;
+  --t-display: clamp(2.75rem, 1.1rem + 6.4vw, 5.5rem);
+  --t-h1:      clamp(2.1rem, 1.2rem + 3.6vw, 3.6rem);
+  --t-h2:      clamp(1.65rem, 1.15rem + 2.1vw, 2.6rem);
+  --t-h3:      clamp(1.25rem, 1.0rem + 1.0vw, 1.6rem);
+  --t-lead:    clamp(1rem, 0.94rem + 0.3vw, 1.125rem);
+  --t-body:    0.9375rem;
+  --t-small:   0.8125rem;
+  --t-label:   0.6875rem;
 
-  /* the light in the room */
-  --light-warm: #ffd9a0;
-  --light-cool: #b8cfe0;
-  --light-key: rgb(255 240 214 / 0.14);
+  /* wide tracking is for labels and metadata only — never for prose */
+  --track-label:  0.22em;
+  --track-wide:   0.3em;
+  --track-display: 0.02em;
 
-  --state-positive: #3ea639;
-  --state-critical: #a41f34;
+  /* ── rhythm ─────────────────────────────────────────────────── */
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 4rem);
+  --max:    1440px;
+  --max-prose: 62ch;
 
-  /* ── the house materials, as interface roles ───────────────────
-     So a label or a rule can be struck in the room's own clay
-     instead of in a colour invented for the interface. */
-  --clay-sage: #8b9d80;
-  --clay-terracotta: #ab6a52;
-  --clay-brick: #9a4634;
-  --lime-wash: #d4cdc0;
-  --lime-stucco: #ece9e0;
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
+  --r-pill: 999px;
 
-  --shadow-lift: 0 2px 8px -2px rgb(0 0 0 / 0.5);
-  --shadow-panel: 0 24px 64px -28px rgb(0 0 0 / 0.78);
-  --shadow-room: 0 48px 120px -48px rgb(0 0 0 / 0.9);
+  /* ── depth ──────────────────────────────────────────────────── */
+  --shadow-card:  0 1px 2px rgba(10,10,10,.04), 0 8px 24px -12px rgba(10,10,10,.14);
+  --shadow-lift:  0 2px 6px rgba(10,10,10,.06), 0 24px 56px -20px rgba(10,10,10,.22);
+  --shadow-float: 0 1px 1px rgba(10,10,10,.10), 0 18px 50px -12px rgba(10,10,10,.42);
 
-  color-scheme: dark;
+  /* ── motion ─────────────────────────────────────────────────────
+     One vocabulary. Architectural easing: leaves quickly, arrives slowly,
+     the way a heavy door on a good hinge does. */
+  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-door:   cubic-bezier(0.16, 1, 0.3, 1);
+  --d-fast:   160ms;
+  --d-base:   300ms;
+  --d-slow:   560ms;
+  --d-door:   900ms;
+
+  /* ── pointer, written by the shell, read by every glass surface ── */
+  --px: 50%;
+  --py: 50%;
+
+  /* ── chrono-atmospheric, written by the daylight engine ─────────
+     The room's light. No control shows these; they simply change. */
+  --sun-tint: #ffd9a8;
+  --sun-beam: 0.5;
+  --lamp:     0.35;
 }
 
-/* ── the day showroom: daylight through the architectural glazing ── */
-:root[data-theme="day"] {
-  /* Daylight on troweled lime. The base stays exactly board Ivory —
-     that one is not ours to move — but everything around it is pulled
-     toward the Antico White stucco and the travertine, so the day
-     showroom reads as a lime interior rather than as white card. */
-  --surface-void: #e4dfd4;
-  --surface-base: #f7f5ef;
-  --surface-raised: #fcfaf5;
-  --surface-panel: #fffefb;
-  --surface-inset: #ece7db;
-
-  --ink-primary: #0a0a0a;
-  --ink-secondary: #2e2e2e;
-  --ink-tertiary: #6b5e52;
-  --ink-inverse: #f7f5ef;
-
-  --edge-hair: rgb(10 10 10 / 0.07);
-  --edge-line: rgb(10 10 10 / 0.12);
-  --edge-strong: rgb(10 10 10 / 0.24);
-
-  /* On ivory, metal has to darken or it disappears. Same material,
-     different light. */
-  /* On ivory the mark is Deep Black, so its specular goes the other
-     way — the sheen LIFTS toward a charcoal rather than toward white,
-     which is how a highlight crossing dark letterpress actually looks. */
-  --mark-spec: #3a3a3a;
-
-  /* The ramp inverts on a light ground: on ivory, "lit" is dark. */
-  --sheen-low: #b7b1a7;
-  --sheen-mid: #6b5e52;
-  --sheen-high: #2e2e2e;
-  --sheen-peak: #0a0a0a;
-
-  --finish-shadow: #4e3c11;
-  --finish-body: #8a6d22;
-  --finish-light: #b4913a;
-  --finish-spec: #e8cd82;
-
-  --light-key: rgb(10 10 10 / 0.06);
-
-  --shadow-lift: 0 2px 8px -3px rgb(10 10 10 / 0.16);
-  --shadow-panel: 0 24px 64px -30px rgb(10 10 10 / 0.24);
-  --shadow-room: 0 48px 120px -50px rgb(10 10 10 / 0.3);
-
-  color-scheme: light;
-}
-
-/* ── dusk: the transitional hour, lamps on and sky still blue ── */
-:root[data-theme="dusk"] {
-  /* Golden hour, which is what the brief asks of the evening: "long,
-     soft amber shadows stretching across the floor as the showroom
-     illumination begins to warm". These were blue — #12151c and up —
-     which is blue hour, an hour later and a different room. */
-  --surface-void: #100c09;
-  --surface-base: #1a140e;
-  --surface-raised: #231d15;
-  --surface-panel: #2a231b;
-  --surface-inset: #342b20;
-
-  --ink-primary: #f7f5ef;
-  --ink-secondary: #b7b1a7;
-  --ink-tertiary: #9c9489;
-
-  --edge-hair: rgb(247 245 239 / 0.1);
-  --edge-line: rgb(247 245 239 / 0.16);
-  --edge-strong: rgb(247 245 239 / 0.28);
-
-  --mark-spec: #ffffff;
-
-  --sheen-low: #7d7264;
-  --sheen-mid: #b7b1a7;
-  --sheen-high: #f7f5ef;
-  --sheen-peak: #ffffff;
-
-  --finish-shadow: #7a5f1f;
-  --finish-body: #c19c3f;
-  --finish-light: #eed592;
-  --finish-spec: #fff4d6;
-
-  color-scheme: dark;
-}
-
-/* expose the semantic layer to Tailwind */
-@theme inline {
-  --color-void: var(--surface-void);
-  --color-base: var(--surface-base);
-  --color-raised: var(--surface-raised);
-  --color-panel: var(--surface-panel);
-  --color-inset: var(--surface-inset);
-
-  --color-ink: var(--ink-primary);
-  --color-ink-2: var(--ink-secondary);
-  --color-ink-3: var(--ink-tertiary);
-  --color-ink-inv: var(--ink-inverse);
-
-  --color-edge: var(--edge-line);
-  --color-edge-hair: var(--edge-hair);
-  --color-edge-strong: var(--edge-strong);
-
-  /* The interface sheen, as Tailwind utilities. Named for what it is —
-     a highlight ramp — rather than for the gold it used to be. */
-  --color-sheen: var(--sheen-mid);
-  --color-sheen-high: var(--sheen-high);
-  --color-sheen-low: var(--sheen-low);
-
-  --color-positive: var(--state-positive);
-  --color-critical: var(--state-critical);
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════
-   THE CHRONO FADE
-
-   The engine recomputes the sky once a minute. Every layer it paints
-   therefore steps, once a minute, by a very small amount — and a step,
-   however small, is visible if it lands instantly.
-
-   Giving those layers a transition longer than the tick means each step
-   is still crossing when the next one starts, so what the eye receives
-   is one continuous movement of light with no seam in it. There is no
-   control for this anywhere in the interface, and there is nothing to
-   press: the room simply is whatever hour it is.
-   ═══════════════════════════════════════════════════════════════════ */
-
-.nn-chrono,
-.nn-chrono * {
-  transition:
-    background var(--chrono-fade) linear,
-    background-color var(--chrono-fade) linear,
-    opacity var(--chrono-fade) linear,
-    filter var(--chrono-fade) linear;
-}
-
-/* Motion values drive transform and must never be smoothed here, or the
-   pointer parallax would lag two minutes behind the pointer. */
-.nn-chrono * {
-  transition-property: background, background-color, opacity, filter;
+/* the dark rooms re-point ink and lines so children need no variants */
+.nn-room {
+  --ink:   var(--ink-on-room);
+  --ink-2: var(--ink-on-room-2);
+  --ink-3: var(--ink-on-room-3);
+  --line:        var(--line-room);
+  --line-soft:   var(--line-room-soft);
+  --line-strong: var(--line-room-strong);
+  --card:  rgba(247, 245, 239, 0.04);
+  --panel: rgba(247, 245, 239, 0.06);
+  background: var(--room);
+  color: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nn-chrono,
-  .nn-chrono * {
-    transition: none;
-  }
+  :root { --d-fast: 1ms; --d-base: 1ms; --d-slow: 1ms; --d-door: 1ms; }
 }

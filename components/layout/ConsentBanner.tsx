@@ -1,104 +1,75 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
 /**
- * India DPDP Act consent.
+ * Consent, under the DPDP Act.
  *
- * Nothing is measured before a visitor says yes. The banner asks once, stores
- * the answer on the device, and the analytics helper below refuses to send
- * anything until consent is "granted". Declining is a real choice with the same
- * visual weight as accepting — no dark pattern, no "manage preferences" maze.
+ * Nothing is measured before the visitor says yes. That is not a banner
+ * behaviour, it is a code behaviour: `track()` reads the stored decision and
+ * returns without sending anything until there is an explicit yes, so a
+ * visitor who never answers is never counted — not counted anonymously, not
+ * counted "essentially", not counted at all.
+ *
+ * Declining is one click and the same size as accepting. A decline that
+ * takes three taps through a settings sheet is not a decline.
  */
 
-import { useCallback, useEffect, useState } from "react";
-
 const KEY = "nn-consent";
-type Consent = "granted" | "declined";
+type Decision = "yes" | "no" | null;
 
-export function readConsent(): Consent | null {
+function read(): Decision {
   try {
     const v = window.localStorage.getItem(KEY);
-    return v === "granted" || v === "declined" ? v : null;
+    return v === "yes" || v === "no" ? v : null;
   } catch {
     return null;
   }
 }
 
-/** Send an analytics event, but only with consent. Silent no-op otherwise. */
-export function track(event: string, detail: Record<string, unknown> = {}) {
-  if (typeof window === "undefined") return;
-  if (readConsent() !== "granted") return;
+export function hasConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  return read() === "yes";
+}
+
+/** Send an event — or, far more often, do nothing at all. */
+export function track(name: string, detail?: Record<string, string | number>) {
+  if (!hasConsent()) return;
   try {
-    const body = JSON.stringify({ event, detail, at: new Date().toISOString() });
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon("/api/analytics", new Blob([body], { type: "application/json" }));
-    } else {
-      void fetch("/api/analytics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-      });
-    }
+    const body = JSON.stringify({ name, detail, at: Date.now() });
+    if (navigator.sendBeacon) navigator.sendBeacon("/api/analytics", new Blob([body], { type: "application/json" }));
+    else void fetch("/api/analytics", { method: "POST", body, headers: { "Content-Type": "application/json" }, keepalive: true });
   } catch {
-    /* analytics must never break the shop */
+    /* measurement is never allowed to break a purchase */
   }
 }
 
 export function ConsentBanner() {
-  const [decided, setDecided] = useState<Consent | null>("granted"); // assume decided until read
+  const [decision, setDecision] = useState<Decision>("yes"); // assume decided until read
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setDecided(readConsent());
+    setDecision(read());
     setReady(true);
   }, []);
 
-  const choose = useCallback((value: Consent) => {
-    try {
-      window.localStorage.setItem(KEY, value);
-    } catch {
-      /* the choice still holds for this visit */
-    }
-    setDecided(value);
-  }, []);
+  const answer = (v: "yes" | "no") => {
+    try { window.localStorage.setItem(KEY, v); } catch {}
+    setDecision(v);
+  };
 
-  if (!ready || decided !== null) return null;
+  if (!ready || decision !== null) return null;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="nn-consent-title"
-      className="nn-panel fixed inset-x-3 bottom-3 z-50 nn-fade-up md:inset-x-auto md:right-6 md:bottom-6 md:max-w-[26rem]"
-    >
-      <div className="p-6">
-        <h2
-          id="nn-consent-title"
-          className="text-lead font-[family-name:var(--font-display)]"
-        >
-          A word about measurement
-        </h2>
-        <p className="mt-3 text-fine text-[var(--ink-soft)]">
-          We would like to count which parts of the showroom people use, so we can make
-          it better. Nothing is recorded until you agree, and we never sell what we
-          learn. You can change your mind at any time on our{" "}
-          <a href="/privacy" className="nn-link">
-            privacy page
-          </a>
-          .
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <button type="button" className="nn-btn nn-btn--sm" onClick={() => choose("granted")}>
-            <span>Allow</span>
-          </button>
-          <button
-            type="button"
-            className="nn-btn nn-btn--sm nn-btn--quiet"
-            onClick={() => choose("declined")}
-          >
-            <span>No thank you</span>
-          </button>
-        </div>
+    <div className="consent glass" role="dialog" aria-label="Analytics consent">
+      <p className="small consent__text">
+        We would like to count anonymous visits so we know which pieces people look at. Nothing is
+        recorded unless you agree. <Link href="/privacy" className="ul-grow">Privacy</Link>
+      </p>
+      <div className="consent__acts">
+        <button type="button" className="btn btn--line btn--sm" onClick={() => answer("no")}>Decline</button>
+        <button type="button" className="btn btn--solid btn--sm" onClick={() => answer("yes")}>Allow</button>
       </div>
     </div>
   );

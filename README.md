@@ -7,6 +7,12 @@ stylist, and buy.
 
 > *Timeless style builds character.*
 
+## Canonical product
+
+This repository (`~/Projects/NN`) is the **only** NERO NOREN website to build, deploy, and operate.
+
+`~/Projects/nero-noren` is a frozen parallel experiment. Do not develop there. Do not merge the two trees blindly. Harvest a specific idea from the archive only as a reviewed change in this repo.
+
 ---
 
 ## What this is

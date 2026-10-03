@@ -1,0 +1,407 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NERO NOREN — the shell
+   Header, the floating panel, sheets, palette, footer.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.nn-filter { position: absolute; width: 0; height: 0; pointer-events: none; }
+
+/* ══ header ═════════════════════════════════════════════════════ */
+.hdr {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  transition: transform var(--d-base) var(--ease), background var(--d-base) var(--ease),
+              box-shadow var(--d-base) var(--ease), color var(--d-base) var(--ease);
+  color: var(--ink);
+  background: rgba(245, 242, 234, 0);
+}
+.hdr[data-scrolled] {
+  background: rgba(245, 242, 234, 0.82);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: 0 1px 0 var(--line-soft);
+}
+/* over the showroom: ivory type, no plate */
+.hdr[data-dark] { color: var(--ivory); background: transparent; box-shadow: none; }
+.hdr[data-dark] .hdr__search { background: rgba(247,245,239,.1); box-shadow: inset 0 0 0 1px rgba(247,245,239,.17); color: rgba(247,245,239,.78); }
+.hdr[data-dark] .hdr__count { background: var(--ivory); color: var(--black); }
+.hdr[data-hidden] { transform: translateY(-100%); }
+
+.hdr__in {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding: 0.95rem var(--gutter);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.hdr__brand { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; }
+.hdr__word { opacity: 0.94; }
+
+.hdr__nav { display: flex; justify-content: center; gap: clamp(1rem, 2.1vw, 2.2rem); }
+.hdr__link { opacity: 0.84; transition: opacity var(--d-base) var(--ease); }
+.hdr__link:hover, .hdr__link[data-on] { opacity: 1; }
+
+.hdr__tools { display: flex; align-items: center; gap: 0.35rem; }
+
+.hdr__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: clamp(180px, 20vw, 290px);
+  height: 2.3rem;
+  padding: 0 0.85rem;
+  margin-right: 0.4rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: rgba(10,10,10,.045);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-3);
+  font-size: var(--t-small);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow var(--d-base) var(--ease), background var(--d-base) var(--ease);
+}
+.hdr__search:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
+.hdr__search-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hdr__bag { position: relative; }
+.hdr__count {
+  position: absolute; top: 2px; right: 1px;
+  min-width: 15px; height: 15px; padding: 0 3px;
+  display: grid; place-items: center;
+  border-radius: 99px;
+  background: var(--black); color: var(--ivory);
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0;
+}
+
+@media (max-width: 1080px) {
+  .hdr__nav { display: none; }
+  .hdr__in { grid-template-columns: auto 1fr; }
+  .hdr__search-text { display: none; }
+  .hdr__search { width: 2.3rem; justify-content: center; padding: 0; }
+}
+
+/* ══ the floating dock and its panel ════════════════════════════ */
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(0.9rem, 2.4vh, 1.7rem);
+  z-index: 80;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 0.7rem;
+  width: min(100% - 1.6rem, 62rem);
+  pointer-events: none;
+}
+.dock > * { pointer-events: auto; }
+
+/* ── the dock is its own object ──────────────────────────────────
+   .glass takes its tint from whatever is behind it, which is right for a
+   panel sitting inside one room — and wrong for this, which floats over
+   every page the site has. On ivory it went to near-white and took its own
+   ivory icons with it. So the bar carries its own dark ground underneath
+   the glass: it is a thing the visitor is holding, and it looks the same in
+   the showroom as it does on the collection page. */
+.dock__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--r-pill);
+  color: var(--ivory);
+  background:
+    linear-gradient(150deg, rgba(247,245,239,.12) 0%, rgba(247,245,239,.04) 100%),
+    rgba(16, 15, 14, 0.78);
+  box-shadow:
+    inset 0 1px 0 0 rgba(247, 245, 239, 0.26),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.5),
+    var(--shadow-float);
+}
+
+.dock__btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 3.9rem;
+  padding: 0.44rem 0.6rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--d-base) var(--ease), transform var(--d-fast) var(--ease);
+}
+.dock__btn:hover { background: rgba(247,245,239,.12); }
+.dock__btn:active { transform: scale(0.94); }
+.dock__btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.dock__label {
+  font-size: 9.5px; font-weight: 500; letter-spacing: 0.14em;
+  text-transform: uppercase; opacity: 0.78; line-height: 1;
+}
+
+.dock__bag { position: relative; display: grid; place-items: center; }
+.dock__count {
+  position: absolute; top: -5px; right: -8px;
+  min-width: 15px; height: 15px; padding: 0 3px;
+  display: grid; place-items: center;
+  border-radius: 99px; background: var(--ivory); color: var(--black);
+  font-size: 9.5px; font-weight: 600;
+}
+
+/* ── the stylist, as the mark itself ────────────────────────────
+   The one control in the dock that is not a glyph. It is the NN
+   monogram under glass, lit from within — the house assistant, so it
+   carries the house mark and nothing else. */
+.dock__orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3rem; height: 3rem;
+  margin-inline: 0.35rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  color: var(--black);
+  background:
+    radial-gradient(70% 70% at 32% 26%, #ffffff 0%, #efece4 44%, #cfc9bd 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    inset 0 -2px 4px rgba(10,10,10,.18),
+    0 2px 10px -2px rgba(10,10,10,.5);
+  cursor: pointer;
+  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-base) var(--ease);
+}
+.dock__orb:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 -2px 4px rgba(10,10,10,.18), 0 8px 22px -6px rgba(10,10,10,.6); }
+.dock__orb:active { transform: scale(0.94); }
+.dock__orb:focus-visible { outline: 2px solid var(--ivory); outline-offset: 3px; }
+/* a slow breath on the rim — the assistant is awake, not idling at you */
+.dock__orb-ring {
+  position: absolute; inset: -3px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px rgba(247,245,239,.5);
+  animation: nn-breathe 5.5s var(--ease-soft) infinite;
+}
+@keyframes nn-breathe {
+  0%, 100% { opacity: .28; transform: scale(1); }
+  50%      { opacity: .62; transform: scale(1.055); }
+}
+@media (prefers-reduced-motion: reduce) { .dock__orb-ring { animation: none; opacity: .4; } }
+
+.dock__scrim {
+  position: fixed; inset: 0; z-index: 70;
+  border: 0; padding: 0;
+  background: rgba(8,8,9,.58);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  cursor: default;
+  animation: nn-fade var(--d-base) var(--ease) both;
+}
+@keyframes nn-fade { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── the panel ────────────────────────────────────────────────── */
+/* The panel carries its own ground for the same reason the dock does: it
+   opens over the showroom and over the ivory shop alike, and glass that
+   takes its tint from the page puts ivory type on an ivory sheet. */
+.panel {
+  width: 100%;
+  max-height: min(70vh, 34rem);
+  border-radius: var(--r-xl);
+  color: var(--ivory);
+  overflow: hidden;
+  transform-origin: bottom center;
+  animation: nn-panel-in var(--d-base) var(--ease-door) both;
+  background:
+    linear-gradient(150deg, rgba(247,245,239,.1) 0%, rgba(247,245,239,.03) 100%),
+    rgba(14, 13, 12, 0.9);
+  box-shadow:
+    inset 0 1px 0 0 rgba(247, 245, 239, 0.2),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.6),
+    var(--shadow-float);
+}
+@keyframes nn-panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(.975); }
+  to   { opacity: 1; transform: none; }
+}
+.panel__scroll { max-height: inherit; overflow-y: auto; overscroll-behavior: contain; padding: 1.6rem clamp(1rem, 2.4vw, 2rem) 1.3rem; }
+.panel__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 2.4vw, 2.4rem); }
+.panel__head { margin: 0 0 0.8rem; opacity: 0.68; }
+.panel__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+
+.panel__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.56rem 0.7rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--d-base) var(--ease);
+}
+.panel__row:hover { background: rgba(247,245,239,.09); }
+.panel__row:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.panel__row-icon { grid-column: 1; opacity: .6; align-self: center; }
+.panel__row-main { grid-column: 2; font-size: 0.95rem; }
+.panel__row-note { grid-column: 2 / -1; grid-row: 2; font-size: var(--t-small); opacity: .54; }
+.panel__row-arrow { grid-column: 3; opacity: 0; transition: opacity var(--d-base) var(--ease), transform var(--d-base) var(--ease); }
+.panel__row:hover .panel__row-arrow { opacity: .7; transform: translateX(3px); }
+
+.panel__room {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  margin-top: 1.4rem; padding-top: 1.1rem;
+  border-top: 1px solid rgba(247,245,239,.12);
+}
+.panel__room-note { flex: 1 1 14rem; min-width: 0; }
+
+@media (max-width: 760px) {
+  .panel__grid { grid-template-columns: 1fr; gap: 1.4rem; }
+  .dock__label { display: none; }
+  .dock__btn { min-width: 3.1rem; padding: 0.6rem; }
+  .panel { max-height: 72vh; }
+}
+
+/* ══ sheets ═════════════════════════════════════════════════════ */
+.sheet { position: fixed; inset: 0; z-index: 90; display: flex; }
+.sheet--top { align-items: flex-start; justify-content: center; }
+.sheet__scrim {
+  position: absolute; inset: 0;
+  border: 0; padding: 0;
+  background: rgba(8,8,9,.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: default;
+  animation: nn-fade var(--d-base) var(--ease) both;
+}
+.sheet__panel {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: min(100%, 30rem);
+  height: 100%;
+  margin-left: auto;
+  border-radius: var(--r-xl) 0 0 var(--r-xl);
+  animation: nn-sheet-in var(--d-slow) var(--ease-door) both;
+}
+@keyframes nn-sheet-in { from { transform: translateX(18px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+.sheet__head {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+.sheet__head > :first-child { flex: 1; }
+.sheet__title { display: inline-flex; align-items: center; gap: 0.6rem; }
+
+@media (max-width: 640px) {
+  .sheet__panel { width: 100%; border-radius: var(--r-xl) var(--r-xl) 0 0; height: 92%; margin-top: auto; }
+  @keyframes nn-sheet-in { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }
+}
+
+/* ══ search palette ═════════════════════════════════════════════ */
+.pal {
+  position: relative;
+  width: min(100% - 2rem, 40rem);
+  margin-top: clamp(3rem, 12vh, 8rem);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  animation: nn-pal-in var(--d-base) var(--ease-door) both;
+}
+@keyframes nn-pal-in { from { opacity: 0; transform: translateY(-10px) scale(.985) } to { opacity: 1; transform: none } }
+.pal__bar { display: flex; align-items: center; gap: 0.8rem; padding: 0.95rem 1.1rem; border-bottom: 1px solid var(--line); color: var(--ink-3); }
+.pal__input { flex: 1; border: 0; background: transparent; outline: none; font-size: 1rem; color: var(--ink); min-width: 0; }
+.pal__kbd { padding: 2px 6px; border-radius: 5px; background: rgba(10,10,10,.06); }
+.pal__list { list-style: none; margin: 0; padding: 0.4rem; max-height: 58vh; overflow-y: auto; }
+.pal__row {
+  display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 0.9rem;
+  padding: 0.5rem 0.7rem; border-radius: var(--r-sm); text-decoration: none; color: var(--ink);
+}
+.pal__row[data-on] { background: rgba(10,10,10,.06); }
+.pal__img, .pal__swatch { display: block; width: 44px; height: 56px; border-radius: 3px; overflow: hidden; background: var(--stone); }
+.pal__img img { width: 100%; height: 100%; object-fit: cover; }
+.pal__name { font-size: 0.95rem; }
+.pal__price { font-size: var(--t-small); }
+.pal__none { padding: 1.4rem; }
+
+/* ══ toasts ═════════════════════════════════════════════════════ */
+.toasts {
+  position: fixed; left: 50%; bottom: calc(5.4rem + env(safe-area-inset-bottom));
+  z-index: 95; transform: translateX(-50%);
+  display: grid; gap: 0.5rem; width: min(100% - 2rem, 26rem);
+  pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.8rem 1.1rem; border-radius: var(--r-pill);
+  color: var(--ivory); font-size: var(--t-small);
+  pointer-events: auto;
+  animation: nn-toast-in var(--d-base) var(--ease-door) both;
+}
+@keyframes nn-toast-in { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+/* ══ consent ════════════════════════════════════════════════════ */
+.consent {
+  /* Right-hand side, not centred: centred it landed squarely on top of the
+     hero's two buttons, so the first thing a visitor saw was a consent
+     dialog covering the thing they came to click. */
+  position: fixed; right: 1rem; bottom: calc(5.8rem + env(safe-area-inset-bottom));
+  z-index: 96;
+  width: min(100% - 2rem, 26rem);
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: 1rem 1.2rem; border-radius: var(--r-lg);
+  color: var(--ivory);
+}
+.consent__text { flex: 1 1 15rem; margin: 0; color: inherit; opacity: .88; }
+.consent__acts { display: flex; gap: 0.5rem; }
+.consent .btn--line { color: var(--ivory); box-shadow: inset 0 0 0 1px rgba(247,245,239,.3); }
+.consent .btn--solid { background: var(--ivory); color: var(--black); }
+
+/* ══ footer ═════════════════════════════════════════════════════ */
+.ftr { border-top: 1px solid var(--line); background: var(--panel); margin-top: auto; }
+.ftr__in {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr repeat(3, 0.8fr);
+  gap: clamp(1.6rem, 3vw, 3.4rem);
+  padding-block: clamp(2.6rem, 4vw, 4.4rem);
+}
+.ftr__brand { display: flex; align-items: flex-start; }
+.ftr__join h2 { margin: 0 0 0.5rem; }
+.ftr__form { position: relative; margin: 1.1rem 0 1rem; max-width: 22rem; }
+.ftr__form .field { padding-right: 3rem; border-radius: var(--r-pill); }
+.ftr__send { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+.ftr__social { display: flex; gap: 0.2rem; list-style: none; margin: 0; padding: 0; }
+.ftr__col h2 { margin: 0 0 0.9rem; }
+.ftr__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.ftr__col a { font-size: var(--t-small); color: var(--ink-2); text-decoration: none; }
+.ftr__col a:hover { color: var(--ink); }
+.ftr__base {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding-block: 1.2rem;
+  border-top: 1px solid var(--line-soft);
+}
+.ftr__base p { margin: 0; }
+.ftr__legal { display: flex; gap: 1.2rem; }
+.ftr__legal a { text-decoration: none; color: var(--ink-2); }
+
+@media (max-width: 1000px) {
+  .ftr__in { grid-template-columns: 1fr 1fr; }
+  .ftr__brand, .ftr__join { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .ftr__in { grid-template-columns: 1fr; }
+}
+
+/* room for the dock at the bottom of every page */
+body { padding-bottom: calc(5.2rem + env(safe-area-inset-bottom)); }
+
+.ftr__says { margin: -0.5rem 0 1rem; color: var(--olive); }
+.ftr__says[data-failed] { color: var(--taupe); }

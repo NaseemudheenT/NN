@@ -15,8 +15,8 @@ export default function JournalPage() {
       body="The journal is where the making gets written down — the cloth, the corrections, the reasons a piece was cut from the range. There is no first issue yet, and a journal padded out to look busy is worse than an empty one."
       detail={
         <>
-          <h2 className="nn-awaiting__detailtitle">What it will carry</h2>
-          <dl className="nn-awaiting__list">
+          <h2 className="d-h3">What it will carry</h2>
+          <dl >
             <div>
               <dt>The cloth</dt>
               <dd>Where a fabric came from, how it behaves, and why it was chosen over the one we did not use.</dd>

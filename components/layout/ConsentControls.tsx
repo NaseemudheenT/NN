@@ -1,80 +1,48 @@
 "use client";
 
-/**
- * The consent choice, on the privacy page.
- *
- * A promise on a privacy page is worth nothing without a control beside it, so
- * this is the same decision the banner asks, changeable at any time, showing
- * which way it currently stands.
- */
-
 import { useEffect, useState } from "react";
-import { readConsent } from "./ConsentBanner";
 
-type Consent = "granted" | "declined" | null;
-
+/**
+ * Changing your mind.
+ *
+ * The decision taken in the banner is stored on the device, so this reads
+ * and rewrites the same key. A privacy page that explains a choice without
+ * offering to reverse it is a notice, not a control.
+ */
 export function ConsentControls() {
-  const [consent, setConsent] = useState<Consent>(null);
+  const [state, setState] = useState<"yes" | "no" | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setConsent(readConsent());
+    try {
+      const v = window.localStorage.getItem("nn-consent");
+      setState(v === "yes" || v === "no" ? v : null);
+    } catch {
+      /* no storage: the answer below is "not decided", which is the truth */
+    }
     setReady(true);
   }, []);
 
-  const choose = (value: Consent) => {
-    try {
-      if (value === null) window.localStorage.removeItem("nn-consent");
-      else window.localStorage.setItem("nn-consent", value);
-    } catch {
-      /* the choice still applies for this visit */
-    }
-    setConsent(value);
+  const set = (v: "yes" | "no") => {
+    try { window.localStorage.setItem("nn-consent", v); } catch {}
+    setState(v);
   };
 
   if (!ready) return null;
 
   return (
-    <div
-      className="my-6 border p-5"
-      style={{ borderColor: "var(--line)", background: "var(--surface)" }}
-    >
-      <p className="m-0 text-fine text-[var(--ink)]">
-        Right now:{" "}
-        <strong>
-          {consent === "granted"
-            ? "you have agreed to be counted."
-            : consent === "declined"
-              ? "you have declined, and nothing is being recorded."
-              : "you have not been asked yet."}
-        </strong>
+    <div className="consent-ctl">
+      <p className="small">
+        <strong>On this device:</strong>{" "}
+        {state === "yes" ? "analytics allowed." : state === "no" ? "analytics declined." : "you have not decided yet."}
       </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="nn-btn nn-btn--sm"
-          onClick={() => choose("granted")}
-          disabled={consent === "granted"}
-        >
-          <span>Allow counting</span>
+      <div className="consent-ctl__acts">
+        <button type="button" className="btn btn--line btn--sm" onClick={() => set("no")} disabled={state === "no"}>
+          Decline
         </button>
-        <button
-          type="button"
-          className="nn-btn nn-btn--sm nn-btn--quiet"
-          onClick={() => choose("declined")}
-          disabled={consent === "declined"}
-        >
-          <span>Do not count me</span>
+        <button type="button" className="btn btn--solid btn--sm" onClick={() => set("yes")} disabled={state === "yes"}>
+          Allow
         </button>
-        {consent !== null ? (
-          <button
-            type="button"
-            className="nn-link text-eyebrow uppercase tracking-[0.14em]"
-            onClick={() => choose(null)}
-          >
-            Forget my answer
-          </button>
-        ) : null}
       </div>
     </div>
   );
