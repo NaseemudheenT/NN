@@ -106,14 +106,20 @@ export interface Zone {
   yaw: number;
 }
 
+/* Each one stands where a customer would stand and faces what they came
+   to see. A teleport that lands you looking at a wall is worse than a
+   walk, because at least a walk is your own fault. */
 export const ZONES: Zone[] = [
   { id: "entrance", label: "Entrance", floor: 0, at: [0, 12.5], yaw: 0 },
-  { id: "men", label: "Men", floor: 0, at: [0, -2.5], yaw: 0 },
-  { id: "collection", label: "Collection", floor: 0, at: [0, -13.5], yaw: 0 },
-  { id: "trial", label: "Trial room", floor: 0, at: [7.8, -5.6], yaw: Math.PI / 2 },
-  { id: "atelier", label: "Atelier", floor: 0, at: [-7.8, -12.4], yaw: -Math.PI / 2 },
-  { id: "boys", label: "Boys", floor: 1, at: [-7.9, -8.0], yaw: Math.PI / 2 },
+  { id: "men", label: "Men", floor: 0, at: [4.4, -2.0], yaw: -0.5 },
+  { id: "collection", label: "Collection", floor: 0, at: [0, -12.6], yaw: 0 },
+  { id: "trial", label: "Trial room", floor: 0, at: [7.9, -4.2], yaw: 0 },
+  { id: "atelier", label: "Atelier", floor: 0, at: [-7.9, -12.6], yaw: 0 },
+  { id: "boys", label: "Boys", floor: 1, at: [-7.9, -10.6], yaw: 0 },
 ];
+
+/** The fitting alcove, cut into the east outer wall. */
+export const FITTING = { x: 9.4, z: -8.6, width: 3.6, depth: 1.9, height: 3.2 } as const;
 
 /* ── the fittings ───────────────────────────────────────────────── */
 

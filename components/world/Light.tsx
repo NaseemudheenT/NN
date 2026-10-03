@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { B, RAILS, SCONCES } from "./plan";
+import { B, FITTING, RAILS, SCONCES } from "./plan";
 import type { SkyState } from "@/lib/daytime";
 
 /**
@@ -100,6 +100,50 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
           color="#ffbe72"
         />
       ))}
+
+      {/* ── the aisles ─────────────────────────────────────────
+          Every rail in this building stands in an aisle, and the aisles sit
+          behind the arcade where neither the window nor the nave's own
+          light reaches them. Without this fill they go to black and the
+          entire stock of the shop is invisible — which is a lighting
+          failure, not a mood. A cove washing the outer wall is what a real
+          shop puts there, and it is why you can read a label in the back of
+          one. */}
+      {[-1, 1].map((side) =>
+        [-19, -13, -7, -1, 5].map((z) => (
+          <pointLight
+            key={`${side}-${z}`}
+            position={[side * 8.9, 5.4, z]}
+            intensity={2.0 + sky.lampLevel * 1.6}
+            distance={9}
+            decay={2}
+            color="#f6e8d2"
+          />
+        )),
+      )}
+      {/* and the same again along the gallery */}
+      {[-1, 1].map((side) =>
+        [-17, -10, -3, 4].map((z) => (
+          <pointLight
+            key={`g${side}-${z}`}
+            position={[side * 8.9, B.gallery.y + 4.4, z]}
+            intensity={1.7 + sky.lampLevel * 1.4}
+            distance={8}
+            decay={2}
+            color="#f6e8d2"
+          />
+        )),
+      )}
+
+      {/* the fitting alcove is lit for looking at yourself: frontal, warm,
+          and bright enough that a mirror is useful rather than flattering */}
+      <pointLight
+        position={[FITTING.x - 1.4, 2.1, FITTING.z]}
+        intensity={5.5}
+        distance={6}
+        decay={2}
+        color="#fff0dc"
+      />
 
       {/* narrow high-CRI spots on the stock; a shop lights its merchandise
           all day, so these never go fully off */}

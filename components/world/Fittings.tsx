@@ -2,11 +2,12 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { MeshReflectorMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { seeded } from "@/components/showroom/geometry";
 import { type Materials } from "@/components/showroom/materials";
 import { markTexture } from "./mark-texture";
-import { B, SEATS, TABLE, TREES } from "./plan";
+import { B, FITTING, SEATS, TABLE, TREES } from "./plan";
 
 /** An olive tree — the only thing in the building nobody manufactured. */
 function Tree({
@@ -112,6 +113,103 @@ export function Fittings({ m, still, quality }: { m: Materials; still: boolean; 
           />
         </mesh>
         <pointLight position={[0, -0.3, 0.8]} intensity={2.2} distance={4} decay={2} color="#e8d4a4" />
+      </group>
+
+      {/* ══ the fitting alcove ═══════════════════════════════════
+          A recess in the east wall with a real mirror in it — and it is a
+          REAL mirror, a planar reflection, not a grey panel. That matters
+          more here than anywhere else in the building: a fitting room whose
+          mirror shows nothing is a cupboard, and the one thing a customer
+          does in one is look. */}
+      <group position={[FITTING.x, 0, FITTING.z]}>
+        {/* the recess: back, two returns, a soffit */}
+        <mesh position={[FITTING.depth, FITTING.height / 2, 0]} rotation-y={-Math.PI / 2} material={m.sand}>
+          <planeGeometry args={[FITTING.width, FITTING.height]} />
+        </mesh>
+        {[-1, 1].map((side) => (
+          <mesh
+            key={side}
+            position={[FITTING.depth / 2, FITTING.height / 2, (side * FITTING.width) / 2]}
+            rotation-y={side > 0 ? 0 : Math.PI}
+            material={m.sand}
+          >
+            <planeGeometry args={[FITTING.depth, FITTING.height]} />
+          </mesh>
+        ))}
+        <mesh rotation-x={Math.PI / 2} position={[FITTING.depth / 2, FITTING.height, 0]} material={m.sand}>
+          <planeGeometry args={[FITTING.depth, FITTING.width]} />
+        </mesh>
+
+        {/* the mirror, full height, in a champagne-gold surround */}
+        <mesh position={[FITTING.depth - 0.04, 1.35, 0]} rotation-y={-Math.PI / 2}>
+          <planeGeometry args={[1.5, 2.3]} />
+          {quality === "high" ? (
+            <MeshReflectorMaterial
+              color="#cfd3d6"
+              roughness={0.03}
+              metalness={0.9}
+              resolution={512}
+              mixBlur={0.2}
+              mixStrength={1.2}
+              blur={[60, 20]}
+              mirror={0.96}
+            />
+          ) : (
+            <meshStandardMaterial color="#8e979c" roughness={0.08} metalness={0.95} />
+          )}
+        </mesh>
+        <mesh position={[FITTING.depth - 0.02, 1.35, 0]} rotation-y={-Math.PI / 2} material={m.gold}>
+          <boxGeometry args={[1.62, 2.42, 0.03]} />
+        </mesh>
+
+        {/* the bench */}
+        <mesh position={[0.55, 0.44, 0]} material={m.leather} castShadow receiveShadow>
+          <boxGeometry args={[0.56, 0.12, 1.5]} />
+        </mesh>
+        {[-0.6, 0.6].map((dz) => (
+          <mesh key={dz} position={[0.55, 0.19, dz]} material={m.gold} castShadow>
+            <boxGeometry args={[0.46, 0.38, 0.05]} />
+          </mesh>
+        ))}
+
+        {/* a curtain track, and the curtain drawn back */}
+        <mesh position={[0.1, FITTING.height - 0.2, 0]} rotation-x={Math.PI / 2} material={m.gold}>
+          <cylinderGeometry args={[0.018, 0.018, FITTING.width, 10]} />
+        </mesh>
+        {[-1, 1].map((side) => (
+          <mesh
+            key={side}
+            position={[0.14, (FITTING.height - 0.3) / 2 + 0.1, (side * FITTING.width) / 2 - side * 0.3]}
+            material={m.leather}
+            castShadow
+          >
+            <boxGeometry args={[0.1, FITTING.height - 0.5, 0.55]} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* ══ the atelier case ═════════════════════════════════════
+          The four places the brand board puts gold — the woven label, the
+          hangtag, the engraved button, the packaging — in a lit case on the
+          west wall, which is the only part of this building where gold is
+          the point rather than the trim. */}
+      <group position={[-B.aisle.x + 0.25, 0, -12.6]}>
+        <mesh position={[0, 0.95, 0]} material={m.walnut} castShadow receiveShadow>
+          <boxGeometry args={[0.45, 1.9, 2.6]} />
+        </mesh>
+        <mesh position={[0.24, 1.35, 0]} rotation-y={Math.PI / 2}>
+          <planeGeometry args={[2.3, 0.9]} />
+          <meshPhysicalMaterial
+            color="#aebcc4" roughness={0.05} transmission={0.9} thickness={0.02}
+            transparent opacity={0.3}
+          />
+        </mesh>
+        {[-0.75, -0.25, 0.25, 0.75].map((dz, i) => (
+          <mesh key={dz} position={[0.14, 1.3, dz]} material={i % 2 ? m.gold : m.goldDark} castShadow>
+            {i % 2 ? <cylinderGeometry args={[0.07, 0.07, 0.02, 24]} /> : <boxGeometry args={[0.02, 0.2, 0.13]} />}
+          </mesh>
+        ))}
+        <pointLight position={[0.5, 1.8, 0]} intensity={2.4} distance={3} decay={2} color="#ffe9c4" />
       </group>
 
       {/* ── a runner down the nave, so the floor is not one slab ── */}
