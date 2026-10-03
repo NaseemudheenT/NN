@@ -64,7 +64,16 @@ export function pierceWall(
  * The shape's origin sits ON the springline, so the mesh is placed at the
  * height the arch actually springs from.
  */
-export function archBand(span: number, band: number, depth: number): THREE.ExtrudeGeometry {
+export function archBand(
+  span: number,
+  band: number,
+  depth: number,
+  /** How high the crown sits above the springline. Defaults to a true
+      semicircle. Anything less makes a SEGMENTAL arch — the wide, shallow
+      vault a hall gets when it is broader than it is tall, and the only way
+      to span thirteen metres without the crown going through the roof. */
+  rise?: number,
+): THREE.ExtrudeGeometry {
   const r = span / 2;
   const s = new THREE.Shape();
   s.moveTo(-r - band, 0);
@@ -78,6 +87,10 @@ export function archBand(span: number, band: number, depth: number): THREE.Extru
     bevelEnabled: false,
     curveSegments: 44,
   });
+  /* Squashed vertically into an ellipse. Doing it after the extrude rather
+     than with an elliptical curve keeps the band a constant thickness
+     measured horizontally, which is how voussoirs are actually cut. */
+  if (rise !== undefined && rise !== r) geo.scale(1, rise / r, 1);
   geo.translate(0, 0, -depth / 2);
   geo.computeVertexNormals();
   return geo;

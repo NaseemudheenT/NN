@@ -226,16 +226,19 @@ export function Fittings({ m, still, quality }: { m: Materials; still: boolean; 
 /**
  * What is outside the windows.
  *
- * An arched opening with nothing behind it reads as a hole in a wall; one
- * with a cathedral half a kilometre away reads as a window. That difference
- * is the whole illusion of standing somewhere, which is why this exists.
+ * Nothing but light.
  *
- * Everything out here opts out of the interior's fog. Exponential fog at
- * the hall's density is 98% opaque by 240 m, so with it applied the great
- * window rendered as a flat smear of fog colour. Outdoors, aerial
- * perspective lives in the COLOURS instead: distant things are mixed toward
- * the sky, and they get paler through the day rather than darker, because
- * haze between you and a thing scatters daylight into it.
+ * There was a cathedral and a city out there, and it was wrong — not badly
+ * drawn, wrong in kind. Standing inside a stone hall looking out, your eye
+ * is adapted to the interior, so the exterior is one to two STOPS past
+ * anything in the room: it blows out. You do not read architecture through
+ * a window from inside a dark hall; you read a shape of blinding light with
+ * a hint of something at the bottom of it. Putting legible buildings there
+ * makes the window a painting hanging on the wall, which is the one thing
+ * a window must never become.
+ *
+ * So: a sky painted hot, a band of haze where the ground would be, and the
+ * windows' own glare. The room is the subject. The window is the light.
  */
 export function Outside({ tint, lampLevel }: { tint: THREE.Color; lampLevel: number }) {
   const sky = useMemo(() => {
@@ -247,11 +250,6 @@ export function Outside({ tint, lampLevel }: { tint: THREE.Color; lampLevel: num
     return { canvas: c, tex };
   }, []);
 
-  /* Painted HOT. Standing inside a stone hall looking out, the exterior is
-     one to two stops past anything in the room — your eye is adapted to the
-     interior, so the window reads as near-white with only the darkest
-     things outside holding any detail. A sky painted at the value it "is"
-     renders as a flat navy panel and the window stops being a window. */
   useMemo(() => {
     const ctx = sky.canvas.getContext("2d");
     if (!ctx) return;
@@ -259,63 +257,40 @@ export function Outside({ tint, lampLevel }: { tint: THREE.Color; lampLevel: num
     const mix = (night: number, noon: number) => Math.round(night + (noon - night) * day);
     const warm = (c: number) => Math.round(Math.min(1, c) * 255);
     const g = ctx.createLinearGradient(0, 0, 0, 256);
-    g.addColorStop(0, `rgb(${mix(14, 104)} ${mix(20, 148)} ${mix(40, 212)})`);
-    g.addColorStop(0.5, `rgb(${mix(28, 168)} ${mix(36, 196)} ${mix(58, 232)})`);
-    g.addColorStop(0.82, `rgb(${mix(44, 224)} ${mix(48, 230)} ${mix(66, 238)})`);
-    g.addColorStop(1, `rgb(${mix(52, warm(tint.r))} ${mix(50, warm(tint.g))} ${mix(62, warm(tint.b))})`);
+    /* Deliberately past white at the horizon band. The tone mapper pulls it
+       back to a glare with a little colour left in it, which is exactly what
+       an over-exposed window looks like in a photograph of a dark room. */
+    g.addColorStop(0, `rgb(${mix(16, 128)} ${mix(24, 168)} ${mix(44, 226)})`);
+    g.addColorStop(0.46, `rgb(${mix(32, 196)} ${mix(40, 216)} ${mix(62, 242)})`);
+    g.addColorStop(0.74, `rgb(${mix(52, 252)} ${mix(54, 250)} ${mix(70, 248)})`);
+    g.addColorStop(0.9, `rgb(${mix(60, warm(tint.r * 1.35))} ${mix(56, warm(tint.g * 1.3))} ${mix(70, warm(tint.b * 1.2))})`);
+    g.addColorStop(1, `rgb(${mix(34, 214)} ${mix(32, 196)} ${mix(40, 170)})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 4, 256);
     sky.tex.needsUpdate = true;
   }, [sky, tint, lampLevel]);
 
-  const far = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#141821").lerp(new THREE.Color("#7f93b0"), 1 - lampLevel),
-      fog: false,
-    }),
-    [lampLevel],
-  );
-  const near = useMemo(
-    () => new THREE.MeshBasicMaterial({
-      color: new THREE.Color("#0b0e14").lerp(new THREE.Color("#2b3340"), 1 - lampLevel),
-      fog: false,
-    }),
-    [lampLevel],
-  );
-
   return (
     <group>
-      <mesh position={[0, 54, B.endWall.z - 200]}>
-        <planeGeometry args={[760, 400]} />
+      <mesh position={[0, 48, B.endWall.z - 150]}>
+        <planeGeometry args={[620, 340]} />
         <meshBasicMaterial map={sky.tex} toneMapped={false} fog={false} />
       </mesh>
 
-      {/* The cathedral, set OFF the nave's axis and well back. Dead centre
-          and close it filled the great window edge to edge, leaving no sky
-          at all — and a window with no sky in it is a painting. */}
-      <group position={[-13, 0, B.endWall.z - 168]}>
-        <mesh position={[0, 11, 0]} material={near}><boxGeometry args={[21, 22, 14]} /></mesh>
-        {[-7.4, 7.4].map((x) => (
-          <group key={x}>
-            <mesh position={[x, 21, 1.5]} material={near}><boxGeometry args={[6, 42, 6]} /></mesh>
-            <mesh position={[x, 49, 1.5]} material={near}><coneGeometry args={[4.6, 16, 4]} /></mesh>
-          </group>
-        ))}
-        <mesh position={[0, 30, 0]} material={near}><coneGeometry args={[5.6, 20, 8]} /></mesh>
-        <mesh position={[0, 23, 0]} rotation-y={Math.PI / 4} material={near}><coneGeometry args={[11.5, 9, 4]} /></mesh>
-      </group>
-
-      {[
-        [16, 7, -186], [27, 10, -214], [-32, 8, -202], [38, 6, -176],
-        [-48, 9, -232], [52, 11, -244], [8, 5, -252], [-20, 6, -268],
-      ].map(([x, h, z]) => (
-        <mesh key={`${x}-${z}`} position={[x, h, B.endWall.z + z]} material={far}>
-          <boxGeometry args={[11 + (h % 5) * 3, h * 2, 11]} />
-        </mesh>
-      ))}
-
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.6, B.endWall.z - 150]} material={far}>
-        <planeGeometry args={[760, 300]} />
+      {/* A soft band of haze just above the sill line. It is the only thing
+          out there with any structure, and all it does is stop the sky
+          meeting the window frame as a hard edge — which is the giveaway
+          that there is a plane two metres behind the glass. */}
+      <mesh position={[0, 4, B.endWall.z - 42]}>
+        <planeGeometry args={[220, 26]} />
+        <meshBasicMaterial
+          color={tint.clone().lerp(new THREE.Color("#ffffff"), 0.55)}
+          transparent
+          opacity={0.5 * (1 - lampLevel)}
+          depthWrite={false}
+          fog={false}
+          toneMapped={false}
+        />
       </mesh>
     </group>
   );

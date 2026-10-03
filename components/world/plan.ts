@@ -36,11 +36,30 @@ export type ZoneId =
 
 export const EYE = 1.65;
 
+/** The street outside, and the face the building shows it. */
+export const FACADE = {
+  z: 16,
+  width: 27,
+  height: 17.5,
+  thickness: 0.9,
+  /* two tall windows flanking the entrance, lit warm from the lobby */
+  windows: [
+    { cx: -8.4, width: 3.0, height: 8.0, sill: 1.6 },
+    { cx: 8.4, width: 3.0, height: 8.0, sill: 1.6 },
+  ],
+  sign: { y: 10.4 },
+} as const;
+
 export const B = {
   nave: { halfWidth: 6.5, front: 10, back: -24, height: 14.6 },
   vestibule: { front: 16 },
-  doors: { z: 10, width: 4.4, height: 6.2, leaf: 2.2 },
-  arcade: { x: 6.5, thickness: 0.5, openingWidth: 4.2, openingHeight: 6.6 },
+  /* The doors are in the STREET FACADE, not in an inner wall. That is what
+     lets the arrival be an arrival: the camera comes down the street, the
+     doors give, and the lobby and the hall are both still ahead. Doors set
+     one room in means the customer is already inside when they open, which
+     is a corridor, not an entrance. */
+  doors: { z: 16, width: 4.4, height: 6.6, leaf: 2.2 },
+  arcade: { x: 6.5, thickness: 0.5, openingWidth: 4.2, openingHeight: 6.6, upperHeight: 2.6 },
   aisle: { x: 9.4 },
   gallery: { y: 7.6, inner: 6.5, outer: 9.4, rail: 1.05, height: 6.4 },
   endWall: { z: -24, thickness: 0.6, width: 19.4 },
@@ -51,14 +70,28 @@ export const B = {
   ],
   /** Bay centres down the nave. Arcade openings and vault arches align. */
   bays: [-19.3, -12.4, -5.6, 1.3, 7.6],
-  springline: 7.9,
+  /* Where the vault springs, and how far it rises.
+     Three numbers have to agree here and all three were wrong: the crown
+     (springline + rise + band) must clear the ceiling, the springing must
+     clear the gallery's handrail, and the gallery's openings must fit
+     between its floor and the springing. A semicircular vault over a 13 m
+     nave rises 6.5 m on its own, which blew through the roof — so the
+     vault is SEGMENTAL, which is what a hall broader than it is tall
+     actually gets built with. */
+  springline: 10.4,
+  vaultRise: 3.6,
+  vaultBand: 0.5,
 
   /** The stair up to the gallery: one straight flight in the west aisle. */
+  /* 44 treads over 12.3 m to climb 7.6 m: a 173 mm rise on a 280 mm going,
+     which is a staircase. It was 22 treads over 9 m — a 345 mm rise, which
+     is a climbing wall, and exactly the sort of number that looks fine in a
+     plan file and is unusable in the building. */
   stair: {
     x: -7.95,
-    bottomZ: 6.4,
-    topZ: -2.6,
-    steps: 22,
+    bottomZ: 8.4,
+    topZ: -3.9,
+    steps: 44,
     width: 2.4,
   },
 } as const;
@@ -135,7 +168,7 @@ export interface RailSpec {
 
 export const RAILS: RailSpec[] = [
   { id: "w1", x: -7.9, z: -17.0, length: 4.6, floor: 0, audience: "men" },
-  { id: "w2", x: -7.9, z: -1.0, length: 4.6, floor: 0, audience: "men" },
+  { id: "w2", x: -7.9, z: -9.5, length: 4.6, floor: 0, audience: "men" },
   { id: "e1", x: 7.9, z: -17.0, length: 4.6, floor: 0, audience: "men" },
   { id: "e2", x: 7.9, z: 1.5, length: 4.6, floor: 0, audience: "men" },
   { id: "gw", x: -7.9, z: -14.5, length: 4.6, floor: 1, audience: "boys" },

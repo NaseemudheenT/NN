@@ -45,15 +45,18 @@ export function Building({ m, quality }: { m: Materials; quality: "high" | "low"
   const arcadeWall = useMemo(() => {
     const holes = [
       ...B.bays.map((z) => archPath(z - aisleMid, B.arcade.openingWidth, B.arcade.openingHeight)),
+      /* the gallery's own openings, between its floor and the springing —
+         this is what lets someone on the second floor look down into the
+         nave, so getting the head under the vault matters */
       ...B.bays.map((z) =>
-        archPath(z - aisleMid, B.arcade.openingWidth * 0.86, 4.6, B.gallery.y + 0.45),
+        archPath(z - aisleMid, B.arcade.openingWidth * 0.86, B.arcade.upperHeight, B.gallery.y + 0.1),
       ),
     ];
     return pierceWall(aisleLength, B.nave.height, B.arcade.thickness, holes);
   }, [aisleLength, aisleMid]);
 
   /* the transverse arches across the nave */
-  const band = useMemo(() => archBand(B.arcade.x * 2, 0.55, 1.0), []);
+  const band = useMemo(() => archBand(B.arcade.x * 2, B.vaultBand, 1.0, B.vaultRise), []);
 
   /* ── the stair ───────────────────────────────────────────────── */
   const stair = useMemo(() => {
@@ -298,34 +301,40 @@ export function Building({ m, quality }: { m: Materials; quality: "high" | "low"
         </mesh>
       ))}
 
-      {/* ══ the vestibule, behind the doors ══════════════════════ */}
-      <mesh position={[0, B.nave.height / 2, B.vestibule.front]} rotation-y={Math.PI} material={m.plaster}>
-        <planeGeometry args={[B.aisle.x * 2, B.nave.height]} />
-      </mesh>
+      {/* ══ the lobby, between the street doors and the hall ═════
+          Lower and darker than the nave on purpose. Compressing the ceiling
+          at the entrance is the oldest trick a cathedral has: the hall
+          beyond reads as twice its own height because you came through
+          something small to reach it. */}
       {[-1, 1].map((side) => (
         <mesh
           key={side}
-          position={[side * B.arcade.x, 4, (B.vestibule.front + B.doors.z) / 2]}
+          position={[side * B.arcade.x, 4.4, (B.vestibule.front + B.nave.front) / 2]}
           rotation-y={-side * (Math.PI / 2)}
           material={m.plaster}
+          receiveShadow
         >
-          <planeGeometry args={[B.vestibule.front - B.doors.z, 8]} />
+          <planeGeometry args={[B.vestibule.front - B.nave.front, 8.8]} />
         </mesh>
       ))}
-      <mesh rotation-x={Math.PI / 2} position={[0, 8, (B.vestibule.front + B.doors.z) / 2]} material={m.plaster}>
-        <planeGeometry args={[B.arcade.x * 2, B.vestibule.front - B.doors.z]} />
+      <mesh
+        rotation-x={Math.PI / 2}
+        position={[0, 8.8, (B.vestibule.front + B.nave.front) / 2]}
+        material={m.plaster}
+      >
+        <planeGeometry args={[B.arcade.x * 2, B.vestibule.front - B.nave.front]} />
       </mesh>
 
-      {/* the wall the doors are set into */}
+      {/* the inner arch, from the lobby into the hall */}
       <mesh
         geometry={useMemo(
           () =>
-            pierceWall(B.arcade.x * 2, B.nave.height, 0.5, [
-              archPath(0, B.doors.width, B.doors.height, 0),
+            pierceWall(B.arcade.x * 2, B.nave.height, 0.6, [
+              archPath(0, 6.2, 9.4, 0),
             ]),
           [],
         )}
-        position={[0, 0, B.doors.z - 0.5]}
+        position={[0, 0, B.nave.front]}
         material={m.stone}
         castShadow
         receiveShadow

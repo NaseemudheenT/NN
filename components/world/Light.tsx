@@ -67,11 +67,16 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
 
   return (
     <group>
-      <hemisphereLight args={["#c3d6ea", "#6b5a44", rig.skylight * 1.5]} />
-      <ambientLight intensity={0.15 + sky.lampLevel * 0.09} color="#f2e8d8" />
+      {/* Sky above, FLOOR below — and the floor's colour matters more than
+          it looks. Every bounce in a stone hall arrives off a warm surface,
+          which is why a limestone interior is amber even under a white sun.
+          Getting this one swatch wrong is what made the first pass read as
+          a grey municipal building. */}
+      <hemisphereLight args={["#bcd2ea", "#8a6a44", rig.skylight * 1.9]} />
+      <ambientLight intensity={0.2 + sky.lampLevel * 0.12} color="#ffdfae" />
 
-      <Sun position={sunPos} intensity={rig.west * 5.6} color={tint} shadowSize={shadowSize} />
-      <directionalLight position={entrancePos} intensity={rig.east * 2.2} color={tint} />
+      <Sun position={sunPos} intensity={rig.west * 7.4} color={tint} shadowSize={shadowSize} />
+      <directionalLight position={entrancePos} intensity={rig.east * 2.6} color={tint} />
 
       {/* A tall window is a light source with no sun in it, too. Without
           this the hall goes flat the moment the beam swings off-axis, which
@@ -82,8 +87,8 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
         rotation-y={Math.PI}
         width={11}
         height={11}
-        intensity={rig.skylight * 3.4}
-        color="#d6e4f4"
+        intensity={rig.skylight * 5.2}
+        color="#dcebff"
       />
 
       {/* 2700 K sconces on the piers, both storeys. They come up as the beam
@@ -91,13 +96,12 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
           a grey afternoon, they come up then too, exactly as a real shop's
           staff bring them up because it is dark outside. */}
       {SCONCES.map((s) => (
-        <pointLight
+        <Sconce
           key={`${s.x}-${s.y}-${s.z}`}
-          position={[s.x, s.y, s.z]}
-          intensity={(0.2 + sky.lampLevel * 1.2) * 2.4}
-          distance={9}
-          decay={2}
-          color="#ffbe72"
+          x={s.x}
+          y={s.y}
+          z={s.z}
+          level={0.22 + sky.lampLevel * 1.25}
         />
       ))}
 
@@ -114,10 +118,10 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
           <pointLight
             key={`${side}-${z}`}
             position={[side * 8.9, 5.4, z]}
-            intensity={2.0 + sky.lampLevel * 1.6}
-            distance={9}
+            intensity={2.6 + sky.lampLevel * 2.0}
+            distance={9.5}
             decay={2}
-            color="#f6e8d2"
+            color="#ffdcab"
           />
         )),
       )}
@@ -127,10 +131,10 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
           <pointLight
             key={`g${side}-${z}`}
             position={[side * 8.9, B.gallery.y + 4.4, z]}
-            intensity={1.7 + sky.lampLevel * 1.4}
-            distance={8}
+            intensity={2.2 + sky.lampLevel * 1.8}
+            distance={8.5}
             decay={2}
-            color="#f6e8d2"
+            color="#ffdcab"
           />
         )),
       )}
@@ -152,6 +156,40 @@ export function WorldLight({ sky, quality }: { sky: SkyState; quality: "high" | 
       ))}
 
       {rig.west > 0.05 ? <Shafts strength={rig.west} tint={tint} direction={rig.d} /> : null}
+    </group>
+  );
+}
+
+/**
+ * A sconce on a pier.
+ *
+ * The light AND the fitting, together, because a point light with no lamp
+ * under it is a glow on a wall that nothing is making. The shade is a small
+ * emissive cylinder, and it is emissive specifically so that the bloom pass
+ * has something genuinely over-bright to catch — a lit fixture in a dark
+ * hall is the one thing in a photograph that always blooms.
+ */
+function Sconce({ x, y, z, level }: { x: number; y: number; z: number; level: number }) {
+  const inward = x > 0 ? -1 : 1;
+  return (
+    <group position={[x, y, z]}>
+      <pointLight intensity={level * 3.1} distance={9.5} decay={2} color="#ffb765" />
+      {/* the shade, lit from inside */}
+      <mesh position={[inward * 0.12, 0, 0]}>
+        <cylinderGeometry args={[0.1, 0.16, 0.26, 14, 1, true]} />
+        <meshStandardMaterial
+          color="#2a211a"
+          emissive="#ffc478"
+          emissiveIntensity={level * 2.2}
+          roughness={0.7}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* the bracket back to the pier */}
+      <mesh position={[-inward * 0.06, -0.02, 0]} rotation-z={Math.PI / 2}>
+        <cylinderGeometry args={[0.018, 0.018, 0.22, 8]} />
+        <meshStandardMaterial color="#c5a059" roughness={0.3} metalness={1} />
+      </mesh>
     </group>
   );
 }
@@ -215,8 +253,8 @@ function RailSpot({ x, z, floor, level }: { x: number; z: number; floor: number;
         position={[x * 0.82, y + (floor ? B.gallery.height - 0.6 : 6.2), z]}
         angle={0.22}
         penumbra={0.55}
-        intensity={level * 22}
-        distance={floor ? 7.5 : 12}
+        intensity={level * 30}
+        distance={floor ? 8 : 13}
         decay={2}
         color="#fff1dd"
       />

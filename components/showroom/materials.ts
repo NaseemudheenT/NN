@@ -21,30 +21,40 @@ import * as THREE from "three";
  * are the identity and stay on the garments and the signage.
  */
 
+/* ── the palette, pulled warm ────────────────────────────────────
+   The first pass was measured off the brand board's flat swatches, and it
+   rendered cold: a hall of grey plaster under a white sun. That is not what
+   a European stone interior looks like at any hour. Limestone is yellow,
+   travertine is pink-beige, and every bounce in a room like this comes off
+   a warm surface and arrives warmer still — so the whole set is shifted
+   toward amber and the cool is left to the windows, where it belongs.
+   The CONTRAST between warm stone and cool daylight is the picture. */
 export const PALETTE = {
-  anticoWhite: "#e9e3d7",
-  travertine: "#d8cfbd",
-  warmSand: "#c9b79c",
-  sage: "#9aa38c",
+  anticoWhite: "#e4d9c6",
+  travertine: "#d9c9ad",
+  warmSand: "#c4ab88",
+  sage: "#8e9a7c",
   terracotta: "#a9705a",
-  stoneFloor: "#3a3630",
-  stoneFloorLight: "#5a5248",
-  walnut: "#4a3626",
-  timber: "#6b4e34",
+  /* dark, warm, and polished — oiled stone, not black marble. Black marble
+     reads as a bank lobby; this reads as a floor somebody waxes. */
+  stoneFloor: "#2a211a",
+  stoneFloorLight: "#5c4a38",
+  walnut: "#3f2a1b",
+  timber: "#4a3220",
   steel: "#8d8a85",
   black: "#0a0a0a",
   ivory: "#f7f5ef",
-  leather: "#5e3a24",
-  foliage: "#5d6b4b",
-  trunk: "#4c4238",
+  leather: "#6b3f22",
+  foliage: "#55603f",
+  trunk: "#463a2c",
 } as const;
 
 const std = (p: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial(p);
 
 export function buildMaterials() {
   return {
-    /* hand-troweled limewash — the walls of the nave */
-    plaster: std({ color: PALETTE.anticoWhite, roughness: 0.95, metalness: 0 }),
+    /* hand-troweled limewash over stone — the walls of the nave */
+    plaster: std({ color: PALETTE.anticoWhite, roughness: 0.92, metalness: 0 }),
     /* travertine — piers, arch voussoirs, the window reveals */
     stone: std({ color: PALETTE.travertine, roughness: 0.72, metalness: 0 }),
     /* the aisle walls sit in shade and are a warmer, deeper sand */
@@ -57,7 +67,8 @@ export function buildMaterials() {
     walnut: std({ color: PALETTE.walnut, roughness: 0.52, metalness: 0 }),
     steel: std({ color: PALETTE.steel, roughness: 0.38, metalness: 1 }),
     blackMetal: std({ color: "#1a1816", roughness: 0.45, metalness: 0.85 }),
-    leather: std({ color: PALETTE.leather, roughness: 0.6, metalness: 0 }),
+    /* cognac leather: worn, slightly sheened where hands and backs have been */
+    leather: std({ color: PALETTE.leather, roughness: 0.48, metalness: 0.02 }),
     foliage: std({ color: PALETTE.foliage, roughness: 0.88, metalness: 0, flatShading: true }),
     trunk: std({ color: PALETTE.trunk, roughness: 0.92, metalness: 0 }),
       planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
@@ -73,9 +84,10 @@ export function buildMaterials() {
     gold: std({ color: "#c5a059", roughness: 0.28, metalness: 1 }),
     goldDark: std({ color: "#8a6f3c", roughness: 0.42, metalness: 1 }),
 
-    /* Nero Marquina: near-black marble with white veining, polished. */
-    marble: std({ color: "#15161a", roughness: 0.14, metalness: 0.08 }),
-    marbleLight: std({ color: "#cfcac0", roughness: 0.22, metalness: 0.05 }),
+    /* Dark oiled stone, laid in large format and polished enough to carry
+       the windows down the hall as long warm smears. */
+    marble: std({ color: PALETTE.stoneFloor, roughness: 0.2, metalness: 0.06 }),
+    marbleLight: std({ color: "#c9b79a", roughness: 0.3, metalness: 0.04 }),
 
     /* the glass in the entrance doors */
     glass: new THREE.MeshPhysicalMaterial({

@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { AdaptiveDpr, AdaptiveEvents, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import { Scene } from "./Scene";
+import type { Shot } from "./intro";
 import { EYE } from "./plan";
 import type { WalkerState } from "./useWalker";
 import type { Product } from "@/lib/catalog/types";
@@ -23,7 +24,10 @@ export default function WorldCanvas(props: {
   quality: "high" | "low";
   still: boolean;
   doorsOpen: boolean;
+  introTime: React.RefObject<number | null>;
+  onShot: (shot: Shot) => void;
   onPick: (p: Product, world: THREE.Vector3) => void;
+  onFloor: (point: THREE.Vector3) => void;
   picked: string | null;
 }) {
   const high = props.quality === "high";
@@ -38,7 +42,7 @@ export default function WorldCanvas(props: {
         alpha: false,
         stencil: false,
       }}
-      camera={{ position: [0, EYE, 12.5], fov: 62, near: 0.08, far: 420 }}
+      camera={{ position: [0, EYE, 12.6], fov: 62, near: 0.08, far: 700 }}
       onCreated={({ gl }) => gl.setClearColor("#0a0a0a")}
     >
       <Scene {...props} />

@@ -4,28 +4,36 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react"
 import type * as THREE from "three";
 import { useDaylight, useDaylightOnDocument } from "@/lib/ui/useDaylight";
 import { ShowroomFallback } from "@/components/showroom/ShowroomFallback";
-import { Monogram, Wordmark } from "@/components/brand/Monogram";
 import { Inspector } from "./Inspector";
 import { SidePanel } from "./SidePanel";
+import { Overture } from "./Overture";
 import { useWalker } from "./useWalker";
+import { INTRO_TOTAL, type Shot } from "./intro";
 import { ZONES, type Zone } from "./plan";
 import type { Product } from "@/lib/catalog/types";
 
 const WorldCanvas = lazy(() => import("./WorldCanvas"));
 
+/** logo → the mark reveals · ready → Start · arriving → the camera flies · live → yours */
+export type Phase = "logo" | "ready" | "arriving" | "live";
+
+const VISITED = "nn-visited";
+
 /**
  * NERO NOREN.
  *
- * One building. One page. The customer arrives in the vestibule facing the
- * doors; the doors open; they walk in and they can go anywhere — down the
- * nave, into either aisle, up the stair to the gallery. Every piece on
- * every rail is a real catalogue product: take one off the rail, turn it
- * over, and carry it with you.
+ * One building. One page. The first time you come, you come down the
+ * street: the mark resolves out of black, you press Start, and the camera
+ * swings round the facade, pushes to the doors, and carries you through
+ * them into the hall. Then it is yours — walk anywhere, two floors, take
+ * anything off a rail.
  *
- * ── what is NOT here ────────────────────────────────────────────────
- * Copy. A real showroom has a sign over the door and a price on a tag, and
- * that is all the text in it. Everything this website needs to say, it
- * says by being the thing it is describing.
+ * ── the second visit ────────────────────────────────────────────────
+ * The arrival is a nine-second film, and a nine-second film is magnificent
+ * once and an obstacle every time after. So the device remembers: a
+ * returning visitor gets Skip from the first frame, sitting quietly in the
+ * corner, and taking it drops them straight into the hall. The film is
+ * never taken away — it is just never compulsory twice.
  */
 export function World({ products }: { products: Product[] }) {
   const sky = useDaylight();
@@ -33,17 +41,33 @@ export function World({ products }: { products: Product[] }) {
 
   const [quality, setQuality] = useState<"none" | "low" | "high">("none");
   const [still, setStill] = useState(false);
-  const [entered, setEntered] = useState(false);
+  const [phase, setPhase] = useState<Phase>("logo");
+  const [returning, setReturning] = useState(false);
+  const [doorsOpen, setDoorsOpen] = useState(false);
   const [picked, setPicked] = useState<Product | null>(null);
   const [zone, setZone] = useState<string>("entrance");
 
-  const walker = useWalker({ enabled: entered, start: ZONES[0] });
+  const walker = useWalker({ enabled: phase === "live", start: ZONES[0] });
   const host = useRef<HTMLDivElement>(null);
 
+  /* Seconds into the arrival, or null once the customer has the camera.
+     A ref, not state: the rig advances it sixty times a second and nothing
+     about the page needs to re-render when it does. */
+  const introTime = useRef<number | null>(null);
+  const landed = useRef(false);
+  const swung = useRef(false);
+
   /* A drag that moved the view is not a click on a garment. Without this,
-     every look-around ends by picking up whatever happened to be under the
-     pointer when the hand stopped. */
-  const drag = useRef({ x: 0, y: 0, moved: 0 });
+     every look-around ends by picking up whatever was under the pointer. */
+  const drag = useRef({ x: 0, y: 0, moved: 0, t: 0 });
+
+  useEffect(() => {
+    try {
+      setReturning(window.localStorage.getItem(VISITED) === "yes");
+    } catch {
+      /* private mode: treat them as new, which is the generous way to be wrong */
+    }
+  }, []);
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -84,14 +108,54 @@ export function World({ products }: { products: Product[] }) {
     return () => window.clearTimeout(id);
   }, []);
 
+  const handOver = useCallback(() => {
+    if (landed.current) return;
+    landed.current = true;
+    introTime.current = null;
+    setDoorsOpen(true);
+    setPhase("live");
+    setZone("entrance");
+    try { window.localStorage.setItem(VISITED, "yes"); } catch {}
+  }, []);
+
+  /* The rig reports the shot it just rendered. Two things are read off it,
+     and both are guarded so this never becomes a setState per frame. */
+  const onShot = useCallback(
+    (shot: Shot) => {
+      /* Both of these are latched. onShot runs on every frame of the film,
+         and a setState per frame — even one React bails out of — is sixty
+         pointless reconciliations a second during the only nine seconds of
+         this site that must not drop a frame. */
+      if (shot.doorsOpen && !swung.current) {
+        swung.current = true;
+        setDoorsOpen(true);
+      }
+      if ((introTime.current ?? 0) >= INTRO_TOTAL) handOver();
+    },
+    [handOver],
+  );
+
+  /* Stable, so the Overture's timers are not cancelled and re-armed on
+     every render of this component. */
+  const ready = useCallback(() => setPhase("ready"), []);
+
+  const begin = useCallback(() => {
+    introTime.current = 0;
+    landed.current = false;
+    swung.current = false;
+    setPhase("arriving");
+  }, []);
+
+  const skip = useCallback(() => handOver(), [handOver]);
+
   /* ── pointer: drag to look, tap to take ───────────────────────── */
   useEffect(() => {
     const el = host.current;
-    if (!el || !entered) return;
+    if (!el || phase !== "live") return;
 
     const isTouch = (e: PointerEvent) => e.pointerType === "touch";
     const down = (e: PointerEvent) => {
-      drag.current = { x: e.clientX, y: e.clientY, moved: 0 };
+      drag.current = { x: e.clientX, y: e.clientY, moved: 0, t: performance.now() };
       walker.pointerHandlers.onPointerDown(e, isTouch(e));
       el.setPointerCapture?.(e.pointerId);
     };
@@ -117,33 +181,41 @@ export function World({ products }: { products: Product[] }) {
       el.removeEventListener("pointerup", up);
       el.removeEventListener("pointercancel", up);
     };
-  }, [entered, walker.pointerHandlers]);
+  }, [phase, walker.pointerHandlers]);
 
-  const onPick = useCallback((p: Product, _world: THREE.Vector3) => {
-    if (drag.current.moved > 7) return; // that was a look, not a touch
-    setPicked(p);
-  }, []);
+  /** A tap is a tap; a drag is a look. 7 px and 400 ms is the line. */
+  const wasATap = useCallback(
+    () => drag.current.moved <= 7 && performance.now() - drag.current.t < 400,
+    [],
+  );
+
+  const onPick = useCallback(
+    (p: Product, _world: THREE.Vector3) => {
+      if (!wasATap()) return;
+      setPicked(p);
+    },
+    [wasATap],
+  );
+
+  const onFloor = useCallback(
+    (point: THREE.Vector3) => {
+      if (!wasATap() || phase !== "live") return;
+      walker.walkTo(point.x, point.z);
+    },
+    [wasATap, phase, walker],
+  );
 
   const teleport = useCallback(
     (z: Zone) => {
       setZone(z.id);
-      if (!entered) setEntered(true);
+      if (phase !== "live") handOver();
       walker.teleport(z);
     },
-    [entered, walker],
+    [phase, handOver, walker],
   );
 
-  const enter = useCallback(() => {
-    setEntered(true);
-    /* Through the doors and into the nave — the arrival is the point. */
-    window.setTimeout(() => {
-      setZone("men");
-      walker.teleport(ZONES[1]);
-    }, 900);
-  }, [walker]);
-
   return (
-    <div className="world" ref={host}>
+    <div className="world" ref={host} data-phase={phase}>
       <ShowroomFallback />
 
       {quality !== "none" ? (
@@ -154,35 +226,29 @@ export function World({ products }: { products: Product[] }) {
             walker={walker}
             quality={quality}
             still={still}
-            doorsOpen={entered}
+            doorsOpen={doorsOpen}
+            introTime={introTime}
+            onShot={onShot}
             onPick={onPick}
+            onFloor={onFloor}
             picked={picked?.handle ?? null}
           />
         </Suspense>
       ) : null}
 
-      {/* ── the threshold ──────────────────────────────────────
-          The mark, the house name, one line, one door. The single most
-          important second of a shop is the one where the door gives. */}
-      {!entered ? (
-        <div className="thresh">
-          <div className="thresh__in">
-            <Monogram size={64} className="thresh__mark" title="Nero Noren" />
-            <Wordmark size="1.1rem" className="thresh__word" />
-            <p className="label label--wide thresh__line">Timeless style builds character</p>
-            <button type="button" className="btn btn--glass btn--lg thresh__go" onClick={enter}>
-              Enter
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <Overture
+        phase={phase}
+        returning={returning}
+        onReady={ready}
+        onBegin={begin}
+        onSkip={skip}
+      />
 
-      {entered ? <SidePanel onTeleport={teleport} activeZone={zone} /> : null}
+      {phase === "live" ? <SidePanel onTeleport={teleport} activeZone={zone} /> : null}
 
       <Inspector product={picked} onClose={() => setPicked(null)} />
 
-      {/* how to move, said once, then gone */}
-      {entered ? <Hint /> : null}
+      {phase === "live" ? <Hint /> : null}
     </div>
   );
 }
@@ -192,7 +258,7 @@ export function World({ products }: { products: Product[] }) {
  *
  * Shown once, briefly, and never again on this device. A permanent control
  * legend is an admission that the controls are not obvious; a legend that
- * never appears at all leaves people standing still at the door.
+ * never appears leaves people standing still at the door.
  */
 function Hint() {
   const [shown, setShown] = useState(false);
@@ -209,7 +275,7 @@ function Hint() {
     const id = window.setTimeout(() => {
       setShown(false);
       try { window.localStorage.setItem("nn-walked", "yes"); } catch {}
-    }, 7000);
+    }, 8000);
     return () => window.clearTimeout(id);
   }, []);
 
@@ -218,7 +284,7 @@ function Hint() {
 
   return (
     <p className="hint label glass">
-      {touch ? "Drag left to walk · drag right to look" : "W A S D to walk · drag to look"}
+      {touch ? "Drag to look · tap the floor to walk" : "Drag to look · click the floor to walk · W A S D"}
     </p>
   );
 }

@@ -100,7 +100,19 @@ export function useWalker({
     t: number; duration: number;
   } | null>(null);
 
+  /* Where a click on the floor has sent the walker. Cleared the moment a
+     key is touched, because a keypress is the customer taking the wheel
+     back and nothing is more irritating than a character that keeps
+     walking somewhere after you told it not to. */
+  const destination = useRef<THREE.Vector2 | null>(null);
+
+  const walkTo = useCallback((x: number, z: number) => {
+    destination.current = new THREE.Vector2(x, z);
+    glide.current = null;
+  }, []);
+
   const teleport = useCallback((zone: Zone) => {
+    destination.current = null;
     const s = state.current;
     const to = new THREE.Vector3(zone.at[0], EYE + zone.floor * B.gallery.y, zone.at[1]);
     const distance = Math.hypot(to.x - s.eye.x, to.z - s.eye.z) + Math.abs(to.y - s.eye.y);
@@ -216,6 +228,37 @@ export function useWalker({
         strafe += stick.current.dx;
       }
 
+      /* ── walking to a point on the floor ─────────────────────
+         Click anywhere you can stand and the walker goes there. It steers
+         by TURNING toward the point and walking forward, not by sliding
+         along the line to it — a body walks where it is facing, and the
+         turn is most of what makes the movement read as walking rather
+         than as a cursor being dragged.
+
+         Any key cancels it. So does arriving. */
+      const dest = destination.current;
+      if (dest) {
+        if (fwd !== 0 || strafe !== 0) {
+          destination.current = null;
+        } else {
+          const dx = dest.x - s.eye.x;
+          const dz = dest.y - s.eye.z;
+          const away = Math.hypot(dx, dz);
+          if (away < 0.45) {
+            destination.current = null;
+          } else {
+            /* yaw 0 looks down -z, so the bearing to a point is
+               atan2(-dx, -dz) in this frame */
+            const want = Math.atan2(-dx, -dz);
+            const turn = ((want - s.yaw + Math.PI) % (Math.PI * 2)) - Math.PI;
+            s.yaw += (turn < -Math.PI ? turn + Math.PI * 2 : turn) * (1 - Math.exp(-5 * d));
+            /* ease off over the last two metres so the arrival settles
+               rather than stopping dead */
+            fwd = Math.min(1, away / 2);
+          }
+        }
+      }
+
       const len = Math.hypot(fwd, strafe);
       if (len > 1) { fwd /= len; strafe /= len; }
 
@@ -266,5 +309,5 @@ export function useWalker({
     [],
   );
 
-  return { state, step, teleport, pointerHandlers };
+  return { state, step, teleport, walkTo, pointerHandlers };
 }
