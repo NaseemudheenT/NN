@@ -6,9 +6,13 @@ import * as THREE from "three";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
 import { buildMaterials, disposeMaterials } from "@/components/showroom/materials";
 import { Building, Doors } from "./Building";
+import { SoftShadows } from "@react-three/drei";
 import { Exterior, SkyDome } from "./Exterior";
 import { Fittings, Outside } from "./Fittings";
 import { introShot, type Shot } from "./intro";
+import { Dust } from "./Dust";
+import { Markers } from "./Markers";
+import type { Zone } from "./plan";
 import { Cinema } from "./Cinema";
 import { WorldLight } from "./Light";
 import { Stock } from "./Garments";
@@ -31,12 +35,15 @@ function Rig({
   state,
   step,
   introTime,
+  introHold,
   onShot,
 }: {
   state: React.RefObject<WalkerState>;
   step: (dt: number) => void;
   /** Seconds into the arrival, or null once the customer has the camera. */
   introTime: React.RefObject<number | null>;
+  /** True while the camera is parked at the doors, waiting to be let in. */
+  introHold: React.RefObject<boolean>;
   onShot: (shot: Shot) => void;
 }) {
   const { camera } = useThree();
@@ -50,10 +57,15 @@ function Rig({
     const t = introTime.current;
 
     if (t !== null) {
+      /* The clock stops while the camera is parked at the doors. Holding
+         the SHOT rather than pausing a separate timer means the frame on
+         screen is exactly the last frame of the approach — there is no
+         seam between the film stopping and the customer being asked in. */
       /* dt is clamped because a tab that was hidden hands back a delta of
          several seconds, which would otherwise skip the whole arrival. */
-      introTime.current = t + Math.min(dt, 0.05);
-      introShot(introTime.current, shot);
+      const at = introHold.current ? t : t + Math.min(dt, 0.05);
+      introTime.current = at;
+      introShot(at, shot);
       camera.position.copy(shot.position);
       camera.lookAt(shot.target);
       if (camera instanceof THREE.PerspectiveCamera && Math.abs(camera.fov - shot.fov) > 0.01) {
@@ -82,7 +94,11 @@ export function Scene({
   still,
   doorsOpen,
   introTime,
+  introHold,
+  live,
   onShot,
+  onTeleport,
+  activeZone,
   onPick,
   onFloor,
   picked,
@@ -94,7 +110,11 @@ export function Scene({
   still: boolean;
   doorsOpen: boolean;
   introTime: React.RefObject<number | null>;
+  introHold: React.RefObject<boolean>;
+  live: boolean;
   onShot: (shot: Shot) => void;
+  onTeleport: (zone: Zone) => void;
+  activeZone: string;
   onPick: (p: Product, world: THREE.Vector3) => void;
   onFloor: (point: THREE.Vector3) => void;
   picked: string | null;
@@ -114,14 +134,26 @@ export function Scene({
 
   return (
     <>
-      <Rig state={walker.state} step={walker.step} introTime={introTime} onShot={onShot} />
+      <Rig
+        state={walker.state}
+        step={walker.step}
+        introTime={introTime}
+        introHold={introHold}
+        onShot={onShot}
+      />
       {/* fog is the air in the hall: tinted by the sun, thinning as the
           lamps come up, because a lit room's haze is lit haze */}
       <fogExp2
         attach="fog"
         args={[tint.clone().lerp(new THREE.Color("#0c0f16"), 0.74).getHex(), 0.0072]}
       />
+      {/* Contact-hardening shadows: sharp where an object meets the floor,
+          softening with distance, which is what a real penumbra does. The
+          flat-edged shadow of a single-sample map is the other half of why
+          a render looks like a render. */}
+      {quality === "high" ? <SoftShadows size={22} samples={12} focus={0.6} /> : null}
       <WorldLight sky={sky} quality={quality} />
+      <Dust beam={sky.beam} tint={tint} count={quality === "high" ? 420 : 160} />
       <SkyDome tint={tint} lampLevel={sky.lampLevel} />
       <Building m={m} quality={quality} />
 
@@ -148,6 +180,7 @@ export function Scene({
       <Outside tint={tint} lampLevel={sky.lampLevel} />
       <Fittings m={m} still={still} quality={quality} />
       <Stock m={m} products={products} onPick={onPick} picked={picked} />
+      <Markers live={live} activeZone={activeZone} onTeleport={onTeleport} />
       <Cinema enabled={quality === "high"} />
     </>
   );

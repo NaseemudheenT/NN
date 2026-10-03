@@ -32,6 +32,9 @@ export const INTRO = {
   through: 2.4,
 } as const;
 
+/** Seconds from Start until the camera is sitting at the doors, waiting. */
+export const INTRO_TO_DOOR = INTRO.orbit + INTRO.approach;
+
 export const INTRO_TOTAL = INTRO.orbit + INTRO.approach + INTRO.through;
 
 export interface Shot {
@@ -96,11 +99,10 @@ export function introShot(time: number, out?: Shot): Shot {
     shot.position.lerpVectors(ORBIT_END, doorEye, e);
     shot.target.lerpVectors(centre, doorLook, easeOut(t));
     shot.fov = 48 + 8 * e; // widening as it closes, which reads as speed
-    /* The doors start giving BEFORE the camera arrives. A door that waits
-       until you are standing at it is a door being operated by the
-       building; one that opens as you come up the steps is a door being
-       opened for you. */
-    shot.doorsOpen = t > 0.45;
+    /* The doors stay shut until the customer asks to go in. Opening them
+       on the approach meant the film walked you through without a choice,
+       and "Enter the showroom" had nothing to enter. */
+    shot.doorsOpen = false;
     return shot;
   }
 

@@ -5,6 +5,7 @@ import { AdaptiveDpr, AdaptiveEvents, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import { Scene } from "./Scene";
 import type { Shot } from "./intro";
+import type { Zone } from "./plan";
 import { EYE } from "./plan";
 import type { WalkerState } from "./useWalker";
 import type { Product } from "@/lib/catalog/types";
@@ -25,7 +26,12 @@ export default function WorldCanvas(props: {
   still: boolean;
   doorsOpen: boolean;
   introTime: React.RefObject<number | null>;
+  /** True while the camera is parked at the doors, waiting to be let in. */
+  introHold: React.RefObject<boolean>;
+  live: boolean;
   onShot: (shot: Shot) => void;
+  onTeleport: (zone: Zone) => void;
+  activeZone: string;
   onPick: (p: Product, world: THREE.Vector3) => void;
   onFloor: (point: THREE.Vector3) => void;
   picked: string | null;

@@ -190,6 +190,42 @@ export class SoundscapeEngine {
     return peak / 255;
   }
 
+  /**
+   * A knock.
+   *
+   * Not a click — a soft wooden knock, which is what a hand on a hanger or
+   * a door in a stone hall actually sounds like. Two partials a fifth
+   * apart, struck and damped in forty milliseconds, through the same
+   * convolver as everything else so it lands in THIS room rather than in
+   * the listener's headphones.
+   *
+   * ── when it is silent ───────────────────────────────────────────────
+   * Whenever the room tone is. There is one decision on this site about
+   * whether Nero Noren makes a noise, the customer made it, and a button
+   * that beeps at someone who turned the sound off is that decision being
+   * overruled by a detail.
+   */
+  knock(strength = 1) {
+    if (this.state !== "playing" || !this.ctx || !this.toneBus) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    for (const [ratio, level] of [[1, 1], [1.5, 0.42]] as const) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(880 * ratio, now);
+      osc.frequency.exponentialRampToValueAtTime(420 * ratio, now + 0.05);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.045 * level * strength, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(this.toneBus);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    }
+  }
+
   dispose() {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;

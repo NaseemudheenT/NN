@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Bloom, DepthOfField, EffectComposer, Vignette } from "@react-three/postprocessing";
+import { Bloom, ChromaticAberration, DepthOfField, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { BlendFunction, KernelSize } from "postprocessing";
 import * as THREE from "three";
 
@@ -43,6 +43,7 @@ export function Cinema({ enabled }: { enabled: boolean }) {
   const ray = useRef(new THREE.Raycaster());
   const forward = useRef(new THREE.Vector3());
   const every = useRef(0);
+  const aberration = useMemo(() => new THREE.Vector2(0.0003, 0.0004), []);
 
   useFrame((_, dt) => {
     if (!enabled) return;
@@ -82,6 +83,12 @@ export function Cinema({ enabled }: { enabled: boolean }) {
         radius={0.72}
         kernelSize={KernelSize.LARGE}
       />
+      {/* ── a trace of lens ──────────────────────────────────────
+          Three ten-thousandths of the frame. At this scale nobody can name
+          it and everybody can feel it: real glass does not focus every
+          wavelength on the same plane, and an image where it does reads as
+          computed. Any more than this and it reads as a fault. */}
+      <ChromaticAberration offset={aberration} radialModulation={false} modulationOffset={0} />
       <Vignette offset={0.26} darkness={0.56} blendFunction={BlendFunction.NORMAL} />
     </EffectComposer>
   );

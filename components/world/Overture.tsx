@@ -32,12 +32,14 @@ export function Overture({
   returning,
   onReady,
   onBegin,
+  onEnter,
   onSkip,
 }: {
   phase: Phase;
   returning: boolean;
   onReady: () => void;
   onBegin: () => void;
+  onEnter: () => void;
   onSkip: () => void;
 }) {
   const [skipVisible, setSkipVisible] = useState(false);
@@ -62,10 +64,11 @@ export function Overture({
     return () => window.clearTimeout(id);
   }, [phase, returning, onReady]);
 
-  /* Skip appears a beat into the film, never on its first frame. */
+  /* Skip appears a beat into the film, never on its first frame — except
+     for a returning visitor, who gets it immediately. */
   useEffect(() => {
-    if (phase !== "arriving") return;
-    const id = window.setTimeout(() => setSkipVisible(true), returning ? 400 : 2200);
+    if (phase !== "arriving" && phase !== "door" && phase !== "entering") return;
+    const id = window.setTimeout(() => setSkipVisible(true), returning ? 80 : 2200);
     return () => window.clearTimeout(id);
   }, [phase, returning]);
 
@@ -112,7 +115,18 @@ export function Overture({
         </div>
       ) : null}
 
-      {phase === "arriving" && skipVisible ? (
+      {phase === "door" ? (
+        <div className="ovt ovt--door">
+          <div className="ovt__in">
+            <p className="label label--wide ovt__line ovt__line--still">The showroom</p>
+            <button type="button" className="btn btn--glass btn--lg ovt__start" data-live onClick={onEnter}>
+              Enter the showroom
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {(phase === "arriving" || phase === "door" || phase === "entering") && skipVisible ? (
         <button type="button" className="ovt__skip ovt__skip--film label" onClick={onSkip}>
           Skip
         </button>

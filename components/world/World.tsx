@@ -8,14 +8,15 @@ import { Inspector } from "./Inspector";
 import { SidePanel } from "./SidePanel";
 import { Overture } from "./Overture";
 import { useWalker } from "./useWalker";
-import { INTRO_TOTAL, type Shot } from "./intro";
+import { INTRO_TO_DOOR, INTRO_TOTAL, type Shot } from "./intro";
 import { ZONES, type Zone } from "./plan";
+import { getSoundscapeEngine } from "@/lib/soundscape-engine";
 import type { Product } from "@/lib/catalog/types";
 
 const WorldCanvas = lazy(() => import("./WorldCanvas"));
 
-/** logo → the mark reveals · ready → Start · arriving → the camera flies · live → yours */
-export type Phase = "logo" | "ready" | "arriving" | "live";
+/** logo → the mark · ready → Start · arriving → the facade · door → Enter · entering → through · live → yours */
+export type Phase = "logo" | "ready" | "arriving" | "door" | "entering" | "live";
 
 const VISITED = "nn-visited";
 
@@ -50,12 +51,13 @@ export function World({ products }: { products: Product[] }) {
   const walker = useWalker({ enabled: phase === "live", start: ZONES[0] });
   const host = useRef<HTMLDivElement>(null);
 
-  /* Seconds into the arrival, or null once the customer has the camera.
-     A ref, not state: the rig advances it sixty times a second and nothing
-     about the page needs to re-render when it does. */
+  /* Seconds into the arrival, or null once the customer has the camera. */
   const introTime = useRef<number | null>(null);
+  /** True while the camera is sitting at the doors waiting for Enter. */
+  const introHold = useRef(false);
   const landed = useRef(false);
   const swung = useRef(false);
+  const doorHeld = useRef(false);
 
   /* A drag that moved the view is not a click on a garment. Without this,
      every look-around ends by picking up whatever was under the pointer. */
@@ -112,38 +114,48 @@ export function World({ products }: { products: Product[] }) {
     if (landed.current) return;
     landed.current = true;
     introTime.current = null;
+    introHold.current = false;
     setDoorsOpen(true);
     setPhase("live");
     setZone("entrance");
     try { window.localStorage.setItem(VISITED, "yes"); } catch {}
   }, []);
 
-  /* The rig reports the shot it just rendered. Two things are read off it,
-     and both are guarded so this never becomes a setState per frame. */
   const onShot = useCallback(
     (shot: Shot) => {
-      /* Both of these are latched. onShot runs on every frame of the film,
-         and a setState per frame — even one React bails out of — is sixty
-         pointless reconciliations a second during the only nine seconds of
-         this site that must not drop a frame. */
+      const t = introTime.current ?? 0;
+      if (!doorHeld.current && t >= INTRO_TO_DOOR && t < INTRO_TOTAL) {
+        doorHeld.current = true;
+        introHold.current = true;
+        introTime.current = INTRO_TO_DOOR;
+        setPhase("door");
+        return;
+      }
       if (shot.doorsOpen && !swung.current) {
         swung.current = true;
         setDoorsOpen(true);
       }
-      if ((introTime.current ?? 0) >= INTRO_TOTAL) handOver();
+      if (t >= INTRO_TOTAL) handOver();
     },
     [handOver],
   );
 
-  /* Stable, so the Overture's timers are not cancelled and re-armed on
-     every render of this component. */
   const ready = useCallback(() => setPhase("ready"), []);
 
   const begin = useCallback(() => {
     introTime.current = 0;
+    introHold.current = false;
     landed.current = false;
     swung.current = false;
+    doorHeld.current = false;
+    setDoorsOpen(false);
     setPhase("arriving");
+  }, []);
+
+  const enter = useCallback(() => {
+    introHold.current = false;
+    introTime.current = INTRO_TO_DOOR;
+    setPhase("entering");
   }, []);
 
   const skip = useCallback(() => handOver(), [handOver]);
@@ -192,6 +204,9 @@ export function World({ products }: { products: Product[] }) {
   const onPick = useCallback(
     (p: Product, _world: THREE.Vector3) => {
       if (!wasATap()) return;
+      /* A hanger knocking on the rail. Silent unless the customer has the
+         room sound on — one decision governs everything audible here. */
+      getSoundscapeEngine().knock();
       setPicked(p);
     },
     [wasATap],
@@ -207,6 +222,7 @@ export function World({ products }: { products: Product[] }) {
 
   const teleport = useCallback(
     (z: Zone) => {
+      getSoundscapeEngine().knock(0.7);
       setZone(z.id);
       if (phase !== "live") handOver();
       walker.teleport(z);
@@ -228,10 +244,14 @@ export function World({ products }: { products: Product[] }) {
             still={still}
             doorsOpen={doorsOpen}
             introTime={introTime}
+            introHold={introHold}
+            live={phase === "live"}
             onShot={onShot}
             onPick={onPick}
             onFloor={onFloor}
+            onTeleport={teleport}
             picked={picked?.handle ?? null}
+            activeZone={zone}
           />
         </Suspense>
       ) : null}
@@ -241,6 +261,7 @@ export function World({ products }: { products: Product[] }) {
         returning={returning}
         onReady={ready}
         onBegin={begin}
+        onEnter={enter}
         onSkip={skip}
       />
 
