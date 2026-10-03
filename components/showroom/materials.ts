@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { surface, type SurfaceMaps } from "@/lib/textures";
 
 /**
  * The showroom's materials.
@@ -51,43 +52,84 @@ export const PALETTE = {
 
 const std = (p: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial(p);
 
+/**
+ * Every surface in the building, textured.
+ *
+ * ── the change that mattered ─────────────────────────────────────────
+ * These were flat colours. A `meshStandardMaterial` with a solid colour on
+ * a box reflects light identically at every point of itself, which happens
+ * nowhere in the physical world — and that, not the geometry, is why the
+ * hall read as a cartoon. Each one now carries three generated maps:
+ *
+ *   map            colour that varies, because no real material is one colour
+ *   normalMap      relief, so light rakes across the surface
+ *   roughnessMap   gloss that varies, which is the tell people cannot name
+ *
+ * `repeat` is set from the surface's real size. A floor nineteen metres
+ * across with repeat 1 stretches one tile over the whole room and looks
+ * like a photograph of a floor rather than a floor; the values below put a
+ * tile at roughly one to two metres on every surface, which is the scale
+ * real stone and timber are actually laid at.
+ */
 export function buildMaterials() {
+  const stoneMaps = surface("travertine", PALETTE.travertine, { repeat: 3, strength: 1.1 });
+  const plasterMaps = surface("limewash", PALETTE.anticoWhite, { repeat: 2.4, strength: 0.45 });
+  const sandMaps = surface("limewash", PALETTE.warmSand, { repeat: 2.2, strength: 0.5 });
+  const floorMaps = surface("marble", PALETTE.stoneFloor, { size: 768, repeat: 9, strength: 0.5 });
+  const oakMaps = surface("oak", PALETTE.walnut, { repeat: 4, strength: 1.3 });
+  const timberMaps = surface("oak", PALETTE.timber, { repeat: 3, strength: 1.2 });
+  const leatherMaps = surface("leather", PALETTE.leather, { repeat: 3.4, strength: 1.5 });
+  const brassMaps = surface("brass", "#c5a059", { repeat: 2, strength: 0.4 });
+  const brassDarkMaps = surface("brass", "#8a6f3c", { repeat: 2, strength: 0.4 });
+  const marbleLightMaps = surface("travertine", "#c9b79a", { repeat: 4, strength: 0.8 });
+
+  const textured = (
+    maps: SurfaceMaps,
+    p: THREE.MeshStandardMaterialParameters,
+    normalScale = 1,
+  ) =>
+    new THREE.MeshStandardMaterial({
+      ...p,
+      map: maps.map,
+      normalMap: maps.normalMap,
+      roughnessMap: maps.roughnessMap,
+      normalScale: new THREE.Vector2(normalScale, normalScale),
+    });
+
   return {
     /* hand-troweled limewash over stone — the walls of the nave */
-    plaster: std({ color: PALETTE.anticoWhite, roughness: 0.92, metalness: 0 }),
+    plaster: textured(plasterMaps, { color: "#ffffff", roughness: 1, metalness: 0 }, 0.6),
     /* travertine — piers, arch voussoirs, the window reveals */
-    stone: std({ color: PALETTE.travertine, roughness: 0.72, metalness: 0 }),
+    stone: textured(stoneMaps, { color: "#ffffff", roughness: 1, metalness: 0 }, 1.1),
     /* the aisle walls sit in shade and are a warmer, deeper sand */
-    sand: std({ color: PALETTE.warmSand, roughness: 0.9, metalness: 0 }),
-    /* honed basalt, laid in large format. Polished enough to carry the
-       window as a long smear of light down the floor, which is most of
-       what makes the hall feel like it has volume. */
-    floor: std({ color: PALETTE.stoneFloor, roughness: 0.28, metalness: 0.04 }),
-    timber: std({ color: PALETTE.timber, roughness: 0.68, metalness: 0 }),
-    walnut: std({ color: PALETTE.walnut, roughness: 0.52, metalness: 0 }),
+    sand: textured(sandMaps, { color: "#ffffff", roughness: 1, metalness: 0 }, 0.7),
+    /* Nero Marquina, polished: near-black with crisp pale veining, and
+       glossier on the veins because calcite takes a finer polish than the
+       matrix — which is carried by the roughness map, not guessed at. */
+    floor: textured(floorMaps, { color: "#ffffff", roughness: 1, metalness: 0.1 }, 0.5),
+    timber: textured(timberMaps, { color: "#ffffff", roughness: 1, metalness: 0 }, 1.1),
+    walnut: textured(oakMaps, { color: "#ffffff", roughness: 1, metalness: 0 }, 1.2),
     steel: std({ color: PALETTE.steel, roughness: 0.38, metalness: 1 }),
     blackMetal: std({ color: "#1a1816", roughness: 0.45, metalness: 0.85 }),
-    /* cognac leather: worn, slightly sheened where hands and backs have been */
-    leather: std({ color: PALETTE.leather, roughness: 0.48, metalness: 0.02 }),
+    /* cognac leather: pigment deep in the grain, worn off the high points */
+    leather: textured(leatherMaps, { color: "#ffffff", roughness: 1, metalness: 0.02 }, 1.4),
     foliage: std({ color: PALETTE.foliage, roughness: 0.88, metalness: 0, flatShading: true }),
     trunk: std({ color: PALETTE.trunk, roughness: 0.92, metalness: 0 }),
-      planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
+    planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
 
     /* ── champagne gold, as the board uses it ──────────────────────
-       A METAL, not a colour. metalness 1 means it has no diffuse term at
-       all: everything you see in it is a reflection, so it goes dull in a
-       dark corner and catches fire under a spot — which is the whole reason
-       the brand board puts gold on foil, on an engraved button and on lit
-       signage and never on a flat fill. Used here on the rails, the door
-       furniture and the lettering over the entrance, and nowhere in the
-       interface. */
-    gold: std({ color: "#c5a059", roughness: 0.28, metalness: 1 }),
-    goldDark: std({ color: "#8a6f3c", roughness: 0.42, metalness: 1 }),
+       A METAL, not a colour. metalness 1 means no diffuse term at all:
+       everything you see in it is a reflection, so it goes dull in a dark
+       corner and catches fire under a spot — which is exactly why the
+       board puts gold on foil, on an engraved button and on lit signage
+       and never on a flat fill. Brushed, so it streaks the way drawn
+       metal does. Used on the rails, door furniture and lettering, and
+       nowhere in the interface. */
+    gold: textured(brassMaps, { color: "#ffffff", roughness: 1, metalness: 1 }, 0.5),
+    goldDark: textured(brassDarkMaps, { color: "#ffffff", roughness: 1, metalness: 1 }, 0.5),
 
-    /* Dark oiled stone, laid in large format and polished enough to carry
-       the windows down the hall as long warm smears. */
-    marble: std({ color: PALETTE.stoneFloor, roughness: 0.2, metalness: 0.06 }),
-    marbleLight: std({ color: "#c9b79a", roughness: 0.3, metalness: 0.04 }),
+    marble: textured(floorMaps, { color: "#ffffff", roughness: 1, metalness: 0.1 }, 0.5),
+    marbleLight: textured(marbleLightMaps, { color: "#ffffff", roughness: 1, metalness: 0.04 }, 0.9),
 
     /* the glass in the entrance doors */
     glass: new THREE.MeshPhysicalMaterial({

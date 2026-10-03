@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
 import { buildMaterials, disposeMaterials } from "@/components/showroom/materials";
 import { Building, Doors } from "./Building";
-import { SoftShadows } from "@react-three/drei";
+import { Environment, SoftShadows } from "@react-three/drei";
 import { Exterior, SkyDome } from "./Exterior";
 import { Fittings, Outside } from "./Fittings";
 import { introShot, type Shot } from "./intro";
 import { Dust } from "./Dust";
 import { Markers } from "./Markers";
+import { PhotoRoom } from "./PhotoRoom";
 import type { Zone } from "./plan";
 import { Cinema } from "./Cinema";
 import { WorldLight } from "./Light";
@@ -121,6 +122,12 @@ export function Scene({
 }) {
   const { gl } = useThree();
   const m = useMemo(() => buildMaterials(), []);
+
+  /* True once a real photograph has taken over the environment. The built
+     sky and the procedural street stand down when it does — a generated
+     cathedral silhouette behind a photographed window is the one thing
+     worse than either on its own. */
+  const [photographic, setPhotographic] = useState(false);
   useEffect(() => () => disposeMaterials(m), [m]);
 
   /* Exposure is the eye adapting. The hall at midnight is not a dark
@@ -131,6 +138,24 @@ export function Scene({
   }, [gl, sky.exposure]);
 
   const tint = useMemo(() => new THREE.Color(...sky.rgb), [sky.rgb]);
+
+  /* The three colours the environment is built from. They follow the hour,
+     so a rail is cool at noon and amber at seven — which is most of what
+     makes metal look like it is in a room rather than in a studio. */
+  const envTop = useMemo(
+    () => new THREE.Color("#18202e").lerp(new THREE.Color("#7f99c4"), 1 - sky.lampLevel),
+    [sky.lampLevel],
+  );
+  const envWindow = useMemo(
+    () => tint.clone().lerp(new THREE.Color("#ffffff"), 0.45).multiplyScalar(0.4 + sky.beam * 1.6),
+    [tint, sky.beam],
+  );
+  const envFloor = useMemo(
+    () => new THREE.Color("#2a1d12").lerp(new THREE.Color("#8a6a44"), 0.3 + (1 - sky.lampLevel) * 0.4),
+    [sky.lampLevel],
+  );
+
+  const onPhotograph = useCallback((loaded: boolean) => setPhotographic(loaded), []);
 
   return (
     <>
@@ -154,7 +179,36 @@ export function Scene({
       {quality === "high" ? <SoftShadows size={22} samples={12} focus={0.6} /> : null}
       <WorldLight sky={sky} quality={quality} />
       <Dust beam={sky.beam} tint={tint} count={quality === "high" ? 420 : 160} />
-      <SkyDome tint={tint} lampLevel={sky.lampLevel} />
+      {/* ── what the metal reflects ────────────────────────────
+          A metal has NO diffuse term: every pixel of the gold rails, the
+          door furniture and the fitting-room mirror is a reflection of
+          something. With no environment that something is black, which is
+          why untextured metal in a WebGL scene always looks like plastic.
+
+          This bakes a cubemap from a sphere lit the way the hall is lit —
+          bright and cool overhead where the clerestory is, warm and dim at
+          floor level — so the rails pick up the room they are standing in.
+          Baked from the scene's own colours rather than fetched from a CDN:
+          nothing to download, nothing to 404, and it tracks the hour. */}
+      <Environment resolution={128} frames={1} background={false}>
+        <mesh scale={100}>
+          <sphereGeometry args={[1, 24, 16]} />
+          <meshBasicMaterial side={THREE.BackSide} color={envTop} />
+        </mesh>
+        {/* the window end, which is the brightest thing in the building */}
+        <mesh position={[0, 6, -46]} scale={[34, 26, 1]}>
+          <planeGeometry />
+          <meshBasicMaterial color={envWindow} />
+        </mesh>
+        {/* the floor bounce — warm, because the floor is warm */}
+        <mesh rotation-x={Math.PI / 2} position={[0, -24, 0]} scale={120}>
+          <planeGeometry />
+          <meshBasicMaterial color={envFloor} />
+        </mesh>
+      </Environment>
+
+      <PhotoRoom onLoaded={onPhotograph} />
+      {!photographic ? <SkyDome tint={tint} lampLevel={sky.lampLevel} /> : null}
       <Building m={m} quality={quality} />
 
       {/* ── the floor you can click ─────────────────────────────
@@ -175,7 +229,7 @@ export function Scene({
       >
         <planeGeometry args={[20, 42]} />
       </mesh>
-      <Exterior m={m} lampLevel={sky.lampLevel} />
+      {!photographic ? <Exterior m={m} lampLevel={sky.lampLevel} /> : null}
       <Doors m={m} open={doorsOpen} />
       <Outside tint={tint} lampLevel={sky.lampLevel} />
       <Fittings m={m} still={still} quality={quality} />
