@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Lockup } from "@/components/brand/Monogram";
-import { ArrowRight } from "@/components/ui/icons";
+import { Subscribe } from "./Subscribe";
 
 const COLUMNS = [
   {
@@ -55,17 +55,7 @@ export function Footer() {
           <p className="small muted">
             Be the first to know about new collections, exclusive offers and more.
           </p>
-          <form className="ftr__form" action="/api/subscribe" method="post">
-            <input
-              className="field"
-              type="email"
-              name="email"
-              required
-              placeholder="Your email address"
-              aria-label="Your email address"
-            />
-            <button type="submit" className="icon-btn ftr__send" aria-label="Subscribe"><ArrowRight size={17} /></button>
-          </form>
+          <Subscribe />
           <ul className="ftr__social">
             {SOCIAL.map((s) => (
               <li key={s.label}>

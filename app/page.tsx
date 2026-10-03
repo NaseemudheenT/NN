@@ -1,57 +1,25 @@
-import Link from "next/link";
-import { Hero } from "@/components/home/Hero";
-import { ShowroomExperience } from "@/components/home/ShowroomExperience";
-import { CraftDetail } from "@/components/home/CraftDetail";
-import { Generations } from "@/components/home/Generations";
-import { ProductCard } from "@/components/shop/ProductCard";
-import { ArrowRight } from "@/components/ui/icons";
+import type { Metadata } from "next";
+import { World } from "@/components/world/World";
 import { loadCatalogue } from "@/lib/catalog";
-import { clothColours, groupByCut } from "@/lib/catalog/group";
 
 export const revalidate = 300;
 
+export const metadata: Metadata = {
+  title: "Nero Noren — timeless style builds character",
+  description:
+    "Walk the Nero Noren showroom. Two floors of modern European menswear for men and boys — take a piece off the rail, turn it over, and carry it with you.",
+};
+
+/**
+ * The whole shop, in one room.
+ *
+ * Not a landing page with a 3D picture on it: the building IS the page.
+ * Everything else on this site — the collection, a product, the trial
+ * room — exists as a place inside it that the customer can walk to or be
+ * carried to. The separate routes still exist, because a search engine and
+ * a shared link both need a URL, but nobody has to use them to shop.
+ */
 export default async function Home() {
-  const { products, source, missingEnv } = await loadCatalogue();
-  const cuts = groupByCut(products);
-
-  return (
-    <>
-      <Hero colours={clothColours(products)} />
-
-      <ShowroomExperience />
-
-      {/* ── the collection, as it stands on the floor ───────────── */}
-      <section className="band feat" aria-labelledby="feat-h">
-        <div className="wrap">
-          <header className="feat__head reveal">
-            <div>
-              <p className="label label--soft">Collection 001 — The Foundations</p>
-              <h2 id="feat-h" className="d-h2">The pieces everything else is built on</h2>
-            </div>
-            <Link href="/collection" className="ul-grow label feat__all">
-              See all {products.length} pieces <ArrowRight size={15} />
-            </Link>
-          </header>
-
-          <ul className="grid grid--4">
-            {cuts.slice(0, 4).map(({ lead, siblings }, i) => (
-              <li key={lead.handle} className="reveal" style={{ "--reveal-delay": `${i * 60}ms` } as React.CSSProperties}>
-                <ProductCard product={lead} siblings={siblings} priority={i < 2} />
-              </li>
-            ))}
-          </ul>
-
-          {source === "seed" && missingEnv.length ? (
-            <p className="small muted feat__notice">
-              Showing the Collection 001 seed. Live prices and stock begin the moment{" "}
-              {missingEnv.join(" and ")} {missingEnv.length > 1 ? "are" : "is"} set.
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      <CraftDetail />
-      <Generations />
-    </>
-  );
+  const { products } = await loadCatalogue();
+  return <World products={products} />;
 }

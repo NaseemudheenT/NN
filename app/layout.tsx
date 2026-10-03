@@ -64,8 +64,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en-IN" suppressHydrationWarning>
       <body className={`${cormorant.variable} ${hanken.variable}`}>
         <BagProvider shopLive={shopifyReady()}>
-          <Shell catalogue={products}>{children}</Shell>
-          <Footer />
+          <Shell catalogue={products} footer={<Footer />}>
+            {children}
+          </Shell>
         </BagProvider>
       </body>
     </html>

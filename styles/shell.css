@@ -402,3 +402,6 @@
 
 /* room for the dock at the bottom of every page */
 body { padding-bottom: calc(5.2rem + env(safe-area-inset-bottom)); }
+
+.ftr__says { margin: -0.5rem 0 1rem; color: var(--olive); }
+.ftr__says[data-failed] { color: var(--taupe); }

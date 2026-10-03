@@ -60,7 +60,34 @@ export function buildMaterials() {
     leather: std({ color: PALETTE.leather, roughness: 0.6, metalness: 0 }),
     foliage: std({ color: PALETTE.foliage, roughness: 0.88, metalness: 0, flatShading: true }),
     trunk: std({ color: PALETTE.trunk, roughness: 0.92, metalness: 0 }),
-    planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
+      planter: std({ color: "#2a2724", roughness: 0.8, metalness: 0 }),
+
+    /* ── champagne gold, as the board uses it ──────────────────────
+       A METAL, not a colour. metalness 1 means it has no diffuse term at
+       all: everything you see in it is a reflection, so it goes dull in a
+       dark corner and catches fire under a spot — which is the whole reason
+       the brand board puts gold on foil, on an engraved button and on lit
+       signage and never on a flat fill. Used here on the rails, the door
+       furniture and the lettering over the entrance, and nowhere in the
+       interface. */
+    gold: std({ color: "#c5a059", roughness: 0.28, metalness: 1 }),
+    goldDark: std({ color: "#8a6f3c", roughness: 0.42, metalness: 1 }),
+
+    /* Nero Marquina: near-black marble with white veining, polished. */
+    marble: std({ color: "#15161a", roughness: 0.14, metalness: 0.08 }),
+    marbleLight: std({ color: "#cfcac0", roughness: 0.22, metalness: 0.05 }),
+
+    /* the glass in the entrance doors */
+    glass: new THREE.MeshPhysicalMaterial({
+      color: "#aebcc4",
+      roughness: 0.06,
+      metalness: 0,
+      transmission: 0.88,
+      thickness: 0.04,
+      ior: 1.5,
+      transparent: true,
+      opacity: 0.42,
+    }),
   };
 }
 

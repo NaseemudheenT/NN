@@ -23,10 +23,12 @@ export function useReveal() {
       (el as HTMLElement).dataset.shown = "true";
     };
 
-    if (!("IntersectionObserver" in window)) {
-      document.querySelectorAll(".reveal").forEach(show);
-      return;
-    }
+    if (!("IntersectionObserver" in window)) return; // nothing was hidden
+
+    /* Only now does anything become hidden. Until this attribute is set the
+       CSS leaves every .reveal fully visible, so a page whose script never
+       ran is a page that simply does not animate — not a blank one. */
+    document.documentElement.dataset.reveal = "on";
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -50,6 +52,7 @@ export function useReveal() {
     return () => {
       io.disconnect();
       mo.disconnect();
+      delete document.documentElement.dataset.reveal;
     };
   }, []);
 }

@@ -5,6 +5,7 @@
 @import "../styles/shell.css";
 @import "../styles/pages.css";
 @import "../styles/shop.css";
+@import "../styles/world.css";
 
 /* ═══════════════════════════════════════════════════════════════════
    NERO NOREN — base layer and typography
@@ -144,21 +145,30 @@ a { color: inherit; }
 .skip:focus { transform: translate(-50%, 0); }
 
 /* ── reveal ─────────────────────────────────────────────────────
-   One entrance, used everywhere, driven by an IntersectionObserver in
-   the shell. Content is readable before it runs: the only properties
-   that move are opacity and a small translate, and `reduce` turns both
-   off rather than hiding anything. */
-.reveal {
+   One entrance, used everywhere, driven by a single IntersectionObserver
+   in the shell.
+
+   Note which way round this is. A .reveal is VISIBLE by default, and only
+   becomes hidden once the observer is actually running and has stamped
+   data-reveal on the root. Written the obvious way — hidden by default,
+   revealed by script — every section of this website disappears forever
+   the moment the JavaScript fails to arrive, errors on an older browser,
+   or is switched off. An animation is worth nothing; the content is worth
+   everything, and it must not be the thing that depends on the animation
+   working. */
+[data-reveal] .reveal {
   opacity: 0;
   transform: translateY(18px);
+}
+.reveal {
   transition:
     opacity var(--d-slow) var(--ease),
     transform var(--d-slow) var(--ease);
   transition-delay: var(--reveal-delay, 0ms);
 }
-.reveal[data-shown="true"] { opacity: 1; transform: none; }
+[data-reveal] .reveal[data-shown="true"] { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; }
+  [data-reveal] .reveal { opacity: 1; transform: none; }
 }
 
 ::selection { background: var(--black); color: var(--ivory); }

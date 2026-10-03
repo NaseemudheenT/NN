@@ -18,7 +18,17 @@ import { usePhase } from "@/lib/ui/useDaylight";
 import type { Product } from "@/lib/catalog/types";
 
 /** Pages whose first screen is the showroom, so the header starts as ivory. */
-const DARK_TOP = ["/", "/showroom", "/atelier", "/stylist", "/trial-room"];
+const DARK_TOP = ["/showroom", "/atelier", "/stylist", "/trial-room"];
+
+/**
+ * Routes that ARE the building rather than pages about it.
+ *
+ * The world brings its own navigation — a rail on the right that teleports
+ * between places — so the shop's header, dock and footer stand down. Two
+ * navigations over one building is one too many, and the second one always
+ * looks like it was bolted on.
+ */
+const IMMERSIVE = ["/"];
 
 /**
  * The shell.
@@ -31,11 +41,21 @@ const DARK_TOP = ["/", "/showroom", "/atelier", "/stylist", "/trial-room"];
  * panel never blinks, the bag never re-reads itself, the room tone does not
  * restart.
  */
-export function Shell({ catalogue, children }: { catalogue: Product[]; children: React.ReactNode }) {
+export function Shell({
+  catalogue,
+  footer,
+  children,
+}: {
+  catalogue: Product[];
+  footer: React.ReactNode;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const phase = usePhase();
   usePointer();
   useReveal();
+
+  const immersive = IMMERSIVE.includes(pathname);
 
   return (
     <SearchProvider>
@@ -45,11 +65,12 @@ export function Shell({ catalogue, children }: { catalogue: Product[]; children:
 
           <a className="skip" href="#main">Skip to content</a>
 
-          <Header overRoom={DARK_TOP.includes(pathname)} />
+          {!immersive ? <Header overRoom={DARK_TOP.includes(pathname)} /> : null}
 
-          <main id="main">{children}</main>
+          <main id="main" data-immersive={immersive || undefined}>{children}</main>
 
-          <FloatingPanel />
+          {!immersive ? footer : null}
+          {!immersive ? <FloatingPanel /> : null}
           <SearchPalette catalogue={catalogue} />
           <StylistChat catalogue={catalogue} />
           <BagDrawer catalogue={catalogue} />
