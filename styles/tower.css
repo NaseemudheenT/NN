@@ -1,0 +1,335 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NN TOWER
+   The street, the section, the lift, the drawers.
+   ═══════════════════════════════════════════════════════════════════ */
+
+body:has(main[data-immersive]) { padding-bottom: 0; overflow: hidden; }
+
+/* The page-transition wrapper animates `transform`, and ANY transform on an
+   ancestor makes `position: fixed` resolve against it instead of the
+   viewport — which collapses a fixed child to nothing. On this route the
+   entrance fades instead. */
+main[data-immersive] { display: block; height: 100svh; }
+main[data-immersive] > .nn-page-enter {
+  height: 100%;
+  transform: none;
+  animation: nn-fade var(--d-slow) var(--ease) both;
+}
+
+.tower {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #09080a;
+  color: var(--ivory);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tower__view { position: absolute; inset: 0; }
+
+/* ══ the street ═════════════════════════════════════════════════ */
+.facade { position: absolute; inset: 0; overflow: hidden; }
+.facade__plate { position: absolute; inset: -3%; will-change: transform; }
+.facade__photo,
+.facade__drawn { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* sky above, ground below — both painted over the plate so the building
+   sits IN something rather than floating on a colour */
+.facade__sky {
+  position: absolute; inset: 0 0 auto; height: 46%;
+  background: linear-gradient(180deg, rgba(8,9,14,.88) 0%, rgba(8,9,14,.3) 58%, transparent 100%);
+  pointer-events: none;
+}
+.facade__ground {
+  position: absolute; inset: auto 0 0; height: 42%;
+  background: linear-gradient(0deg, rgba(6,6,8,.94) 0%, rgba(6,6,8,.42) 52%, transparent 100%);
+  pointer-events: none;
+}
+
+.facade__brand {
+  position: absolute; left: 50%; top: clamp(2rem, 7vh, 5rem);
+  transform: translateX(-50%);
+  z-index: 3;
+  animation: nn-rise 1.4s var(--ease-door) 200ms both;
+  pointer-events: none;
+}
+
+.facade__hour {
+  position: absolute; right: clamp(1rem, 3vw, 2.4rem); top: clamp(1rem, 3vh, 2rem);
+  z-index: 4;
+  display: flex; gap: 2px; padding: 4px; border-radius: var(--r-pill);
+  animation: nn-fade 1.2s var(--ease) 900ms both;
+}
+.facade__hour button {
+  border: 0; background: transparent; color: rgba(247,245,239,.56);
+  padding: .5rem 1rem; border-radius: var(--r-pill); cursor: pointer;
+  transition: background var(--d-base) var(--ease), color var(--d-base) var(--ease);
+}
+.facade__hour button:hover { color: var(--ivory); }
+.facade__hour button[data-on] { background: rgba(247,245,239,.16); color: var(--ivory); }
+
+.facade__enter { position: absolute; left: 50%; bottom: clamp(2rem, 8vh, 5rem); transform: translateX(-50%); z-index: 4; }
+.facade__go { color: var(--ivory); padding-inline: 3rem; }
+
+.facade__note {
+  position: absolute; right: clamp(1rem, 3vw, 3rem); bottom: clamp(1rem, 4vh, 3rem);
+  z-index: 5; width: min(100% - 2rem, 20rem);
+  padding: 1.2rem; border-radius: var(--r-lg); display: grid; gap: .5rem;
+}
+
+/* ══ the section ════════════════════════════════════════════════ */
+.tower__stage { position: absolute; inset: 0; overflow: hidden; }
+.tower__surface { position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
+.tower__inner { position: relative; width: 100%; height: 100%; }
+
+.tower__section,
+.tower__photo {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.tower__photo { z-index: 1; }
+
+/* each floor's own light. The active one is lit; the rest fall back, which
+   is how a section drawing directs the eye and how a real building at
+   night tells you which room somebody is in. */
+.tower__band {
+  position: absolute; left: 0; right: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(6,6,8,.72) 0%, rgba(6,6,8,.58) 100%);
+  transition: background var(--d-slow) var(--ease), box-shadow var(--d-slow) var(--ease);
+  pointer-events: none;
+}
+.tower__band[data-on] {
+  background: linear-gradient(180deg, rgba(255,186,110,.05) 0%, rgba(255,160,70,.02) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(247,245,239,.22),
+    inset 0 -1px 0 rgba(247,245,239,.14);
+}
+
+.tower__vignette {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  background: radial-gradient(120% 86% at 50% 48%, transparent 34%, rgba(5,5,7,.76) 100%);
+}
+
+.tower__out {
+  position: absolute; left: clamp(1rem, 3vw, 2.4rem); top: clamp(1rem, 3vh, 2rem);
+  z-index: 20;
+  padding: .6rem 1.1rem; border: 0; border-radius: var(--r-pill);
+  background: rgba(14,13,12,.58);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: rgba(247,245,239,.72); cursor: pointer;
+  transition: color var(--d-base) var(--ease), background var(--d-base) var(--ease);
+}
+.tower__out:hover { color: var(--ivory); background: rgba(20,19,18,.78); }
+
+/* ══ hotspots ═══════════════════════════════════════════════════ */
+.spot {
+  position: absolute; z-index: 10;
+  transform: translate(-50%, -50%);
+  display: grid; place-items: center;
+  width: 2.4rem; height: 2.4rem;
+  border: 0; background: transparent; cursor: pointer; padding: 0;
+}
+.spot__pulse {
+  position: absolute; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  background: radial-gradient(circle, rgba(197,160,89,.3) 0%, transparent 68%);
+  animation: nn-spot 2.8s var(--ease-soft) infinite;
+}
+@keyframes nn-spot {
+  0%, 100% { transform: scale(.7); opacity: .5 }
+  50%      { transform: scale(1.25); opacity: 0 }
+}
+.spot__dot {
+  position: relative; width: 11px; height: 11px; border-radius: 50%;
+  /* gold as a METAL: a gradient that reads as a lit bead, never a flat fill */
+  background: radial-gradient(60% 60% at 34% 28%, #f0e2c0 0%, #c5a059 46%, #6d5527 100%);
+  box-shadow: 0 0 0 1px rgba(247,245,239,.5), 0 2px 8px rgba(0,0,0,.6);
+  transition: transform var(--d-base) var(--ease);
+}
+.spot:hover .spot__dot, .spot:focus-visible .spot__dot { transform: scale(1.35); }
+.spot:focus-visible { outline: 2px solid var(--ivory); outline-offset: 4px; border-radius: 50%; }
+
+.spot__tip {
+  position: absolute; left: 1.6rem; top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  display: grid; gap: 1px;
+  padding: .5rem .8rem; border-radius: var(--r-sm);
+  background: rgba(10,10,12,.86);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 0 1px rgba(247,245,239,.14);
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity var(--d-base) var(--ease), transform var(--d-base) var(--ease);
+}
+.spot:hover .spot__tip, .spot:focus-visible .spot__tip { opacity: 1; transform: translateY(-50%) translateX(0); }
+.spot__name { font-size: var(--t-small); color: var(--ivory); }
+.spot__price { font-size: 11px; color: rgba(247,245,239,.6); }
+.spot--facade .spot__tip { left: auto; top: 1.8rem; transform: translateX(-50%) translateY(-4px); }
+.spot--facade:hover .spot__tip { transform: translateX(-50%) translateY(0); }
+
+/* ══ the lift ═══════════════════════════════════════════════════ */
+.lift {
+  position: absolute; z-index: 20;
+  right: clamp(.7rem, 1.8vw, 1.6rem); top: 50%;
+  transform: translateY(-50%);
+  max-height: calc(100svh - 2rem);
+}
+.lift__glass {
+  display: flex; flex-direction: column; gap: .2rem;
+  padding: .7rem .5rem;
+  border-radius: var(--r-xl);
+  /* its own ground: glass that borrowed the building's tint went white
+     every time a lit floor was behind it */
+  background:
+    linear-gradient(152deg, rgba(247,245,239,.1) 0%, rgba(247,245,239,.03) 100%),
+    rgba(13, 12, 12, 0.76);
+  box-shadow:
+    inset 0 1px 0 0 rgba(247,245,239,.22),
+    inset 0 -1px 0 0 rgba(0,0,0,.6),
+    var(--shadow-float);
+  max-height: inherit; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.lift__glass::-webkit-scrollbar { display: none; }
+
+.lift__head { padding: 0 .55rem .4rem; opacity: .42; font-size: 9px; }
+.lift__floors, .lift__tools { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+
+.lift__floor, .lift__tool {
+  display: flex; align-items: center; gap: .6rem;
+  width: 100%; height: 2.3rem; padding: 0 .55rem;
+  border: 0; border-radius: var(--r-pill);
+  background: transparent; color: rgba(247,245,239,.78);
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background var(--d-base) var(--ease), color var(--d-base) var(--ease);
+}
+.lift__floor:hover, .lift__tool:hover { background: rgba(247,245,239,.11); color: var(--ivory); }
+.lift__floor:focus-visible, .lift__tool:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.lift__floor[data-on] { background: rgba(247,245,239,.16); color: var(--ivory); }
+.lift__tool[data-on] { color: var(--ivory); }
+
+.lift__no {
+  display: grid; place-items: center; flex: none;
+  width: 1.5rem; height: 1.5rem; border-radius: 4px;
+  font-size: 11px; font-weight: 500;
+  box-shadow: inset 0 0 0 1px rgba(247,245,239,.22);
+}
+.lift__floor[data-on] .lift__no {
+  background: var(--ivory); color: var(--black); box-shadow: none;
+}
+.lift__floor--street .lift__no { box-shadow: none; }
+
+.lift__name {
+  font-size: var(--t-small);
+  max-width: 0; overflow: hidden; opacity: 0;
+  transition: max-width var(--d-base) var(--ease), opacity var(--d-base) var(--ease);
+}
+.lift:hover .lift__name, .lift:focus-within .lift__name { max-width: 10rem; opacity: .94; }
+
+.lift__badge { position: relative; display: grid; place-items: center; width: 1.5rem; flex: none; }
+.lift__count {
+  position: absolute; top: -5px; right: -6px;
+  min-width: 14px; height: 14px; padding: 0 3px;
+  display: grid; place-items: center; border-radius: 99px;
+  background: var(--ivory); color: var(--black); font-size: 9px; font-weight: 600;
+}
+.lift__tool > svg { flex: none; width: 1.5rem; }
+.lift__rule { height: 1px; margin: .45rem .6rem; background: rgba(247,245,239,.14); }
+
+/* ══ the floor plate ════════════════════════════════════════════ */
+.plate {
+  position: absolute; z-index: 15;
+  left: clamp(1rem, 3vw, 2.4rem); bottom: clamp(1rem, 4vh, 2.4rem);
+  width: min(100% - 2rem, 21rem);
+  padding: 1.1rem 1.3rem; border-radius: var(--r-lg);
+  background:
+    linear-gradient(152deg, rgba(247,245,239,.09) 0%, rgba(247,245,239,.025) 100%),
+    rgba(13, 12, 12, 0.72);
+  box-shadow: inset 0 1px 0 rgba(247,245,239,.2), var(--shadow-float);
+}
+.plate__title { margin: .3rem 0 .4rem; }
+.plate__note { margin: 0; }
+
+/* ══ drawers ════════════════════════════════════════════════════ */
+.dwr { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; }
+.dwr__scrim {
+  position: absolute; inset: 0; border: 0; padding: 0;
+  background: rgba(6,6,8,.62);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  cursor: default;
+}
+.dwr__panel {
+  position: relative; display: flex; flex-direction: column;
+  width: min(100%, 27rem); height: 100%;
+  border-radius: var(--r-xl) 0 0 var(--r-xl);
+  background:
+    linear-gradient(152deg, rgba(247,245,239,.09) 0%, rgba(247,245,239,.025) 100%),
+    rgba(13, 12, 12, 0.88);
+  box-shadow: inset 1px 0 0 rgba(247,245,239,.16), var(--shadow-float);
+}
+.dwr__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.2rem; border-bottom: 1px solid rgba(247,245,239,.12);
+}
+.dwr__body { flex: 1; overflow-y: auto; padding: 1.2rem; }
+
+.dwr__hero { display: block; aspect-ratio: 3/4; border-radius: var(--r-md); overflow: hidden; background: rgba(247,245,239,.05); }
+.dwr__title { margin: 1rem 0 0; }
+.dwr__cost { margin: .5rem 0 0; font-size: 1.2rem; }
+.dwr__desc { margin: 1rem 0 0; color: rgba(247,245,239,.78); }
+.dwr__spec { margin: 1.2rem 0 0; display: grid; gap: .1rem; }
+.dwr__spec > div { padding: .6rem 0; border-top: 1px solid rgba(247,245,239,.12); }
+.dwr__spec dd { margin: .25rem 0 0; font-size: var(--t-small); color: rgba(247,245,239,.74); }
+
+.dwr__sizelabel { margin: 1.2rem 0 .6rem; }
+.dwr__sizes { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; margin: 0; padding: 0; }
+.dwr__size {
+  min-width: 2.8rem; height: 2.4rem; padding: 0 .7rem;
+  border: 0; border-radius: var(--r-xs);
+  background: transparent; color: inherit;
+  box-shadow: inset 0 0 0 1px rgba(247,245,239,.22);
+  font-size: var(--t-small); cursor: pointer;
+  transition: background var(--d-base) var(--ease), box-shadow var(--d-base) var(--ease);
+}
+.dwr__size:hover:not(:disabled) { box-shadow: inset 0 0 0 1px rgba(247,245,239,.62); }
+.dwr__size[data-on] { background: var(--ivory); color: var(--black); box-shadow: none; }
+.dwr__size:disabled { opacity: .32; cursor: not-allowed; text-decoration: line-through; }
+
+.dwr__buy { display: flex; gap: .6rem; margin-top: 1.3rem; }
+.dwr__add { flex: 1; }
+.dwr__more { display: block; margin-top: 1rem; text-align: center; }
+
+.dwr__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.dwr__row {
+  display: grid; grid-template-columns: 3.4rem 1fr auto;
+  align-items: center; gap: .9rem;
+  padding: .55rem; border-radius: var(--r-sm);
+  text-decoration: none; color: inherit;
+  transition: background var(--d-base) var(--ease);
+}
+.dwr__row:hover { background: rgba(247,245,239,.08); }
+.dwr__thumb { display: block; width: 3.4rem; aspect-ratio: 3/4; border-radius: 3px; overflow: hidden; background: rgba(247,245,239,.06); }
+.dwr__meta { display: grid; gap: 1px; min-width: 0; }
+.dwr__name { font-size: .92rem; }
+.dwr__price { font-size: var(--t-small); }
+
+/* ══ small screens ══════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .lift {
+    top: auto; bottom: calc(.6rem + env(safe-area-inset-bottom));
+    right: 50%; transform: translateX(50%);
+    max-width: calc(100% - 1rem);
+  }
+  .lift__glass { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .5rem; }
+  .lift__head { display: none; }
+  .lift__floors, .lift__tools { grid-auto-flow: column; }
+  .lift__name { display: none; }
+  .lift__rule { width: 1px; height: auto; margin: .3rem .45rem; }
+  .plate { bottom: 5.2rem; width: calc(100% - 2rem); }
+  .dwr__panel { width: 100%; border-radius: var(--r-xl) var(--r-xl) 0 0; height: 90%; margin-top: auto; }
+  .spot__tip { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spot__pulse { animation: none; opacity: .3; }
+  .facade__brand { animation: none; }
+}

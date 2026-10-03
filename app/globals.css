@@ -1,11 +1,10 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 @import "../styles/glass.css";
-@import "../styles/stage.css";
 @import "../styles/shell.css";
 @import "../styles/pages.css";
 @import "../styles/shop.css";
-@import "../styles/world.css";
+@import "../styles/tower.css";
 
 /* ═══════════════════════════════════════════════════════════════════
    NERO NOREN — base layer and typography
