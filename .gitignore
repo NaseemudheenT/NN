@@ -52,3 +52,4 @@ coverage/
 *.icloud
 
 .21st/
+docs/nn-tower/shots/
