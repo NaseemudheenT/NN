@@ -15,6 +15,10 @@ import { Level1 } from "./floors/Level1";
 import { Level2 } from "./floors/Level2";
 import { Level3 } from "./floors/Level3";
 import { Level4 } from "./floors/Level4";
+import { Level5 } from "./floors/Level5";
+import { Level6 } from "./floors/Level6";
+import { Level7 } from "./floors/Level7";
+import { Rooftop } from "./floors/Rooftop";
 import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
 
 export type Mode = "intro" | "entering" | "inside";
@@ -94,7 +98,13 @@ function Camera({
     if (!c) return;
     t.current += dt;
     c.azimuthAngle += dt * 0.085;
-    c.polarAngle = 1.13 + Math.sin(t.current * 0.085) * 0.33;
+    /* Elevation range, not a free swing. The first version ran 46 to 84
+       degrees from vertical; at 84 the camera sits eight metres off the
+       pavement eighty metres away, looking UP at a building whose target
+       is nineteen metres in the air — so the tower cropped and you saw its
+       underside. 53 to 71 keeps a three-quarter architectural view the
+       whole way round, which is how a building is photographed. */
+    c.polarAngle = 1.08 + Math.sin(t.current * 0.085) * 0.16;
   });
 
   return (
@@ -155,6 +165,10 @@ export function Scene({
         <Level2 visible={explode < 0.5} />
         <Level3 visible={explode < 0.5} />
         <Level4 visible={explode < 0.5} />
+        <Level5 visible={explode < 0.5} />
+        <Level6 visible={explode < 0.5} />
+        <Level7 visible={explode < 0.5} />
+        <Rooftop visible={explode < 0.5} />
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
         <Camera mode={mode} floor={floor} explode={explode} />
