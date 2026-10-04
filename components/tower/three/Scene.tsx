@@ -14,6 +14,7 @@ import { StreetLevel } from "./floors/StreetLevel";
 import { Level1 } from "./floors/Level1";
 import { Level2 } from "./floors/Level2";
 import { Level3 } from "./floors/Level3";
+import { Level4 } from "./floors/Level4";
 import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
 
 export type Mode = "intro" | "entering" | "inside";
@@ -153,6 +154,7 @@ export function Scene({
         <Level1 visible={explode < 0.5} />
         <Level2 visible={explode < 0.5} />
         <Level3 visible={explode < 0.5} />
+        <Level4 visible={explode < 0.5} />
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
         <Camera mode={mode} floor={floor} explode={explode} />

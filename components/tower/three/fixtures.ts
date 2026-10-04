@@ -168,3 +168,62 @@ export function chairGeometry(): THREE.BufferGeometry {
   parts.forEach((g) => g.dispose());
   return m;
 }
+
+/**
+ * A run of books on a shelf.
+ *
+ * What makes a bookshelf read as a library rather than as a cabinet is
+ * irregularity: spines of different heights and thicknesses, a few leaning,
+ * and gaps where volumes have been taken out. A uniform row of identical
+ * blocks reads as a texture of a bookshelf, which is exactly the thing that
+ * gives a CG interior away.
+ */
+export function booksGeometry(length: number, height: number, seed = 1): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  let x = -length / 2 + 0.02;
+  let st = seed >>> 0;
+  const rnd = () => ((st = (st * 1664525 + 1013904223) >>> 0) / 4294967296);
+  while (x < length / 2 - 0.05) {
+    if (rnd() > 0.93) { x += 0.05 + rnd() * 0.07; continue; } // a gap
+    const w = 0.022 + rnd() * 0.034;
+    const h = height * (0.62 + rnd() * 0.34);
+    const d = 0.17 + rnd() * 0.07;
+    const b = metricUV(new THREE.BoxGeometry(w, h, d), w, h);
+    const lean = rnd() > 0.9 ? (rnd() - 0.5) * 0.22 : 0;
+    b.translate(0, h / 2, 0);
+    if (lean) b.rotateZ(lean);
+    b.translate(x + w / 2, 0, 0);
+    parts.push(b);
+    x += w + 0.004;
+  }
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}
+
+/** A wingback armchair, roughed in: seat, back, wings, arms, legs. */
+export function wingbackGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const seat = metricUV(new THREE.BoxGeometry(0.66, 0.16, 0.62), 0.66, 0.62);
+  seat.translate(0, 0.42, 0);
+  parts.push(seat);
+  const back = metricUV(new THREE.BoxGeometry(0.66, 0.78, 0.14), 0.66, 0.78);
+  back.translate(0, 0.78, -0.26);
+  parts.push(back);
+  for (const x of [-0.33, 0.33]) {
+    const wing = metricUV(new THREE.BoxGeometry(0.11, 0.56, 0.4), 0.11, 0.56);
+    wing.translate(x, 0.84, -0.12);
+    parts.push(wing);
+    const arm = metricUV(new THREE.BoxGeometry(0.13, 0.22, 0.6), 0.13, 0.6);
+    arm.translate(x, 0.56, 0.02);
+    parts.push(arm);
+  }
+  for (const [x, z] of [[-0.27, -0.24], [0.27, -0.24], [-0.27, 0.24], [0.27, 0.24]] as const) {
+    const leg = new THREE.CylinderGeometry(0.025, 0.03, 0.34, 8);
+    leg.translate(x, 0.17, z);
+    parts.push(leg);
+  }
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}
