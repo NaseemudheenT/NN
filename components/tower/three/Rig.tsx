@@ -44,6 +44,19 @@ import { SUN } from "./Sky";
  * both keep their colour.
  */
 
+/**
+ * ── on the light budget ──────────────────────────────────────────────
+ * three.js forward-renders: every light is evaluated against every lit
+ * material, every fragment, and a new shader variant is compiled per light
+ * count. Nine furnished floors with a lamp per fixture came to about forty
+ * seven lights, which is where the frame rate goes on a tablet.
+ *
+ * So the fixtures keep their EMISSIVE surfaces — the thing you actually
+ * see, the bright pendant shade, the lit ring, the glowing pane — and lose
+ * the point light behind them. The room is then lit by one lamp per floor
+ * plus this rig's environment, and the fittings still read as switched on
+ * because a lamp you can see is a lamp that is on.
+ */
 export function Rig({ quality = "high" }: { quality?: "high" | "medium" | "low" }) {
   const high = quality === "high";
   const med = quality !== "low";

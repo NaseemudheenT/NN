@@ -123,17 +123,6 @@ export function Level1({ visible = true }: { visible?: boolean }) {
             <boxGeometry args={[1.0, 0.72, 1.0]} />
           </mesh>
           {/* the spot that makes it merchandise rather than furniture */}
-          <spotLight
-            position={[0, CLEAR - 0.5, 0]}
-            target-position={[x, 0.8, z]}
-            angle={0.42}
-            penumbra={0.75}
-            intensity={70}
-            distance={9}
-            decay={2}
-            color={warm}
-            castShadow={false}
-          />
         </group>
       ))}
 

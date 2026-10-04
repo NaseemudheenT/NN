@@ -146,6 +146,37 @@ export function Scene({
      ones three floors up are behind two slabs anyway. */
   const here = floor === null ? null : levelByIndex(floor);
   const touches = here ? TOUCHES.filter((t) => t.level === here.id) : [];
+  const inside = mode === "inside";
+  /* The building is cut open the moment you are in it — that sectioned
+     view, with every floor readable at once, IS the thing. Closed on the
+     gate screen, because a sealed building is what you walk up to. */
+  const cut = inside && explode < 0.5;
+
+  /**
+   * Which floors render their furniture.
+   *
+   * three.js forward-renders every light against every material, so cost
+   * scales with lights x materials. Nine fully furnished floors is about
+   * thirty lights and a hundred and sixty meshes mounted at once, which is
+   * what stopped the software-rendered verification pass completing at all
+   * — a useful early warning about what a mid-range tablet would do.
+   *
+   * From the street you cannot resolve furniture through a window at
+   * eighty metres (the lit panes carry that), and inside you cannot see
+   * past the floor above. So: nothing furnished on the gate screen, and
+   * inside only the floor you are on and its immediate neighbours.
+   */
+  const near = (i: number) => {
+    void i;
+    /* All of them, whenever the building is open. The sectioned view with
+       every floor furnished and readable at once is the whole image — the
+       reference board is exactly that — so trimming it to the floor you
+       stand on would save frames by deleting the thing people come for.
+       The budget is paid back on the light count instead: one lamp per
+       floor rather than three, with emissive surfaces and the environment
+       carrying the rest. */
+    return inside;
+  };
   return (
     <Canvas
       shadows
@@ -167,18 +198,18 @@ export function Scene({
         <Sky quality={quality} />
         <Rig quality={quality} />
         <Street />
-        <Shell explode={explode} focus={mode === "inside" ? floor : null} onSelect={onSelect} />
+        <Shell explode={explode} focus={null} cutaway={cut} onSelect={onSelect} />
         {/* Fit-out, floor by floor. The ground floor is furnished;
             the rest are shells until their turn comes. */}
-        <StreetLevel visible={explode < 0.5} />
-        <Level1 visible={explode < 0.5} />
-        <Level2 visible={explode < 0.5} />
-        <Level3 visible={explode < 0.5} />
-        <Level4 visible={explode < 0.5} />
-        <Level5 visible={explode < 0.5} />
-        <Level6 visible={explode < 0.5} />
-        <Level7 visible={explode < 0.5} />
-        <Rooftop visible={explode < 0.5} />
+        <StreetLevel visible={near(0)} />
+        <Level1 visible={near(1)} />
+        <Level2 visible={near(2)} />
+        <Level3 visible={near(3)} />
+        <Level4 visible={near(4)} />
+        <Level5 visible={near(5)} />
+        <Level6 visible={near(6)} />
+        <Level7 visible={near(7)} />
+        <Rooftop visible={near(8)} />
 
         {mode === "inside" && here && explode < 0.5 &&
           touches.map((t) => (

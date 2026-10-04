@@ -144,7 +144,6 @@ export function Rooftop({ visible = true }: { visible?: boolean }) {
           <mesh position={[0, 0.23, 0]} material={lit(SPEC.kelvin, 1.4)}>
             <sphereGeometry args={[0.06, 10, 8]} />
           </mesh>
-          <pointLight position={[0, 0.3, 0]} intensity={7} distance={6} decay={2} color={warm} />
         </group>
       ))}
 

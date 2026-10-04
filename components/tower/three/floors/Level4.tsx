@@ -113,7 +113,6 @@ export function Level4({ visible = true }: { visible?: boolean }) {
             <mesh position={[0, CLEAR - 0.79, 0.22]} material={lit(2500, 0.8)}>
               <planeGeometry args={[2.3, 0.03]} />
             </mesh>
-            <pointLight position={[0, CLEAR - 1.0, 0.5]} intensity={13} distance={7} decay={2} color={warm} />
           </group>
         ),
       )}
@@ -134,7 +133,6 @@ export function Level4({ visible = true }: { visible?: boolean }) {
             <mesh position={[0, -0.06, 0]} material={lit(SPEC.kelvin, 1.1)}>
               <circleGeometry args={[0.15, 14]} />
             </mesh>
-            <pointLight position={[0, -0.2, 0]} intensity={18} distance={6.5} decay={2} color={warm} />
           </group>
         ))}
       </group>

@@ -129,7 +129,6 @@ export function Level5({ visible = true }: { visible?: boolean }) {
             {/* the ring that lights it, and the glow that gives this floor
                 its colour from outside the building */}
             <mesh geometry={podRing} material={lit(SPEC.kelvin, 1.5)} position={[0, POD_H + 0.06, 0]} />
-            <pointLight position={[0, POD_H - 0.2, 0]} intensity={16} distance={6} decay={2} color={cool} />
           </group>
         ))}
       </group>

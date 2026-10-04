@@ -146,7 +146,6 @@ export function Street() {
           <mesh material={lit(2400, 1.9)}>
             <sphereGeometry args={[0.22, 12, 10]} />
           </mesh>
-          <pointLight intensity={16} distance={16} decay={2} color="#ffcf96" />
         </group>
       ))}
 

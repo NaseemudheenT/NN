@@ -108,7 +108,6 @@ export function Level2({ visible = true }: { visible?: boolean }) {
             <mesh position={[0, -0.07, 0]} material={lit(SPEC.kelvin, 1.25)}>
               <circleGeometry args={[0.19, 16]} />
             </mesh>
-            <pointLight position={[0, -0.2, 0]} intensity={26} distance={8} decay={2} color={warm} />
           </group>
         ))}
       </group>

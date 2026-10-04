@@ -147,7 +147,6 @@ export function Level6({ visible = true }: { visible?: boolean }) {
           <mesh position={[0, 1.05, 0.42]} material={material("gold")}>
             <boxGeometry args={[2.3, 0.02, 0.03]} />
           </mesh>
-          <pointLight position={[0, 2.2, 0.5]} intensity={18} distance={7} decay={2} color={warm} />
         </group>
       ))}
 

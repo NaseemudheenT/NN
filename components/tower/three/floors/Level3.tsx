@@ -151,7 +151,6 @@ export function Level3({ visible = true }: { visible?: boolean }) {
           <mesh position={[0.64, 1.5, 0.05]} material={lit(2700, 1.0)}>
             <planeGeometry args={[0.05, 1.1]} />
           </mesh>
-          <pointLight position={[0.5, 1.5, 0.6]} intensity={9} distance={5} decay={2} color={warm} />
         </group>
       ))}
 

@@ -28,11 +28,15 @@ import { material, lit, kelvinToColor } from "./materials";
  */
 
 /* Where each straight face sits, in world space, and which way it looks. */
+/* Where each straight face sits, which way it looks, and whether the
+   cutting plane passes through it. The two that face the default camera
+   are the cut ones; the two behind stay, because a section needs a back
+   wall or you are looking at furniture floating in the sky. */
 const FACES = [
-  { w: HALF * 2 - CHAMFER, pos: [-(CHAMFER / 2), 0, HALF] as const, rot: 0 },
-  { w: HALF * 2 - CHAMFER, pos: [HALF, 0, -(CHAMFER / 2)] as const, rot: Math.PI / 2 },
-  { w: HALF * 2, pos: [0, 0, -HALF] as const, rot: Math.PI },
-  { w: HALF * 2, pos: [-HALF, 0, 0] as const, rot: -Math.PI / 2 },
+  { w: HALF * 2 - CHAMFER, pos: [-(CHAMFER / 2), 0, HALF] as const, rot: 0, cut: true },
+  { w: HALF * 2 - CHAMFER, pos: [HALF, 0, -(CHAMFER / 2)] as const, rot: Math.PI / 2, cut: true },
+  { w: HALF * 2, pos: [0, 0, -HALF] as const, rot: Math.PI, cut: false },
+  { w: HALF * 2, pos: [-HALF, 0, 0] as const, rot: -Math.PI / 2, cut: false },
 ];
 
 const baysFor = (width: number) => Math.max(2, Math.round(width / 4.6));
@@ -52,11 +56,14 @@ function Level({
   spec,
   explode,
   ghost,
+  cutaway,
   onSelect,
 }: {
   spec: LevelSpec;
   explode: number;
   ghost: boolean;
+  /** Take the two camera-facing walls away and show the rooms. */
+  cutaway: boolean;
   onSelect: (s: LevelSpec) => void;
 }) {
   const group = useRef<THREE.Group>(null);
@@ -129,28 +136,33 @@ function Level({
       {/* floor plate */}
       <mesh geometry={plate} material={floorMat} castShadow receiveShadow />
 
-      {/* the room behind the glass, and the lamp that lights it */}
+      {/* The room behind the glass.
+          The lamp that used to be here has gone: every floor module now
+          brings its own lighting at its own colour temperature, so the
+          shell adding one more per level was lighting all nine floors
+          twice — eighteen lights where nine will do, in a forward renderer
+          where cost is lights times materials. */}
       {!ghost && (
         <>
-          <mesh
-            geometry={backdrop}
-            material={roomMat}
-            position={[0, SLAB + clear * 0.07, 0]}
-            receiveShadow
-          />
-          <pointLight
-            position={[0, SLAB + clear * 0.62, 0]}
-            intensity={spec.glow * 34}
-            distance={26}
-            decay={2}
-            color={kelvinToColor(spec.kelvin)}
-          />
+          {!cutaway && (
+            <mesh
+              geometry={backdrop}
+              material={roomMat}
+              position={[0, SLAB + clear * 0.07, 0]}
+              receiveShadow
+            />
+          )}
         </>
       )}
 
-      {/* perimeter masonry and its glazing */}
+      {/* Perimeter masonry and its glazing.
+          In cutaway the two elevations facing the camera are taken away
+          entirely — not made transparent. A sectioned architectural model
+          removes the material; it does not turn it to glass, and a ghosted
+          wall in front of a room reads as fog over the furniture rather
+          than as a building you can see into. */}
       {FACES.map((f, i) => (
-        <group key={i} position={[f.pos[0], SLAB, f.pos[2]]} rotation={[0, f.rot, 0]}>
+        <group key={i} position={[f.pos[0], SLAB, f.pos[2]]} rotation={[0, f.rot, 0]} visible={!(cutaway && f.cut)}>
           <mesh geometry={walls[i]} material={wallMat} castShadow receiveShadow />
           {!ghost && (
             <>
@@ -214,10 +226,12 @@ function bandFor(project: number, depth: number) {
 export function Shell({
   explode,
   focus,
+  cutaway,
   onSelect,
 }: {
   explode: number;
   focus: number | null;
+  cutaway: boolean;
   onSelect: (s: LevelSpec) => void;
 }) {
   const plinth = useMemo(() => bandGeometry(0.5, 1.1), []);
@@ -243,6 +257,7 @@ export function Shell({
           spec={spec}
           explode={explode}
           ghost={focus !== null && focus !== spec.index}
+          cutaway={cutaway}
           onSelect={onSelect}
         />
       ))}
