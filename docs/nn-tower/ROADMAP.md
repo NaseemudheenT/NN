@@ -74,3 +74,47 @@ The plates are cut from composite boards 1254px wide, so each view is only
 more, each on its own, with no captions, no annotation lines and no label
 columns.** Re-run the script and the entire site gets sharper — no code change,
 because the crops are stored as fractions of the source.
+
+---
+
+## What this build deliberately does not do
+
+The master directive pasted alongside the renders asks for real-time 3D:
+React Three Fiber, Three.js, GLB/glTF from Blender, a staircase as actual
+geometry, an elevator with doors that open on a camera move, free walk-through
+exploration. None of that is here, and that is a decision, not an omission.
+
+The note that has come back more than any other is that the site must look
+**real, and not like a cartoon or a game**. Real-time 3D in a browser is the
+thing that produces the game look. A browser cannot ray-trace limestone, cannot
+do subsurface scattering in stone, and cannot afford the bounce light that
+makes an interior read as photographed. Everything it *can* draw at sixty
+frames a second looks like a game engine — and post-processing only puts bloom
+on a cartoon. Three attempts proved it.
+
+Photographs composited in depth give the opposite trade: perfect material
+fidelity, no geometry budget, 1.19 MB of client JS instead of 3.4 MB, and a
+building that holds up at full screen. What is given up is free camera
+movement. You cannot walk the floor; you look into it.
+
+If that trade is the wrong one for NN, say so and it goes back to R3F — the
+packages are still installed. But it should be an explicit choice, made
+knowing that the cartoon look and real-time 3D are the same decision.
+
+## What was rejected from the reference implementation
+
+The `nero_noren_nn_tower_digital_flagship.tsx` file was read as reference. None
+of it shipped. It contained:
+
+- **Firebase** auth and Firestore — this project runs Supabase.
+- **Fabricated business metrics** presented as live: €148,250 revenue, 1,428
+  visitors, 389 AI sessions, 42 bookings, "↑ 24.1% monthly target".
+- **A fabricated address** — "Via Monte Napoleone 8, 20121 Milano MI, Italy".
+  NERO NOREN Private Limited is an Indian company.
+- **Unsplash stock photography** used as the product catalogue.
+- **Invented products, specs and origin claims** — "Super 160s Wool",
+  "Hand-crafted in Naples", "100% Mongolian Cashmere", prices in EUR.
+- **Flat `#D4AF37` as a text and fill colour** throughout. The brand board
+  shows gold only as a physical finish; flat gold type is a misuse of it.
+- **A Gemini API key placeholder in client-side code**, calling the model
+  directly from the browser. Any key put there ships to every visitor.
