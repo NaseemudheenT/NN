@@ -187,6 +187,25 @@ const SHAPERS: Record<string, { height: Shaper; bump: number; roughLo: number; r
     bump: 1.25, roughLo: 0.66, roughHi: 0.84, repeat: 0.208,
   },
 
+  /* Granite setts. Square-ish blocks with a deep joint and a domed top,
+     laid in courses that break joint — which is what a cobbled street
+     actually is and why it reads so differently from a flagged one. */
+  setts: {
+    height: (x, y) => {
+      const N = 9;
+      const course = Math.floor(y * N);
+      const stagger = (course % 2) * 0.5;
+      const bx = ((x * N + stagger) % 1 + 1) % 1;
+      const by = ((y * N) % 1 + 1) % 1;
+      const joint = Math.min(Math.min(bx, 1 - bx) * 11, Math.min(by, 1 - by) * 11, 1);
+      // each sett is slightly domed, which is what catches the light
+      const dome = Math.cos((bx - 0.5) * Math.PI) * Math.cos((by - 0.5) * Math.PI);
+      const grit = fbm(x, y, { octaves: 3, freq: 90, seed: 151 });
+      return joint * (0.5 + dome * 0.32) + grit * 0.18;
+    },
+    bump: 2.1, roughLo: 0.58, roughHi: 0.78, repeat: 0.55,
+  },
+
   /* Travertine: horizontal vein structure with real pits punched through it. */
   travertine: {
     height: (x, y) => {

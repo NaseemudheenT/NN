@@ -63,6 +63,10 @@ export const MATERIALS: Record<string, MaterialDef> = {
     color: "#cfc7b6", roughness: 0.62, metalness: 0.04,
     grain: "travertine", normalScale: 0.9, clearcoat: 0.12, clearcoatRoughness: 0.6,
   },
+  setts: {
+    color: "#6f6a63", roughness: 0.66, metalness: 0.04,
+    grain: "setts", normalScale: 1.25,
+  },
   basalt: {
     color: "#2e3033", roughness: 0.58, metalness: 0.05,
     grain: "basalt", normalScale: 0.8,

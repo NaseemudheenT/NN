@@ -50,6 +50,12 @@ export function Street() {
   /* The pavement: a raised slab around the building with a kerb, because the
      single clearest signal that a building is sitting on a street rather
      than floating is the step up to its threshold. */
+  /* Granite setts, not a flat slab.
+     The reference street is laid in cobbles, and a pavement reads as
+     paved rather than poured entirely from the grid of joints across it —
+     which is a height field, not geometry: a real sett pattern at this
+     size would be tens of thousands of blocks for a surface people walk
+     over. */
   const pavement = useMemo(() => {
     const w = HALF * 2 + 18;
     const g = new THREE.BoxGeometry(w, 0.18, w);
@@ -120,7 +126,7 @@ export function Street() {
   return (
     <group>
       {/* pavement and kerb */}
-      <mesh geometry={pavement} material={material("travertine")} receiveShadow />
+      <mesh geometry={pavement} material={material("setts")} receiveShadow />
       <mesh geometry={kerb} material={material("basalt")} receiveShadow castShadow />
 
       {/* The city behind. Dark, but not invisible: at #15161a these read as
