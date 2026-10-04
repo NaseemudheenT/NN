@@ -133,6 +133,45 @@ export const explodedY = (index: number, amount: number) => index * EXPLODE_GAP 
  * what a round-headed window does; take it higher and it reads as a doorway
  * with a sticker on top.
  */
+/* ── what can be touched on each floor ─────────────────────────────── */
+
+/**
+ * Points in the building that open something.
+ *
+ * Positions are in metres, local to their floor's origin. Every entry with
+ * a `handle` names a REAL product in the catalogue — the price is looked up
+ * at render and written down nowhere, because an invented price is the one
+ * thing on a commercial site that must never exist.
+ */
+export interface Touch {
+  id: string;
+  level: LevelId;
+  at: [number, number, number];
+  label: string;
+  /** A real catalogue handle. */
+  handle?: string;
+  /** Or one of the building's own services. */
+  opens?: "collection" | "stylist" | "fit" | "bag" | "checkout";
+}
+
+export const TOUCHES: Touch[] = [
+  { id: "t-coat-1",   level: "gallery", at: [-7.4, 1.5, -0.6], label: "The Oxford", handle: "oxford-azure" },
+  { id: "t-coat-2",   level: "gallery", at: [-7.4, 1.5, 5.0],  label: "The Poplin", handle: "poplin-ecru" },
+  { id: "t-ped-1",    level: "gallery", at: [-2.4, 1.3, 6.2],  label: "The whole collection", opens: "collection" },
+
+  { id: "t-jacket",   level: "menboys", at: [-7.0, 1.5, -2.8], label: "The Stripe", handle: "stripe-marine" },
+  { id: "t-trouser",  level: "menboys", at: [-2.2, 1.5, -7.2], label: "The Tailored Trouser", handle: "tailored-charcoal" },
+  { id: "t-boys",     level: "menboys", at: [6.0, 1.2, 3.0],   label: "Boys", opens: "collection" },
+
+  { id: "t-pod",      level: "stylist", at: [4.2, 1.7, 4.6],   label: "Ask the stylist", opens: "stylist" },
+  { id: "t-mirror",   level: "stylist", at: [-6.6, 1.5, 3.2],  label: "Virtual fit", opens: "fit" },
+
+  { id: "t-counter",  level: "checkout", at: [6.4, 1.3, -3.0], label: "Checkout", opens: "checkout" },
+  { id: "t-bags",     level: "checkout", at: [3.0, 1.4, 4.4],  label: "Your bag", opens: "bag" },
+];
+
+export const touchesFor = (id: LevelId) => TOUCHES.filter((t) => t.level === id);
+
 export const BAYS_PER_FACE = 5;
 export const BAY_SPRING = 0.62;
 

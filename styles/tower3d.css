@@ -249,3 +249,24 @@ main[data-immersive] > .nn-page-enter {
   .nn3-lift__plaque { display: none; }
   .nn3-lift__name { display: none; }
 }
+
+/* ── the label on a touch point ───────────────────────────────────────
+   Rendered in 3D space by drei's <Html>, so it sits ON the thing it
+   names and travels with the camera. Small, dark and quiet: a price tag
+   in a shop is not a billboard. */
+.nn3-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--r-sm);
+  background: rgba(10, 10, 10, 0.86);
+  border: 1px solid rgba(232, 212, 164, 0.3);
+  color: var(--ivory);
+  font-family: var(--sans);
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-4px);
+}
+.nn3-tag__price { color: rgba(232, 212, 164, 0.95); font-variant-numeric: tabular-nums; }

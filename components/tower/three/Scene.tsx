@@ -19,7 +19,8 @@ import { Level5 } from "./floors/Level5";
 import { Level6 } from "./floors/Level6";
 import { Level7 } from "./floors/Level7";
 import { Rooftop } from "./floors/Rooftop";
-import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
+import { LEVELS, HALF, TOUCHES, levelByIndex, type LevelSpec, type Touch } from "@/lib/tower/spec";
+import { Hotspot } from "./Hotspot";
 
 export type Mode = "intro" | "entering" | "inside";
 
@@ -127,6 +128,8 @@ export function Scene({
   explode,
   doorsOpen,
   onSelect,
+  onTouch,
+  price,
   quality,
 }: {
   mode: Mode;
@@ -134,8 +137,15 @@ export function Scene({
   explode: number;
   doorsOpen: boolean;
   onSelect: (s: LevelSpec) => void;
+  onTouch: (t: Touch) => void;
+  price: (handle: string) => string | null;
   quality: "high" | "medium" | "low";
 }) {
+  /* Only the floor you are standing on offers its touch points. Showing all
+     of them at once turns the building into a map covered in pins, and the
+     ones three floors up are behind two slabs anyway. */
+  const here = floor === null ? null : levelByIndex(floor);
+  const touches = here ? TOUCHES.filter((t) => t.level === here.id) : [];
   return (
     <Canvas
       shadows
@@ -169,6 +179,17 @@ export function Scene({
         <Level6 visible={explode < 0.5} />
         <Level7 visible={explode < 0.5} />
         <Rooftop visible={explode < 0.5} />
+
+        {mode === "inside" && here && explode < 0.5 &&
+          touches.map((t) => (
+            <Hotspot
+              key={t.id}
+              position={[t.at[0], here.base + t.at[1], t.at[2]]}
+              label={t.label}
+              price={t.handle ? price(t.handle) : null}
+              onOpen={() => onTouch(t)}
+            />
+          ))}
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
         <Camera mode={mode} floor={floor} explode={explode} />

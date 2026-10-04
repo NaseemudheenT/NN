@@ -5,13 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { Monogram } from "@/components/brand/Monogram";
 import { Bag, Ruler, Search, Sound, Sparkle } from "@/components/ui/icons";
-import { LEVELS, type LevelSpec } from "@/lib/tower/spec";
+import { LEVELS, type LevelSpec, type Touch } from "@/lib/tower/spec";
 import { levelById } from "@/lib/tower/floors";
 import { useBag } from "@/lib/bag/BagProvider";
 import { useStylist } from "@/components/stylist/StylistProvider";
 import { useSearch } from "@/components/shell/SearchProvider";
 import { useSoundscape } from "@/components/shell/SoundscapeProvider";
 import type { Mode } from "./three/Scene";
+import { Drawer } from "./Drawer";
+import { formatMinor } from "@/lib/money";
 import type { Product } from "@/lib/catalog/types";
 
 /**
@@ -69,6 +71,7 @@ export function NNTower({ products }: { products: Product[] }) {
   const [doorsOpen, setDoorsOpen] = useState(false);
   const [quality, setQuality] = useState<Quality>("medium");
   const [ready, setReady] = useState(false);
+  const [drawer, setDrawer] = useState<{ product?: Product; products?: Product[]; title?: string } | null>(null);
 
   const { count, openBag } = useBag();
   const { open: openStylist } = useStylist();
@@ -110,6 +113,39 @@ export function NNTower({ products }: { products: Product[] }) {
 
   const onSelect = useCallback((s: LevelSpec) => goFloor(s.index), [goFloor]);
 
+  const byHandle = useMemo(() => new Map(products.map((p) => [p.handle, p])), [products]);
+
+  /* Prices are read from the catalogue at render and written down nowhere.
+     A price in the 3D scene would be a price in two places, and the one in
+     the scene would be the one that went stale. */
+  const price = useCallback(
+    (handle: string) => {
+      const p = byHandle.get(handle);
+      return p ? formatMinor(p.priceMinor, p.currency) : null;
+    },
+    [byHandle],
+  );
+
+  /* Touching something in the building opens the real thing: the real bag,
+     the real stylist, the real checkout. None of it is rebuilt in 3D. */
+  const onTouch = useCallback(
+    (t: Touch) => {
+      if (t.handle) {
+        const p = byHandle.get(t.handle);
+        if (p) setDrawer({ product: p });
+        return;
+      }
+      switch (t.opens) {
+        case "collection": setDrawer({ products, title: t.label }); break;
+        case "stylist": openStylist(); break;
+        case "bag": openBag(); break;
+        case "fit": window.location.href = "/trial-room"; break;
+        case "checkout": window.location.href = "/checkout"; break;
+      }
+    },
+    [byHandle, products, openStylist, openBag],
+  );
+
   const spec = useMemo(
     () => (floor === null ? null : LEVELS.find((l) => l.index === floor) ?? null),
     [floor],
@@ -126,6 +162,8 @@ export function NNTower({ products }: { products: Product[] }) {
           explode={explode}
           doorsOpen={doorsOpen}
           onSelect={onSelect}
+          onTouch={onTouch}
+          price={price}
           quality={quality}
         />
 
@@ -258,6 +296,13 @@ export function NNTower({ products }: { products: Product[] }) {
             ← Back to the street
           </motion.button>
         )}
+
+        <Drawer
+          product={drawer?.product}
+          products={drawer?.products}
+          title={drawer?.title}
+          onClose={() => setDrawer(null)}
+        />
 
         {/* Every level has a real URL underneath, for links and for crawlers. */}
         <nav className="nn3-routes" aria-label="All levels">
