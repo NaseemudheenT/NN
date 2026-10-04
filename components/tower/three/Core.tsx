@@ -96,7 +96,7 @@ export function Core({ floor }: { floor: number }) {
   return (
     <group position={[CX, 0, CZ]}>
       {/* the shaft glazing */}
-      <mesh geometry={shaft} material={material("glass")} />
+      <mesh geometry={shaft} material={material("glasspane")} />
 
       {/* the stair */}
       <mesh geometry={stair} material={material("oak")} castShadow receiveShadow />

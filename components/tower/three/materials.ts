@@ -103,6 +103,27 @@ export const MATERIALS: Record<string, MaterialDef> = {
     transmission: 0.92, ior: 1.5, thickness: 1.2,
     side: THREE.DoubleSide,
   },
+  /**
+   * Window glass that does NOT refract.
+   *
+   * `transmission` is the expensive one: three.js renders the opaque scene
+   * into a second buffer so the material can sample what is behind it. One
+   * such material is fine. NN Tower has nine floors of glazing, a rotunda
+   * band, a lift shaft, a car, a dome and two doors — and the cost shows up
+   * long before any of them look better for it.
+   *
+   * At a distance a window is not refraction, it is REFLECTION: you see the
+   * sky and the street in it, not the room behind. So panes get a thin
+   * transparent dielectric with a strong environment response, and true
+   * transmission is reserved for the three places you get close enough to
+   * look through — the dome, the entrance doors and the lift.
+   */
+  glasspane: {
+    color: "#dfe7ee", roughness: 0.06, metalness: 0.0,
+    transparent: true, opacity: 0.26,
+    clearcoat: 1.0, clearcoatRoughness: 0.04,
+  },
+
   smartglass: {
     // The L5 styling pods: frosted, switchable, never fully clear.
     color: "#eef2f5", roughness: 0.32, metalness: 0.0,
@@ -187,6 +208,10 @@ export function material(name: string): THREE.Material {
     params.opacity = def.opacity;
     params.transparent = true;
   }
+  if (def.transparent) params.transparent = true;
+  // A pane with no transmission still has to reflect the sky hard, or it
+  // reads as tinted cellophane rather than as glass.
+  if (name === "glasspane") params.envMapIntensity = 2.6;
 
   const m = new THREE.MeshPhysicalMaterial(params);
   m.name = name;

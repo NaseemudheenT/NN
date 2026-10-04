@@ -167,7 +167,7 @@ function Level({
                   real window is — not flush with the face of the stone */}
               <mesh
                 geometry={glass[i]}
-                material={material("glass")}
+                material={material("glasspane")}
                 position={[0, 0, WALL * 0.12]}
               />
             </>
@@ -184,7 +184,7 @@ function Level({
             scale={[0.985, 1, 0.985]}
           />
         )}
-        {!ghost && <mesh geometry={rotGlass} material={material("glass")} />}
+        {!ghost && <mesh geometry={rotGlass} material={material("glasspane")} />}
         <mesh geometry={rotBars} material={ghost ? ghostMaterial : material("steel")} castShadow />
       </group>
 

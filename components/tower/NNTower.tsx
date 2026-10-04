@@ -38,8 +38,20 @@ const Scene = dynamic(() => import("./three/Scene").then((m) => m.Scene), {
 
 type Quality = "high" | "medium" | "low";
 
+/**
+ * How hard to push this machine.
+ *
+ * Guessed from cores, memory and screen size, and overridable with
+ * `?quality=low|medium|high`. The override is a real feature, not a test
+ * hook: someone on a thin laptop that reports eight cores and then thermal
+ * throttles needs a way to say "less", and someone on a workstation that
+ * under-reports needs a way to say "more". It is also the only way to
+ * profile the scene honestly.
+ */
 function detectQuality(): Quality {
   if (typeof navigator === "undefined") return "medium";
+  const forced = new URLSearchParams(window.location.search).get("quality");
+  if (forced === "low" || forced === "medium" || forced === "high") return forced;
   const cores = navigator.hardwareConcurrency ?? 4;
   const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? 4;
   const small = window.matchMedia("(max-width: 820px)").matches;

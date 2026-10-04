@@ -111,3 +111,60 @@ export function shelvingGeometry(w: number, h: number, d: number, shelves: numbe
   parts.forEach((p) => p.dispose());
   return m;
 }
+
+/**
+ * A tailor's dress form on its stand.
+ *
+ * Lathed from a real block profile — bust, waist, hip — because a dress
+ * form is the one object in a tailoring room whose proportions everyone
+ * recognises instantly. Get the waist wrong and the whole floor reads as
+ * a shop-window dummy rather than as a workroom.
+ */
+export function dressFormGeometry(height = 0.84): THREE.BufferGeometry {
+  // radius against height, from hem to shoulder
+  const prof: [number, number][] = [
+    [0.21, 0.0], [0.225, 0.1], [0.215, 0.26],   // hip
+    [0.17, 0.44],                                // waist
+    [0.215, 0.62], [0.228, 0.74],                // chest
+    [0.2, 0.88], [0.13, 0.97], [0.06, 1.0],      // shoulder, neck
+  ];
+  const body = new THREE.LatheGeometry(
+    prof.map(([r, t]) => new THREE.Vector2(r, 0.72 + t * height)),
+    20,
+  );
+  body.scale(1, 1, 0.78);
+  const post = new THREE.CylinderGeometry(0.025, 0.025, 0.74, 10);
+  post.translate(0, 0.37, 0);
+  const foot = new THREE.CylinderGeometry(0.26, 0.3, 0.035, 18);
+  foot.translate(0, 0.018, 0);
+  const m = mergeAll([body, post, foot]);
+  [body, post, foot].forEach((g) => g.dispose());
+  m.computeVertexNormals();
+  return m;
+}
+
+/** A bolt of cloth, rolled. */
+export function clothBoltGeometry(length = 0.92, radius = 0.075): THREE.BufferGeometry {
+  const g = new THREE.CylinderGeometry(radius, radius, length, 14);
+  g.rotateZ(Math.PI / 2);
+  return g;
+}
+
+/** A simple side chair: seat, back, four legs. */
+export function chairGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const seat = metricUV(new THREE.BoxGeometry(0.46, 0.055, 0.44), 0.46, 0.44);
+  seat.translate(0, 0.45, 0);
+  parts.push(seat);
+  const back = metricUV(new THREE.BoxGeometry(0.44, 0.5, 0.045), 0.44, 0.5);
+  back.translate(0, 0.72, -0.2);
+  parts.push(back);
+  for (const [x, z] of [[-0.19, -0.18], [0.19, -0.18], [-0.19, 0.18], [0.19, 0.18]] as const) {
+    const leg = new THREE.CylinderGeometry(0.018, 0.022, 0.45, 8);
+    leg.translate(x, 0.225, z);
+    parts.push(leg);
+  }
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}

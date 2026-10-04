@@ -11,6 +11,7 @@ import { Sky } from "./Sky";
 import { Core } from "./Core";
 import { Entrance, DOOR_POSITION } from "./Entrance";
 import { StreetLevel } from "./floors/StreetLevel";
+import { Level1 } from "./floors/Level1";
 import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
 
 export type Mode = "intro" | "entering" | "inside";
@@ -144,6 +145,7 @@ export function Scene({
         {/* Fit-out, floor by floor. The ground floor is furnished;
             the rest are shells until their turn comes. */}
         <StreetLevel visible={explode < 0.5} />
+        <Level1 visible={explode < 0.5} />
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
         <Camera mode={mode} floor={floor} explode={explode} />

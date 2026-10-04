@@ -118,18 +118,20 @@ export function Rig({ quality = "high" }: { quality?: "high" | "medium" | "low" 
       </Environment>
 
       {/* ── the film ────────────────────────────────────────────────── */}
-      <EffectComposer multisampling={0} enableNormalPass>
+      <EffectComposer multisampling={0} enableNormalPass={quality !== "low"}>
         {/* Contact darkening. This is what stops every object looking like a
             sticker: corners, reveals, the gap under a cornice and the seam
             where a mullion meets stone all go properly dark. */}
-        <N8AO
-          aoRadius={2.4}
-          intensity={high ? 2.6 : 1.8}
-          distanceFalloff={0.9}
-          quality={high ? "high" : "low"}
-          color="#120d08"
-          halfRes={!high}
-        />
+        {quality === "low" ? <></> : (
+          <N8AO
+            aoRadius={2.4}
+            intensity={high ? 2.6 : 1.8}
+            distanceFalloff={0.9}
+            quality={high ? "high" : "low"}
+            color="#120d08"
+            halfRes={!high}
+          />
+        )}
         {/* Lit windows and the dome bloom because real lenses do. The
             threshold sits just above white so only genuinely emissive
             surfaces glow — raise the whole image and it turns to fog. */}
