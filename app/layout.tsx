@@ -60,9 +60,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
      pieces — one fetch for the whole session rather than one per overlay. */
   const { products } = await loadCatalogue();
 
+  /* The font variables go on <html>, not <body>.
+     tokens.css declares `--serif: var(--font-cormorant), ...` on :root,
+     which IS <html>. With the variables one node below, --font-cormorant
+     did not exist where --serif was computed, so --serif resolved to the
+     guaranteed-invalid value — and an invalid custom property inherits as
+     invalid rather than being re-substituted further down the tree. The
+     effect was that `font-family: var(--serif)` failed on every element on
+     the site, and Cormorant Garamond — the brand's display face — never
+     rendered once. Moving them up one node fixes the whole cascade. */
   return (
-    <html lang="en-IN" suppressHydrationWarning>
-      <body className={`${cormorant.variable} ${hanken.variable}`}>
+    <html lang="en-IN" className={`${cormorant.variable} ${hanken.variable}`} suppressHydrationWarning>
+      <body>
         <BagProvider shopLive={shopifyReady()}>
           <Shell catalogue={products} footer={<Footer />}>
             {children}

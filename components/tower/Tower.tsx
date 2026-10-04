@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { Overture } from "./Overture";
 import { Elevation } from "./Elevation";
 import { FloorCard } from "./FloorCard";
@@ -80,6 +80,13 @@ export function Tower({ products }: { products: Product[] }) {
   );
 
   return (
+    /* `reducedMotion="user"` is the one switch that covers the whole
+       building: for a visitor who has asked their system for less motion,
+       Framer drops every transform and layout animation in here — the lift
+       arriving, the push on the plates, the card rising — and keeps the
+       opacity cross-fades, which is what the guidance actually asks for.
+       Gating each component by hand missed some; this cannot. */
+    <MotionConfig reducedMotion="user">
     <div className="tower" data-inside={inside || undefined}>
       <AnimatePresence mode="wait">
         {!inside ? (
@@ -140,5 +147,6 @@ export function Tower({ products }: { products: Product[] }) {
         onClose={() => setDrawer(null)}
       />
     </div>
+    </MotionConfig>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { BY_HEIGHT, type Level } from "@/lib/tower/floors";
 import { Plate } from "./Plate";
@@ -8,9 +8,10 @@ import { Plate } from "./Plate";
 /**
  * The elevation — NN Tower, cut open, with every level named.
  *
- * This is the whole navigation. The section render carries the building;
- * nine labels hang off it on leader lines, the way an architect annotates a
- * drawing; and the floor you are on is the floor that is lit.
+ * This is the whole navigation. The section render carries the building, a
+ * marker sits on each of the nine levels, and whichever one you are on — or
+ * point at — is lit and named on a leader line, the way an architect
+ * annotates a drawing.
  *
  * ── why the building dims instead of zooming ─────────────────────────
  * The obvious move when a floor is chosen is to push the camera into it.
@@ -21,12 +22,12 @@ import { Plate } from "./Plate";
  * into shadow. That reads as a building at night with one floor working
  * late, it costs two composited gradients, and it never loses a pixel.
  *
- * ── the leader lines are horizontal on purpose ───────────────────────
- * Each label sits at exactly its anchor's height, so the line between
- * them is a straight horizontal rule. That is the drawing convention the
- * founder's own boards use, it reads instantly, and it means the labels
- * sort themselves vertically into the order of the floors without any
- * collision logic.
+ * ── the leader line is horizontal on purpose ─────────────────────────
+ * The label sits at exactly its anchor's height, so the line between them
+ * is a straight horizontal rule. That is the drawing convention the
+ * founder's own boards use and it reads instantly. Only one is drawn at a
+ * time: nine at once is a parts diagram, and two of the nine sit two
+ * percent apart and would collide.
  */
 export function Elevation({
   active,
@@ -36,7 +37,6 @@ export function Elevation({
   onLevel: (l: Level) => void;
 }) {
   const reduce = useReducedMotion();
-  const frame = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<Level | null>(null);
   const shown = hover ?? active;
 
@@ -58,13 +58,17 @@ export function Elevation({
     return () => window.removeEventListener("pointermove", onMove);
   }, [mx, my, reduce]);
 
-  /* The light follows the chosen floor, and it takes its time getting there. */
-  const lx = useSpring(active.anchor.x, { stiffness: 52, damping: 22, mass: 1.1 });
-  const ly = useSpring(active.anchor.y, { stiffness: 52, damping: 22, mass: 1.1 });
+  /* The light follows whatever is being named, and it takes its time
+     getting there. Following `shown` rather than `active` means hovering a
+     floor previews it — the lamp moves up the building under the pointer
+     and falls back when you let go — instead of leaving the annotation
+     pointing at one floor while a different one is lit. */
+  const lx = useSpring(shown.anchor.x, { stiffness: 52, damping: 22, mass: 1.1 });
+  const ly = useSpring(shown.anchor.y, { stiffness: 52, damping: 22, mass: 1.1 });
   useEffect(() => {
-    lx.set(active.anchor.x);
-    ly.set(active.anchor.y);
-  }, [active, lx, ly]);
+    lx.set(shown.anchor.x);
+    ly.set(shown.anchor.y);
+  }, [shown, lx, ly]);
   const cx = useTransform(lx, (v) => `${v}%`);
   const cy = useTransform(ly, (v) => `${v}%`);
 
@@ -72,7 +76,6 @@ export function Elevation({
     <div className="elev">
       <motion.div
         className="elev__frame"
-        ref={frame}
         style={reduce ? undefined : { x: leanX, y: leanY }}
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
