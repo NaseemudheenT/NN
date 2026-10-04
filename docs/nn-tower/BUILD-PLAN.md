@@ -74,25 +74,27 @@ glass lift capsule inside it.
 Each phase ends with something you can look at and judge. Nothing moves to the
 next phase until the current one is right.
 
-### Phase 1 — Structure, light and material · **this phase**
+### Phase 1 — Structure, light and material · **done**
 The massing in real 3D: nine floor plates, perimeter walls with their arched
 openings, the corner rotunda, the cornice, the parapet, the glass dome. The
 studio lighting rig, ACES, bloom, ambient occlusion, soft shadows. Exploded
 view and focus mode on springs. The glass HUD. Sixty frames a second.
 
-### Phase 2 — The core
-The spiral stair as real geometry — oak treads, blackened steel stringers, lit
-glass balustrade — and the glass lift capsule, with the atrium void cut
-correctly through every plate.
+### Phase 2 — The core · **done**
+Oak spiral stair at a 178 mm rise and a 280 mm going, blackened steel, lit
+glass balustrade. Glass capsule lift that reads its stop from the ledger, so
+it lines up with a floor instead of with a multiplier.
 
-### Phase 3 — Street level & the city
-The entrance, reception, the arcade, the pavement, trees, lamps, the
-neighbouring blocks as LOD context. Day and dusk.
+### Phase 3 — Sky, sun, moon and the street · **done**
+Preetham scattering sky driven by a real sun vector shared with the lighting
+rig, a moon with generated maria, stars, cloud banks. Pavement, kerb, lamps
+with light pools, trees, eight context blocks. Sliding glass entrance doors.
 
-### Phase 4 — Fit-out, floor by floor
-L1 hero board → L2 atelier → L3 men & boys → L4 archive → L5 stylist pods →
-L6 checkout → L7 owner → rooftop. One floor per pass, each with its own
-materials, fixtures and lighting from the ledger.
+### Phase 4 — Fit-out, floor by floor · **done**
+All nine: street level (reception, check-in, working map, coffered ceiling,
+1:8 columns with entasis) · L1 hero board · L2 atelier · L3 men & boys at two
+scales · L4 archive · L5 stylist pods at 5000 K · L6 checkout · L7 owner ·
+rooftop terrace.
 
 ### Phase 5 — Garments and product interaction
 Rails, mannequins, folded stacks. Click a piece and it lifts into an isolated
