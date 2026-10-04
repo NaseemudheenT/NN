@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
-import { Tower } from "@/components/tower/Tower";
+import { NNTower } from "@/components/tower/NNTower";
 import { loadCatalogue } from "@/lib/catalog";
 
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Nero Noren — timeless style builds character",
+  title: "Nero Noren — NN Tower",
   description:
-    "NN Tower: the Nero Noren flagship. Nine levels of modern European menswear for men and boys — the collection gallery, the atelier, the stylist, the trial room.",
+    "NN Tower: the Nero Noren digital flagship. Nine levels of modern European menswear for men and boys — walk in, take the lift, and shop the floor you are standing on.",
 };
 
 /**
- * NN Tower.
+ * The website is the building.
  *
- * The whole website is one building. Arrive on the street, step inside,
- * and take the lift to any floor. The separate routes still exist because
- * links and search engines need URLs, but nobody has to use them to shop.
+ * There is no home page that links to a showroom. The customer arrives on
+ * the street outside NN Tower, walks in, and everything — the collection,
+ * the atelier, the stylist, the fitting room, the bag, the checkout —
+ * happens on a floor of it.
  */
 export default async function Home() {
   const { products } = await loadCatalogue();
-  return <Tower products={products} />;
+  return <NNTower products={products} />;
 }

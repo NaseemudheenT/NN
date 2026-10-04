@@ -1,0 +1,251 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NN TOWER — the interface that floats in front of the building
+
+   The canvas fills the window. Everything else is glass laid over it, so
+   nothing in here ever gets a solid background: the building has to stay
+   visible behind the controls, or it stops being the thing you are in.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── the immersive route ──────────────────────────────────────────────
+   `/` is the tower and nothing else: no header, no footer, no page scroll.
+
+   The `transform: none` is load-bearing and was learned the hard way. A
+   page transition that animates `transform` creates a containing block,
+   and a containing block re-parents every `position: fixed` descendant to
+   the panel instead of the viewport — which collapsed this entire stage to
+   zero height once already. On an immersive route the transition is a fade
+   and nothing else. */
+body:has(main[data-immersive]) { padding-bottom: 0; overflow: hidden; }
+main[data-immersive] { display: block; height: 100svh; }
+main[data-immersive] > .nn-page-enter {
+  height: 100%;
+  transform: none;
+  animation: nn-fade var(--d-slow) var(--ease) both;
+}
+@keyframes nn-fade { from { opacity: 0 } to { opacity: 1 } }
+
+.nn3 {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  background: var(--black);
+  color: var(--ink-on-room);
+  overflow: hidden;
+}
+.nn3 canvas { display: block; touch-action: none; }
+
+/* The canvas takes a moment to compile shaders; fade in rather than snap. */
+.nn3 > :first-child { opacity: 0; transition: opacity 900ms var(--ease); }
+.nn3[data-ready] > :first-child { opacity: 1; }
+
+.nn3-boot {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 50% 46%, #1a1613 0%, #0a0a0a 72%);
+}
+
+/* ── the lift ─────────────────────────────────────────────────────── */
+
+.nn3-lift {
+  position: fixed;
+  z-index: 30;
+  right: var(--gutter);
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin-block: auto;
+  padding: 0.85rem 0.7rem;
+  display: grid;
+  gap: 0.7rem;
+  max-height: 88svh;
+}
+.nn3-lift__plaque {
+  margin: 0;
+  text-align: center;
+  color: rgba(232, 212, 164, 0.78);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line-room-soft);
+}
+.nn3-lift__car, .nn3-lift__tools { display: grid; gap: 0.1rem; }
+.nn3-lift__tools { padding-top: 0.6rem; border-top: 1px solid var(--line-room-soft); }
+
+.nn3-lift__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.42rem 0.45rem;
+  background: none;
+  border: 0;
+  border-radius: var(--r-sm);
+  color: var(--ink-on-room-3);
+  font: inherit;
+  font-size: var(--t-small);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease);
+}
+.nn3-lift__btn:hover, .nn3-lift__btn:focus-visible {
+  color: var(--ivory);
+  background: rgba(247, 245, 239, 0.07);
+}
+.nn3-lift__btn[data-on] { color: var(--ivory); }
+
+.nn3-lift__no {
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-room-soft);
+  border-radius: var(--r-pill);
+  font-size: var(--t-label);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  transition: all var(--d-fast) var(--ease);
+}
+.nn3-lift__btn[data-on] .nn3-lift__no {
+  color: var(--black);
+  border-color: transparent;
+  /* Gold as a metal, with a highlight — never a flat fill. */
+  background: linear-gradient(145deg, #f0e2c0 0%, #c5a059 52%, #8d6f33 100%);
+  box-shadow: 0 0 16px rgba(232, 212, 164, 0.34);
+}
+.nn3-lift__name {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width var(--d-base) var(--ease), opacity var(--d-base) var(--ease);
+}
+.nn3-lift:hover .nn3-lift__name,
+.nn3-lift:focus-within .nn3-lift__name { max-width: 10rem; opacity: 1; }
+@media (hover: none) { .nn3-lift__name { max-width: 10rem; opacity: 1; } }
+
+/* ── the floor card ───────────────────────────────────────────────── */
+
+.nn3-card {
+  position: fixed;
+  z-index: 25;
+  left: var(--gutter);
+  bottom: var(--gutter);
+  width: min(22rem, 32vw);
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.nn3-card__title {
+  font-family: var(--serif);
+  font-size: var(--t-h3);
+  font-weight: 300;
+  color: var(--ivory);
+  margin: 0;
+}
+.nn3-card__sub { margin: 0; color: var(--ink-on-room-3); }
+
+.nn3-ledger {
+  margin: 0.7rem 0 0;
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line-room-soft);
+}
+.nn3-ledger > div { display: flex; justify-content: space-between; gap: 1rem; }
+.nn3-ledger dt {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-on-room-3);
+}
+.nn3-ledger dd {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--ink-on-room-2);
+  text-transform: capitalize;
+}
+
+/* ── the gate ─────────────────────────────────────────────────────────
+   What is on screen before the customer goes in: the mark, the name, and
+   one button, dead centre. Nothing else. The building is turning behind
+   it, so the panel is only a scrim and a column of type — any more
+   furniture here and the tower stops being the thing you are looking at. */
+
+.nn3-gate {
+  position: fixed;
+  z-index: 26;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  text-align: center;
+  padding: var(--gutter);
+  pointer-events: none;
+  /* a soft well of shadow so the type holds against a lit facade turning
+     underneath it */
+  background: radial-gradient(48% 40% at 50% 50%, rgba(6, 6, 9, 0.58) 0%, rgba(6, 6, 9, 0.22) 50%, transparent 76%);
+}
+.nn3-gate > * { pointer-events: auto; }
+.nn3-gate__mark { width: clamp(60px, 7vw, 96px); height: auto; color: var(--ivory); }
+.nn3-gate__word {
+  margin: 0.7rem 0 0;
+  font-size: var(--t-label);
+  letter-spacing: 0.44em;
+  text-indent: 0.44em;
+  color: rgba(232, 212, 164, 0.85);
+}
+.nn3-gate__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(2.6rem, 1.1rem + 4.2vw, 4.6rem);
+  line-height: 1.04;
+  color: var(--ivory);
+}
+.nn3-gate__tag { margin: 0 0 1.4rem; color: var(--ink-on-room-3); }
+.nn3-gate__start { min-width: 12rem; }
+.nn3-gate__hint { margin: 0.9rem 0 0; color: var(--ink-on-room-3); }
+
+.nn3-out {
+  position: fixed;
+  z-index: 25;
+  left: var(--gutter);
+  top: var(--gutter);
+  background: none;
+  border: 0;
+  padding: 0.6rem 0.2rem;
+  color: var(--ink-on-room-3);
+  font: inherit;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--d-fast) var(--ease);
+}
+.nn3-out:hover { color: var(--ivory); }
+
+/* Real URLs for every level, off-screen but never hidden from assistive
+   technology or from a crawler. */
+.nn3-routes {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Ink on this stage is on black, not on the site's ivory paper. */
+.nn3 .small { color: var(--ink-on-room-2); }
+.nn3 .muted, .nn3 .label--soft { color: var(--ink-on-room-3); }
+.nn3 .btn--glass {
+  color: var(--ivory);
+  background: linear-gradient(152deg, rgba(247,245,239,.17) 0%, rgba(10,10,10,.44) 100%);
+}
+
+@media (max-width: 820px) {
+  .nn3-card { left: var(--gutter); right: calc(var(--gutter) + 3.4rem); width: auto; }
+  .nn3-lift { padding: 0.5rem 0.4rem; }
+  .nn3-lift__plaque { display: none; }
+  .nn3-lift__name { display: none; }
+}
