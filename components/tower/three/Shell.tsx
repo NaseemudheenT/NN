@@ -187,9 +187,14 @@ function Level({
         </group>
       ))}
 
-      {/* the corner bay */}
+      {/* The corner bay.
+          Its warm pane is opaque — it has to be, that is what makes the
+          corner glow from the street — and it sits exactly on the sight
+          line the camera uses to look into the section. So in cutaway it
+          goes, leaving the curved glazing and its mullions, which is what
+          the reference board shows: the stair visible THROUGH the corner. */}
       <group position={[0, SLAB, 0]}>
-        {!ghost && (
+        {!ghost && !cutaway && (
           <mesh
             geometry={rotGlass}
             material={lit(spec.kelvin, spec.glow * 0.78)}
