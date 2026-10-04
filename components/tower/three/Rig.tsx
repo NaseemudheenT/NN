@@ -13,6 +13,7 @@ import {
   Vignette,
 } from "@react-three/postprocessing";
 import { ToneMappingMode, BlendFunction } from "postprocessing";
+import { SUN } from "./Sky";
 
 /**
  * NN TOWER — the lighting rig and the camera's film stock.
@@ -58,7 +59,10 @@ export function Rig({ quality = "high" }: { quality?: "high" | "medium" | "low" 
           cornice into a stripe. */}
       <directionalLight
         castShadow
-        position={[38, 30, 26]}
+        /* The same vector the sky shader puts the sun at. If the
+           sky shows a low western sun and the shadows fall as though it
+           were overhead, the eye catches it immediately. */
+        position={[SUN.x, SUN.y, SUN.z]}
         intensity={1.85}
         color="#ffd9a8"
         shadow-mapSize={high ? [2048, 2048] : [1024, 1024]}

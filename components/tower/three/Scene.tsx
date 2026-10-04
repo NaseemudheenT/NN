@@ -7,6 +7,7 @@ import { AdaptiveDpr, CameraControls, Preload } from "@react-three/drei";
 import { Rig, GL_SETTINGS } from "./Rig";
 import { Shell } from "./Shell";
 import { Street } from "./Street";
+import { Sky } from "./Sky";
 import { Core } from "./Core";
 import { Entrance, DOOR_POSITION } from "./Entrance";
 import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
@@ -135,6 +136,7 @@ export function Scene({
       }}
     >
       <Suspense fallback={null}>
+        <Sky quality={quality} />
         <Rig quality={quality} />
         <Street />
         <Shell explode={explode} focus={mode === "inside" ? floor : null} onSelect={onSelect} />

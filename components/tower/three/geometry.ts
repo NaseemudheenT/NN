@@ -296,6 +296,33 @@ export function bandGeometry(project: number, depth: number): THREE.BufferGeomet
   return g;
 }
 
+/* ── UV units ──────────────────────────────────────────────────────── */
+
+/**
+ * Rescale a geometry's UVs from 0–1 into metres.
+ *
+ * Three.js is inconsistent here and it bites every project exactly once:
+ * ExtrudeGeometry writes UVs in WORLD UNITS, while BoxGeometry,
+ * PlaneGeometry, CylinderGeometry and the rest write them 0–1 across each
+ * face. A material's texture repeat therefore means "tiles per metre" on
+ * one mesh and "tiles across the whole face" on the next — so the same
+ * travertine that tiled correctly on a wall came out as four enormous
+ * blobs across a forty-metre pavement.
+ *
+ * Rather than keeping two sets of repeat values and remembering which is
+ * which, every primitive is converted to metres on creation. One
+ * convention, one repeat value, every surface at the right scale.
+ */
+export function metricUV(g: THREE.BufferGeometry, sx: number, sy: number): THREE.BufferGeometry {
+  const uv = g.getAttribute("uv");
+  if (!uv) return g;
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy);
+  }
+  uv.needsUpdate = true;
+  return g;
+}
+
 /* ── merge helper ──────────────────────────────────────────────────── */
 
 /**

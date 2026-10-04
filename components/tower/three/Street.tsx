@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Instance, Instances } from "@react-three/drei";
 import { HALF, PARAPET } from "@/lib/tower/spec";
 import { material, lit } from "./materials";
-import { mergeAll } from "./geometry";
+import { mergeAll, metricUV } from "./geometry";
 
 /**
  * NN TOWER — the block it stands on.
@@ -51,7 +51,9 @@ export function Street() {
      single clearest signal that a building is sitting on a street rather
      than floating is the step up to its threshold. */
   const pavement = useMemo(() => {
-    const g = new THREE.BoxGeometry(HALF * 2 + 18, 0.18, HALF * 2 + 18);
+    const w = HALF * 2 + 18;
+    const g = new THREE.BoxGeometry(w, 0.18, w);
+    metricUV(g, w, w);
     g.translate(0, -1.03, 0);
     return g;
   }, []);
@@ -62,14 +64,14 @@ export function Street() {
     for (const [w, d, x, z] of [
       [r * 2, 0.5, 0, r], [r * 2, 0.5, 0, -r],
     ] as const) {
-      const b = new THREE.BoxGeometry(w, 0.3, d);
+      const b = metricUV(new THREE.BoxGeometry(w, 0.3, d), w, 0.3);
       b.translate(x, -1.0, z);
       parts.push(b);
     }
     for (const [w, d, x, z] of [
       [0.5, r * 2, r, 0], [0.5, r * 2, -r, 0],
     ] as const) {
-      const b = new THREE.BoxGeometry(w, 0.3, d);
+      const b = metricUV(new THREE.BoxGeometry(w, 0.3, d), d, 0.3);
       b.translate(x, -1.0, z);
       parts.push(b);
     }
@@ -86,7 +88,7 @@ export function Street() {
     let seed = 7;
     const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
     for (const b of BLOCKS) {
-      const box = new THREE.BoxGeometry(b.w, b.h, b.d);
+      const box = metricUV(new THREE.BoxGeometry(b.w, b.h, b.d), b.w, b.h);
       box.translate(b.x, b.h / 2 - 1, b.z);
       shellParts.push(box);
       const cols = Math.floor(b.w / 3.2);
@@ -121,11 +123,13 @@ export function Street() {
       <mesh geometry={pavement} material={material("travertine")} receiveShadow />
       <mesh geometry={kerb} material={material("basalt")} receiveShadow castShadow />
 
-      {/* the city behind */}
+      {/* The city behind. Dark, but not invisible: at #15161a these read as
+          nothing at all and their lit windows floated in a black void with
+          no building behind them. A city at dusk is grey-blue, not black. */}
       <mesh geometry={shells} castShadow receiveShadow>
         <meshStandardMaterial
-          color={new THREE.Color("#15161a").convertSRGBToLinear()}
-          roughness={0.92}
+          color={new THREE.Color("#2c2f36").convertSRGBToLinear()}
+          roughness={0.9}
           metalness={0.02}
         />
       </mesh>
@@ -152,10 +156,14 @@ export function Street() {
           <Instance key={i} position={[x, 0.4, z]} />
         ))}
       </Instances>
+      {/* Foliage is not a dark green ball. It is thousands of small leaves
+          scattering light, so it reads much lighter than its own pigment and
+          picks up whatever is lighting the street. */}
       <Instances geometry={canopy} limit={32}>
         <meshStandardMaterial
-          color={new THREE.Color("#2b3a24").convertSRGBToLinear()}
+          color={new THREE.Color("#4a5c38").convertSRGBToLinear()}
           roughness={0.95}
+          flatShading
         />
         {TREES.map(([x, z], i) => (
           <Instance
