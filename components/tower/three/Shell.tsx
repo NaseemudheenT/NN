@@ -11,7 +11,7 @@ import {
   planShape, plateGeometry, wallGeometry, glazingGeometry, bandGeometry,
   rotundaGlassGeometry, rotundaMullionsGeometry, domeGeometry, domeRibsGeometry,
 } from "./geometry";
-import { material, lit, kelvinToColor } from "./materials";
+import { material, lit } from "./materials";
 
 /**
  * NN TOWER — the structure.
