@@ -222,7 +222,10 @@ export function rotundaMullionsGeometry(height: number, count: number): THREE.Bu
     const a = ROTUNDA.start - (span * i) / count;
     const x = ROTUNDA.centre.x + Math.cos(a) * ROTUNDA.r;
     const z = -(ROTUNDA.centre.y + Math.sin(a) * ROTUNDA.r);
-    const bar = new THREE.BoxGeometry(0.12, height, 0.22);
+    // 60 mm x 120 mm. The first pass used 120 x 220, which at the scale
+    // the camera arrives at read as a cage of black posts across the whole
+    // corner bay rather than as window mullions.
+    const bar = new THREE.BoxGeometry(0.06, height, 0.12);
     bar.translate(x, height / 2, z);
     parts.push(bar);
   }

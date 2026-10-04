@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { material, lit } from "./materials";
+import { monogramTexture } from "./textures";
 import { ROTUNDA } from "./geometry";
 
 /**
@@ -55,6 +56,7 @@ export function Entrance({ open }: { open: boolean }) {
   const jamb = useMemo(() => new THREE.BoxGeometry(0.2, LEAF_H + 0.9, 0.34), []);
   const head = useMemo(() => new THREE.BoxGeometry(LEAF_W * 2 + 0.6, 0.28, 0.4), []);
   const pull = useMemo(() => new THREE.CylinderGeometry(0.035, 0.035, 1.5, 10), []);
+  const mark = useMemo(() => monogramTexture(256), []);
 
   return (
     <group position={[DOOR_X, 0, DOOR_Z]} rotation={[0, DOOR_FACING, 0]}>
@@ -71,16 +73,26 @@ export function Entrance({ open }: { open: boolean }) {
         <mesh geometry={pull} material={material("gold")} position={[-(LEAF_W / 2 - 0.22), 0, 0.08]} />
       </mesh>
 
-      {/* the warm reception light spilling out onto the pavement, which is
-          what tells a passer-by that a shop is open */}
-      <mesh position={[0, LEAF_H / 2, -0.5]} material={lit(2700, 0.8)}>
-        <planeGeometry args={[LEAF_W * 2, LEAF_H]} />
+      {/* The reception light spilling out onto the pavement — what tells a
+          passer-by that a shop is open. It used to be a full-height plane
+          at 0.8, which from outside read as two slabs of orange filling the
+          doorway; the actual effect is a pool of light at FOOT level, so it
+          is now a low band well behind the leaves. */}
+      <mesh position={[0, 0.85, -1.4]} material={lit(2700, 0.42)}>
+        <planeGeometry args={[LEAF_W * 2.1, 1.7]} />
       </mesh>
-      <pointLight position={[0, 2.4, 1.1]} intensity={26} distance={14} decay={2} color="#ffd9a8" />
+      <pointLight position={[0, 2.4, 0.6]} intensity={30} distance={13} decay={2} color="#ffd9a8" />
 
-      {/* the mark above the door */}
-      <mesh position={[0, LEAF_H + 1.1, 0.12]} material={lit(2900, 1.35)}>
-        <planeGeometry args={[1.5, 0.74]} />
+      {/* The mark above the door — the real monogram, lit, not a blank
+          rectangle standing in for one. */}
+      <mesh position={[0, LEAF_H + 1.15, 0.14]}>
+        <planeGeometry args={[1.0, 0.79]} />
+        <meshBasicMaterial
+          map={mark ?? undefined}
+          color={new THREE.Color("#f0e2c0").multiplyScalar(1.5)}
+          transparent
+          toneMapped={false}
+        />
       </mesh>
     </group>
   );

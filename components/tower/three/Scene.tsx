@@ -12,6 +12,8 @@ import { Core } from "./Core";
 import { Entrance, DOOR_POSITION } from "./Entrance";
 import { StreetLevel } from "./floors/StreetLevel";
 import { Level1 } from "./floors/Level1";
+import { Level2 } from "./floors/Level2";
+import { Level3 } from "./floors/Level3";
 import { LEVELS, HALF, type LevelSpec } from "@/lib/tower/spec";
 
 export type Mode = "intro" | "entering" | "inside";
@@ -63,7 +65,10 @@ function Camera({
       c.setLookAt(dx + 11.5, 5.2, dz + 12.5, dx, 2.6, dz, true);
       // beat two: through the opening and into the hall
       const id = setTimeout(() => {
-        c.setLookAt(dx + 0.6, 2.5, dz + 0.8, -2, 2.3, -2, true);
+        // Beat two has to finish INSIDE the hall, not in the opening. The
+        // first version stopped with the camera still in the doorway, so
+        // the arrival ended looking at a door rather than at a room.
+        c.setLookAt(dx - 3.2, 2.4, dz - 3.6, -5.5, 2.2, -4.2, true);
       }, 1700);
       return () => clearTimeout(id);
     }
@@ -146,6 +151,8 @@ export function Scene({
             the rest are shells until their turn comes. */}
         <StreetLevel visible={explode < 0.5} />
         <Level1 visible={explode < 0.5} />
+        <Level2 visible={explode < 0.5} />
+        <Level3 visible={explode < 0.5} />
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
         <Camera mode={mode} floor={floor} explode={explode} />

@@ -76,6 +76,10 @@ export const MATERIALS: Record<string, MaterialDef> = {
     color: "#a87c52", roughness: 0.42, metalness: 0.0,
     grain: "oak", normalScale: 0.7, clearcoat: 0.42, clearcoatRoughness: 0.28,
   },
+  parquet: {
+    color: "#a87c52", roughness: 0.4, metalness: 0.0,
+    grain: "herringbone", normalScale: 0.85, clearcoat: 0.46, clearcoatRoughness: 0.26,
+  },
   walnut: {
     color: "#3b2d24", roughness: 0.36, metalness: 0.0,
     grain: "walnut", normalScale: 0.55, clearcoat: 0.3, clearcoatRoughness: 0.3,

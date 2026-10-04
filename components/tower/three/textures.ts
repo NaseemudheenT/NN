@@ -22,6 +22,7 @@
  */
 
 import * as THREE from "three";
+import { MARK_PATH } from "@/components/brand/Monogram";
 
 /* ── noise ─────────────────────────────────────────────────────────── */
 
@@ -208,6 +209,37 @@ const SHAPERS: Record<string, { height: Shaper; bump: number; roughLo: number; r
   },
 
   /* Walnut: the same idea, tighter and calmer. */
+  /* Herringbone parquet.
+     A real herringbone floor is a few thousand oak blocks laid at right
+     angles to each other in a staggered zig-zag. Modelling them as geometry
+     would cost thousands of meshes for a surface people walk on; as a
+     height field it costs one texture, and the thing that actually sells it
+     — the dark seam between blocks and the grain running at ninety degrees
+     on alternate courses — is exactly what a height field is good at. */
+  herringbone: {
+    height: (x, y) => {
+      const B = 11;           // blocks across the tile
+      const L = 3;            // a block is 3 units long, 1 wide
+      const u = x * B, v = y * B;
+      const course = Math.floor(v / L);
+      // alternate courses step sideways by half a block and rotate 90 deg
+      const flip = (course + Math.floor((u + course * 1.5) / L)) % 2 === 0;
+      const bu = flip ? u : v;
+      const bv = flip ? v : u;
+      const inU = ((bu % L) + L) % L;
+      const inV = ((bv % 1) + 1) % 1;
+      const seam = Math.min(
+        Math.min(inU, L - inU) * 9,
+        Math.min(inV, 1 - inV) * 9,
+        1,
+      );
+      // grain runs along the block, so it follows the flip
+      const grain = Math.abs(Math.sin((flip ? bv : bu) * 26 * Math.PI)) * 0.2;
+      return seam * 0.72 + grain + 0.08;
+    },
+    bump: 1.0, roughLo: 0.34, roughHi: 0.5, repeat: 0.45,
+  },
+
   walnut: {
     height: (x, y) => {
       const wander = fbm(x * 0.5, y * 0.5, { octaves: 3, freq: 4, seed: 61 }) * 0.15;
@@ -307,6 +339,44 @@ export function surface(name: string): Surface | null {
   cache.set(name, made);
   return made;
 }
+
+/**
+ * The NN monogram, as a texture.
+ *
+ * Drawn from the SAME path the site's SVG logo uses — `MARK_PATH` out of
+ * components/brand/Monogram — rather than re-drawn by eye in canvas calls.
+ * The mark is two serif Ns sharing a stem, and the thing that makes it the
+ * NERO NOREN mark rather than a generic ligature is the exact angle of that
+ * shared diagonal. Approximating it here would put a subtly wrong logo on
+ * the front of the building.
+ *
+ * Returns white-on-transparent so it can be tinted gold, lit as signage, or
+ * printed on black canvas banners from one texture.
+ */
+export function monogramTexture(size = 512): THREE.Texture | null {
+  if (typeof document === "undefined") return null;
+  const hit = markCache.get(size);
+  if (hit) return hit;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const g = c.getContext("2d")!;
+  // the viewBox the SVG is authored in: "-12 -6 222 176"
+  const [vx, vy, vw, vh] = [-12, -6, 222, 176];
+  const scale = (size * 0.82) / Math.max(vw, vh);
+  g.translate(size / 2, size / 2);
+  g.scale(scale, scale);
+  g.translate(-(vx + vw / 2), -(vy + vh / 2));
+  g.fillStyle = "#ffffff";
+  g.fill(new Path2D(MARK_PATH), "nonzero");
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.needsUpdate = true;
+  markCache.set(size, t);
+  return t;
+}
+
+const markCache = new Map<number, THREE.Texture>();
 
 export function disposeSurfaces() {
   for (const s of cache.values()) {

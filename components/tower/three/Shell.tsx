@@ -72,7 +72,7 @@ function Level({
     [clear, spec.index],
   );
   const rotGlass = useMemo(() => rotundaGlassGeometry(clear), [clear]);
-  const rotBars = useMemo(() => rotundaMullionsGeometry(clear, baysFor(10) * 3), [clear]);
+  const rotBars = useMemo(() => rotundaMullionsGeometry(clear, 7), [clear]);
 
   /* A dim back-wall standing just inside the glazing.
      The first version of this was a full-size emissive box at the floor's
