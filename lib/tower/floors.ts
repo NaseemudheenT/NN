@@ -20,6 +20,8 @@
  * must never exist.
  */
 
+import type { PlateId } from "./plates";
+
 export type LevelId =
   | "rooftop"
   | "owner"
@@ -65,8 +67,20 @@ export interface Level {
   description: string;
   /** The canonical route for this level, for links and for search engines. */
   route: string;
-  /** The level's own photograph, when one exists. */
-  image?: string;
+  /**
+   * Where this level sits ON THE CUTAWAY PLATE, as a percentage of that
+   * image, and which side its label hangs off.
+   *
+   * These are not derived from a formula. The plate is an isometric render
+   * of a real design, so its floors recede on a diagonal and no arithmetic
+   * puts a marker on the right room — each one was measured against the
+   * render until it landed on the thing it names. The stylist marker sits
+   * on the blue fitting pods; the street marker sits on the pavement
+   * outside the lit door.
+   */
+  anchor: { x: number; y: number; side: "left" | "right" };
+  /** A plate that shows THIS level, when one of the six actually does. */
+  plate?: PlateId;
   hotspots: Hotspot[];
 }
 
@@ -76,6 +90,8 @@ export const LEVELS: Level[] = [
   {
     id: "rooftop",
     floor: 8,
+    anchor: { x: 53.6, y: 18.4, side: "right" },
+    plate: "aerial",
     code: "Rooftop",
     title: "Journey's end",
     subtitle: "The terrace",
@@ -89,6 +105,7 @@ export const LEVELS: Level[] = [
   {
     id: "owner",
     floor: 7,
+    anchor: { x: 35.5, y: 31.0, side: "left" },
     code: "Level 7",
     title: "Owner console",
     subtitle: "Operations",
@@ -101,6 +118,7 @@ export const LEVELS: Level[] = [
   {
     id: "checkout",
     floor: 6,
+    anchor: { x: 35.5, y: 38.6, side: "left" },
     code: "Level 6",
     title: "The bag & checkout",
     subtitle: "The vault",
@@ -114,6 +132,7 @@ export const LEVELS: Level[] = [
   {
     id: "stylist",
     floor: 5,
+    anchor: { x: 70.9, y: 47.8, side: "right" },
     code: "Level 5",
     title: "AI stylist hub",
     subtitle: "Styling & virtual fit",
@@ -127,6 +146,7 @@ export const LEVELS: Level[] = [
   {
     id: "journal",
     floor: 4,
+    anchor: { x: 33.7, y: 49.5, side: "left" },
     code: "Level 4",
     title: "The journal & archive",
     subtitle: "The library",
@@ -140,6 +160,7 @@ export const LEVELS: Level[] = [
   {
     id: "menboys",
     floor: 3,
+    anchor: { x: 38.2, y: 57.1, side: "left" },
     code: "Level 3",
     title: "Men & boys",
     subtitle: "Generations of style",
@@ -154,6 +175,7 @@ export const LEVELS: Level[] = [
   {
     id: "atelier",
     floor: 2,
+    anchor: { x: 69.9, y: 63.0, side: "right" },
     code: "Level 2",
     title: "The atelier",
     subtitle: "The workshop",
@@ -167,6 +189,8 @@ export const LEVELS: Level[] = [
   {
     id: "gallery",
     floor: 1,
+    anchor: { x: 59.1, y: 73.9, side: "right" },
+    plate: "hall",
     code: "Level 1",
     title: "Collection gallery",
     subtitle: "Collection 001 — The Foundations",
@@ -182,6 +206,8 @@ export const LEVELS: Level[] = [
   {
     id: "street",
     floor: 0,
+    anchor: { x: 22.8, y: 83.2, side: "left" },
+    plate: "facade",
     code: "Street",
     title: "Palazzo facade",
     subtitle: "The entrance",
@@ -205,19 +231,5 @@ export const levelById = (id: LevelId) => LEVELS.find((l) => l.id === id) ?? STR
 export const levelForRoute = (route: string) =>
   LEVELS.find((l) => l.route === route) ?? null;
 
-/* ── the elevation ───────────────────────────────────────────────────
-   Where each level's band sits on the cutaway image, top to bottom, as a
-   fraction of the whole. Eight interior levels across the frame, with the
-   roof occupying slightly less than a shop floor does — which is what the
-   drawing shows and what a real section looks like. */
-export const BAND_TOP = 0.055;
-export const BAND_BOTTOM = 0.96;
-
-export function bandFor(floor: number): { top: number; height: number } {
-  const n = INTERIOR.length;
-  const span = BAND_BOTTOM - BAND_TOP;
-  const h = span / n;
-  /* floor 8 is the top band, floor 1 the bottom one */
-  const index = 8 - floor;
-  return { top: BAND_TOP + index * h, height: h };
-}
+/** Top down, the way the lift reads them. */
+export const BY_HEIGHT = [...LEVELS].sort((a, b) => b.floor - a.floor);

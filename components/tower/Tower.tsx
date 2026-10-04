@@ -1,36 +1,31 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Cutaway } from "./Cutaway";
-import { Elevator } from "./Elevator";
-import { Facade } from "./Facade";
+import { Overture } from "./Overture";
+import { Elevation } from "./Elevation";
+import { FloorCard } from "./FloorCard";
+import { Lift } from "./Lift";
 import { Drawer } from "./Drawer";
-import { INTERIOR, type Hotspot, type Level } from "@/lib/tower/floors";
+import { BY_HEIGHT, levelById, type Hotspot, type Level } from "@/lib/tower/floors";
 import { useStylist } from "@/components/stylist/StylistProvider";
 import { useBag } from "@/lib/bag/BagProvider";
 import { formatMinor } from "@/lib/money";
 import type { Product } from "@/lib/catalog/types";
 
-const VISITED = "nn-tower-visited";
-
 /**
  * NN TOWER.
  *
- * The whole website is one building. The street is the front door, eight
- * floors are the eight things a customer can do, and the lift on the right
- * goes to all of them.
- *
- * ── the two surfaces ─────────────────────────────────────────────────
- * The BUILDING carries atmosphere, orientation and desire. The DRAWERS
- * carry anything that has to be read or decided — a size, a fabric, a
- * price, a payment. Keeping those apart is the whole design: a beautiful
- * perspective is the wrong place to pick a collar size, and a crisp panel
- * of type is the wrong place to fall in love with a room.
+ * The whole website is one building. You arrive on the street, you go in,
+ * and the lift on the right reaches all nine levels. The separate routes
+ * still exist underneath — links and search engines need URLs — but no
+ * customer has to touch one to shop.
  */
 export function Tower({ products }: { products: Product[] }) {
+  const router = useRouter();
   const [inside, setInside] = useState(false);
-  const [floor, setFloor] = useState(1);
+  const [active, setActive] = useState<Level>(() => levelById("gallery"));
   const [drawer, setDrawer] = useState<{ product?: Product; products?: Product[]; title?: string } | null>(null);
 
   const { open: openStylist } = useStylist();
@@ -38,7 +33,7 @@ export function Tower({ products }: { products: Product[] }) {
 
   const byHandle = useMemo(() => new Map(products.map((p) => [p.handle, p])), [products]);
 
-  /* Prices come from the catalogue, every time, and nowhere else. */
+  /* Prices are read from the catalogue at render, and written down nowhere. */
   const price = useCallback(
     (handle: string) => {
       const p = byHandle.get(handle);
@@ -47,10 +42,12 @@ export function Tower({ products }: { products: Product[] }) {
     [byHandle],
   );
 
-  const enter = useCallback(() => {
-    setInside(true);
-    setFloor(1);
-    try { window.localStorage.setItem(VISITED, "yes"); } catch {}
+  const onLevel = useCallback((l: Level) => {
+    if (l.floor === 0) {
+      setInside(false);
+      return;
+    }
+    setActive(l);
   }, []);
 
   const onHotspot = useCallback(
@@ -71,68 +68,67 @@ export function Tower({ products }: { products: Product[] }) {
           openBag();
           break;
         case "FIT":
-          window.location.href = "/trial-room";
+          router.push("/trial-room");
           break;
         case "ENTER":
         case "READ":
-          if (spot.href) window.location.href = spot.href;
+          if (spot.href) router.push(spot.href);
           break;
       }
     },
-    [byHandle, products, openStylist, openBag],
+    [byHandle, products, openStylist, openBag, router],
   );
-
-  const active = INTERIOR.find((l) => l.floor === floor) ?? INTERIOR[INTERIOR.length - 1];
 
   return (
     <div className="tower" data-inside={inside || undefined}>
       <AnimatePresence mode="wait">
         {!inside ? (
           <motion.div
-            key="street"
+            key="outside"
             className="tower__view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.07 }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Facade onEnter={enter} />
+            <Overture
+              onEnter={() => {
+                setInside(true);
+                setActive(levelById("gallery"));
+              }}
+            />
           </motion.div>
         ) : (
           <motion.div
-            key="tower"
-            className="tower__view"
-            initial={{ opacity: 0, scale: 0.96 }}
+            key="inside"
+            className="tower__view tower__view--in"
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Cutaway activeFloor={floor} onHotspot={onHotspot} price={price} />
+            <Elevation active={active} onLevel={onLevel} />
 
-            <Elevator
-              activeFloor={floor}
-              onFloor={(l) => setFloor(l.floor)}
-              onStreet={() => setInside(false)}
-            />
-
-            {/* the caption: which floor you are on, and the one thing to do on it */}
             <AnimatePresence mode="wait">
-              <motion.div
-                key={active.id}
-                className="plate glass"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <p className="label label--soft">{active.code}</p>
-                <h1 className="d-h3 plate__title">{active.title}</h1>
-                <p className="small muted plate__note">{active.description}</p>
-              </motion.div>
+              <FloorCard key={active.id} level={active} price={price} onHotspot={onHotspot} />
             </AnimatePresence>
 
-            <button type="button" className="tower__out label" onClick={() => setInside(false)}>
+            <Lift active={active} onLevel={onLevel} />
+
+            <button
+              type="button"
+              className="tower__out label"
+              onClick={() => setInside(false)}
+            >
               ← The street
             </button>
+
+            <nav className="tower__routes" aria-label="All levels">
+              {BY_HEIGHT.map((l) => (
+                <a key={l.id} href={l.route}>
+                  {l.title}
+                </a>
+              ))}
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>

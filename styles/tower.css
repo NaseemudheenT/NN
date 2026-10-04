@@ -1,335 +1,537 @@
 /* ═══════════════════════════════════════════════════════════════════
    NN TOWER
-   The street, the section, the lift, the drawers.
+
+   The building is the interface. Everything here serves one picture:
+   a lit palazzo standing in the dark, with glass floating in front of it.
+
+   Nothing in this file paints a building. The building is six
+   photographic plates (see lib/tower/plates.ts). This file lights them,
+   moves them, and puts glass on top — which is the whole argument of the
+   rebuild: a browser cannot render limestone, but it can composite a
+   render of limestone perfectly.
    ═══════════════════════════════════════════════════════════════════ */
 
 body:has(main[data-immersive]) { padding-bottom: 0; overflow: hidden; }
-
-/* The page-transition wrapper animates `transform`, and ANY transform on an
-   ancestor makes `position: fixed` resolve against it instead of the
-   viewport — which collapses a fixed child to nothing. On this route the
-   entrance fades instead. */
 main[data-immersive] { display: block; height: 100svh; }
+
+/* A page transition that sets `transform` creates a containing block, and
+   a containing block turns every `position: fixed` child inside it into
+   something positioned against the panel instead of the viewport — which
+   collapsed this whole stage to zero height once already. On an immersive
+   route the transition is a fade and nothing else. */
 main[data-immersive] > .nn-page-enter {
   height: 100%;
   transform: none;
   animation: nn-fade var(--d-slow) var(--ease) both;
 }
+@keyframes nn-fade { from { opacity: 0 } to { opacity: 1 } }
 
 .tower {
-  position: fixed;
-  inset: 0;
+  position: relative;
+  height: 100svh;
+  background: var(--black);
+  color: var(--ink-on-room);
   overflow: hidden;
-  background: #09080a;
-  color: var(--ivory);
-  user-select: none;
-  -webkit-user-select: none;
 }
 .tower__view { position: absolute; inset: 0; }
 
-/* ══ the street ═════════════════════════════════════════════════ */
-.facade { position: absolute; inset: 0; overflow: hidden; }
-.facade__plate { position: absolute; inset: -3%; will-change: transform; }
-.facade__photo,
-.facade__drawn { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* ── the plates ──────────────────────────────────────────────────
+   Every photograph of the building comes through here and gets the
+   same treatment: grain, then a vignette. */
 
-/* sky above, ground below — both painted over the plate so the building
-   sits IN something rather than floating on a colour */
-.facade__sky {
-  position: absolute; inset: 0 0 auto; height: 46%;
-  background: linear-gradient(180deg, rgba(8,9,14,.88) 0%, rgba(8,9,14,.3) 58%, transparent 100%);
+.plate-img { position: relative; isolation: isolate; }
+.plate-img__src { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Grain.
+   The plates are resampled above their native resolution, and resampling
+   leaves smooth waxy gradients that the eye reads as computer-generated.
+   Fractal noise puts the high-frequency detail back. It is the same move
+   a colourist makes on a clean digital negative, for the same reason:
+   without it the image looks synthetic; with it, the identical pixels
+   look photographed. It is static, so it composites once and costs
+   nothing to animate over. */
+.plate-img[data-grain]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
-}
-.facade__ground {
-  position: absolute; inset: auto 0 0; height: 42%;
-  background: linear-gradient(0deg, rgba(6,6,8,.94) 0%, rgba(6,6,8,.42) 52%, transparent 100%);
-  pointer-events: none;
+  opacity: 0.17;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 
-.facade__brand {
-  position: absolute; left: 50%; top: clamp(2rem, 7vh, 5rem);
-  transform: translateX(-50%);
+/* ── the overture ────────────────────────────────────────────────
+   Black, the mark, three shots of the building, a door. */
+
+.ovr { position: absolute; inset: 0; background: var(--black); }
+.ovr__shot { position: absolute; inset: 0; overflow: hidden; }
+.ovr__shot:not([data-on]) { pointer-events: none; }
+.ovr__frame { position: absolute; inset: 0; will-change: transform; }
+.ovr__plate { position: absolute; inset: 0; }
+
+/* `contain`, not `cover`.
+   These plates are not all the same shape — the aerial is portrait, the
+   street is wide — and covering a 16:9 viewport with a portrait aerial
+   throws away two fifths of the picture and beheads the dome on the
+   facade. Containing them shows each view whole, and because it also
+   stops the browser scaling a 900px plate to 1440 it keeps them sharp.
+   The letterbox is black on a black stage, so there is nothing to see. */
+.ovr__plate .plate-img__src { width: 100%; height: 100%; object-fit: contain; }
+
+/* The light falls off at the edges of a lens and the eye expects it to.
+   Without this the plate reads as a flat rectangle pasted on the page. */
+.ovr__shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   z-index: 3;
-  animation: nn-rise 1.4s var(--ease-door) 200ms both;
   pointer-events: none;
-}
-
-.facade__hour {
-  position: absolute; right: clamp(1rem, 3vw, 2.4rem); top: clamp(1rem, 3vh, 2rem);
-  z-index: 4;
-  display: flex; gap: 2px; padding: 4px; border-radius: var(--r-pill);
-  animation: nn-fade 1.2s var(--ease) 900ms both;
-}
-.facade__hour button {
-  border: 0; background: transparent; color: rgba(247,245,239,.56);
-  padding: .5rem 1rem; border-radius: var(--r-pill); cursor: pointer;
-  transition: background var(--d-base) var(--ease), color var(--d-base) var(--ease);
-}
-.facade__hour button:hover { color: var(--ivory); }
-.facade__hour button[data-on] { background: rgba(247,245,239,.16); color: var(--ivory); }
-
-.facade__enter { position: absolute; left: 50%; bottom: clamp(2rem, 8vh, 5rem); transform: translateX(-50%); z-index: 4; }
-.facade__go { color: var(--ivory); padding-inline: 3rem; }
-
-.facade__note {
-  position: absolute; right: clamp(1rem, 3vw, 3rem); bottom: clamp(1rem, 4vh, 3rem);
-  z-index: 5; width: min(100% - 2rem, 20rem);
-  padding: 1.2rem; border-radius: var(--r-lg); display: grid; gap: .5rem;
-}
-
-/* ══ the section ════════════════════════════════════════════════ */
-.tower__stage { position: absolute; inset: 0; overflow: hidden; }
-.tower__surface { position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
-.tower__inner { position: relative; width: 100%; height: 100%; }
-
-.tower__section,
-.tower__photo {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-}
-.tower__photo { z-index: 1; }
-
-/* each floor's own light. The active one is lit; the rest fall back, which
-   is how a section drawing directs the eye and how a real building at
-   night tells you which room somebody is in. */
-.tower__band {
-  position: absolute; left: 0; right: 0; z-index: 2;
-  background: linear-gradient(180deg, rgba(6,6,8,.72) 0%, rgba(6,6,8,.58) 100%);
-  transition: background var(--d-slow) var(--ease), box-shadow var(--d-slow) var(--ease);
-  pointer-events: none;
-}
-.tower__band[data-on] {
-  background: linear-gradient(180deg, rgba(255,186,110,.05) 0%, rgba(255,160,70,.02) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(247,245,239,.22),
-    inset 0 -1px 0 rgba(247,245,239,.14);
-}
-
-.tower__vignette {
-  position: absolute; inset: 0; z-index: 5; pointer-events: none;
-  background: radial-gradient(120% 86% at 50% 48%, transparent 34%, rgba(5,5,7,.76) 100%);
-}
-
-.tower__out {
-  position: absolute; left: clamp(1rem, 3vw, 2.4rem); top: clamp(1rem, 3vh, 2rem);
-  z-index: 20;
-  padding: .6rem 1.1rem; border: 0; border-radius: var(--r-pill);
-  background: rgba(14,13,12,.58);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  color: rgba(247,245,239,.72); cursor: pointer;
-  transition: color var(--d-base) var(--ease), background var(--d-base) var(--ease);
-}
-.tower__out:hover { color: var(--ivory); background: rgba(20,19,18,.78); }
-
-/* ══ hotspots ═══════════════════════════════════════════════════ */
-.spot {
-  position: absolute; z-index: 10;
-  transform: translate(-50%, -50%);
-  display: grid; place-items: center;
-  width: 2.4rem; height: 2.4rem;
-  border: 0; background: transparent; cursor: pointer; padding: 0;
-}
-.spot__pulse {
-  position: absolute; width: 2.2rem; height: 2.2rem; border-radius: 50%;
-  background: radial-gradient(circle, rgba(197,160,89,.3) 0%, transparent 68%);
-  animation: nn-spot 2.8s var(--ease-soft) infinite;
-}
-@keyframes nn-spot {
-  0%, 100% { transform: scale(.7); opacity: .5 }
-  50%      { transform: scale(1.25); opacity: 0 }
-}
-.spot__dot {
-  position: relative; width: 11px; height: 11px; border-radius: 50%;
-  /* gold as a METAL: a gradient that reads as a lit bead, never a flat fill */
-  background: radial-gradient(60% 60% at 34% 28%, #f0e2c0 0%, #c5a059 46%, #6d5527 100%);
-  box-shadow: 0 0 0 1px rgba(247,245,239,.5), 0 2px 8px rgba(0,0,0,.6);
-  transition: transform var(--d-base) var(--ease);
-}
-.spot:hover .spot__dot, .spot:focus-visible .spot__dot { transform: scale(1.35); }
-.spot:focus-visible { outline: 2px solid var(--ivory); outline-offset: 4px; border-radius: 50%; }
-
-.spot__tip {
-  position: absolute; left: 1.6rem; top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-  display: grid; gap: 1px;
-  padding: .5rem .8rem; border-radius: var(--r-sm);
-  background: rgba(10,10,12,.86);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  box-shadow: inset 0 0 0 1px rgba(247,245,239,.14);
-  white-space: nowrap; opacity: 0; pointer-events: none;
-  transition: opacity var(--d-base) var(--ease), transform var(--d-base) var(--ease);
-}
-.spot:hover .spot__tip, .spot:focus-visible .spot__tip { opacity: 1; transform: translateY(-50%) translateX(0); }
-.spot__name { font-size: var(--t-small); color: var(--ivory); }
-.spot__price { font-size: 11px; color: rgba(247,245,239,.6); }
-.spot--facade .spot__tip { left: auto; top: 1.8rem; transform: translateX(-50%) translateY(-4px); }
-.spot--facade:hover .spot__tip { transform: translateX(-50%) translateY(0); }
-
-/* ══ the lift ═══════════════════════════════════════════════════ */
-.lift {
-  position: absolute; z-index: 20;
-  right: clamp(.7rem, 1.8vw, 1.6rem); top: 50%;
-  transform: translateY(-50%);
-  max-height: calc(100svh - 2rem);
-}
-.lift__glass {
-  display: flex; flex-direction: column; gap: .2rem;
-  padding: .7rem .5rem;
-  border-radius: var(--r-xl);
-  /* its own ground: glass that borrowed the building's tint went white
-     every time a lit floor was behind it */
   background:
-    linear-gradient(152deg, rgba(247,245,239,.1) 0%, rgba(247,245,239,.03) 100%),
-    rgba(13, 12, 12, 0.76);
-  box-shadow:
-    inset 0 1px 0 0 rgba(247,245,239,.22),
-    inset 0 -1px 0 0 rgba(0,0,0,.6),
-    var(--shadow-float);
-  max-height: inherit; overflow-y: auto; overscroll-behavior: contain;
-  scrollbar-width: none;
+    radial-gradient(118% 88% at 50% 44%, transparent 38%, rgba(4, 5, 8, 0.52) 100%),
+    linear-gradient(to bottom, rgba(4, 5, 8, 0.46) 0%, transparent 26%, transparent 58%, rgba(4, 5, 8, 0.72) 100%);
 }
-.lift__glass::-webkit-scrollbar { display: none; }
 
-.lift__head { padding: 0 .55rem .4rem; opacity: .42; font-size: 9px; }
-.lift__floors, .lift__tools { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
-
-.lift__floor, .lift__tool {
-  display: flex; align-items: center; gap: .6rem;
-  width: 100%; height: 2.3rem; padding: 0 .55rem;
-  border: 0; border-radius: var(--r-pill);
-  background: transparent; color: rgba(247,245,239,.78);
-  text-decoration: none; cursor: pointer; white-space: nowrap;
-  transition: background var(--d-base) var(--ease), color var(--d-base) var(--ease);
+.ovr__mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.6rem;
+  text-align: center;
+  padding: var(--gutter);
 }
-.lift__floor:hover, .lift__tool:hover { background: rgba(247,245,239,.11); color: var(--ivory); }
-.lift__floor:focus-visible, .lift__tool:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
-.lift__floor[data-on] { background: rgba(247,245,239,.16); color: var(--ivory); }
-.lift__tool[data-on] { color: var(--ivory); }
-
-.lift__no {
-  display: grid; place-items: center; flex: none;
-  width: 1.5rem; height: 1.5rem; border-radius: 4px;
-  font-size: 11px; font-weight: 500;
-  box-shadow: inset 0 0 0 1px rgba(247,245,239,.22);
+.ovr__monogram { width: clamp(84px, 11vw, 140px); height: auto; color: var(--ivory); }
+.ovr__word {
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 0.8rem + 2.6vw, 2.9rem);
+  font-weight: 300;
+  color: var(--ivory);
+  margin: 0;
 }
-.lift__floor[data-on] .lift__no {
-  background: var(--ivory); color: var(--black); box-shadow: none;
-}
-.lift__floor--street .lift__no { box-shadow: none; }
+.ovr__tag { color: var(--ink-on-room-3); margin: 0; }
 
-.lift__name {
+.ovr__cap {
+  position: absolute;
+  left: var(--gutter);
+  bottom: calc(var(--gutter) + 2.2rem);
+  z-index: 4;
+}
+.ovr__capTitle {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 1rem + 2.4vw, 2.8rem);
+  font-weight: 300;
+  color: var(--ivory);
+  margin: 0 0 0.35rem;
+}
+
+.ovr__door {
+  /* Centred by stretching edge to edge, NOT by `left: 50%` and a
+     translate — Framer animates this element in on `transform` and would
+     overwrite the centring, leaving the button half its own width off
+     centre. Nothing else competes for `inset`. */
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: clamp(2.5rem, 7vh, 5.5rem);
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  text-align: center;
+}
+.ovr__enter { min-width: 15rem; }
+.ovr__hint { color: var(--ink-on-room-3); margin: 0; }
+
+.ovr__skip {
+  position: absolute;
+  z-index: 6;
+  right: var(--gutter);
+  top: var(--gutter);
+  background: none;
+  border: 0;
+  padding: 0.6rem 0.2rem;
+  color: var(--ink-on-room-3);
+  cursor: pointer;
+  transition: color var(--d-fast) var(--ease);
+}
+.ovr__skip:hover { color: var(--ivory); }
+
+/* ── the elevation ───────────────────────────────────────────────
+   The section render, centred, with the chosen floor lit. */
+
+.elev {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.elev__frame {
+  position: relative;
+  height: min(76svh, 730px);
+  aspect-ratio: 1116 / 1184;
+  will-change: transform;
+}
+.elev__plate { position: absolute; inset: 0; }
+.elev__plate .plate-img__src {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* The render carries its own near-black background, which is a shade off
+     this page's black — so the plate announced itself as a rectangle with
+     four hard corners sitting on the stage. Fading the corners lets the
+     building stand in the dark instead of in a box. The solid zone is wide
+     enough to clear the dome at the top and the pavement at the bottom. */
+  -webkit-mask-image: radial-gradient(76% 84% at 50% 50%, #000 58%, rgba(0,0,0,0.66) 80%, transparent 99%);
+  mask-image: radial-gradient(76% 84% at 50% 50%, #000 58%, rgba(0,0,0,0.66) 80%, transparent 99%);
+}
+
+/* Night.
+   Everywhere that is not the floor you are on falls back into shadow.
+   This is the whole focus mechanism: no camera move, no magnification,
+   no pixel lost — just a building where one floor is working late. */
+.elev__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 38% at var(--cx) var(--cy),
+    rgba(4, 5, 8, 0) 0%,
+    rgba(4, 5, 8, 0) 40%,
+    rgba(4, 5, 8, 0.44) 80%,
+    rgba(4, 5, 8, 0.58) 100%
+  );
+}
+/* and the lit floor takes a little more of the warm light its own
+   windows already carry — a tint, never a colour of its own */
+.elev__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  background: radial-gradient(
+    22% 13% at var(--cx) var(--cy),
+    rgba(232, 212, 164, 0.5) 0%,
+    rgba(176, 141, 74, 0.16) 52%,
+    transparent 100%
+  );
+}
+
+.elev__lines { position: absolute; inset: 0; z-index: 5; overflow: visible; pointer-events: none; }
+.elev__line {
+  stroke: rgba(247, 245, 239, 0.16);
+  stroke-width: 1;
+  transition: stroke var(--d-base) var(--ease);
+}
+.elev__line[data-on] { stroke: rgba(232, 212, 164, 0.78); }
+
+.elev__pt {
+  position: absolute;
+  z-index: 6;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+}
+.elev__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--r-pill);
+  /* Gold is a material on this brand, never a flat fill: a metallic
+     gradient that reads as something catching the light. */
+  background: radial-gradient(60% 60% at 34% 28%, #f0e2c0 0%, #c5a059 46%, #6d5527 100%);
+  box-shadow: 0 0 0 1px rgba(10, 10, 10, 0.45), 0 0 10px rgba(232, 212, 164, 0.25);
+  transform: scale(0.8);
+  opacity: 0.6;
+  transition: transform var(--d-base) var(--ease), opacity var(--d-base) var(--ease), box-shadow var(--d-base) var(--ease);
+}
+.elev__pt:hover .elev__dot,
+.elev__pt:focus-visible .elev__dot { transform: scale(1.1); opacity: 1; }
+.elev__pt[data-on] .elev__dot {
+  transform: scale(1.25);
+  opacity: 1;
+  box-shadow: 0 0 0 1px rgba(10, 10, 10, 0.45), 0 0 0 5px rgba(232, 212, 164, 0.16), 0 0 18px rgba(232, 212, 164, 0.45);
+}
+.elev__pt:focus-visible { outline: 2px solid rgba(232, 212, 164, 0.7); outline-offset: 2px; }
+
+.elev__tag {
+  position: absolute;
+  z-index: 7;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: 13rem;
+  pointer-events: none;
+}
+.elev__tag[data-side="left"] { right: calc(100% + 1.6rem); text-align: right; justify-items: end; }
+.elev__tag[data-side="right"] { left: calc(100% + 1.6rem); text-align: left; }
+.elev__code { color: rgba(232, 212, 164, 0.82); }
+.elev__title {
+  font-family: var(--serif);
+  font-size: var(--t-h3);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--ivory);
+}
+.elev__sub { color: var(--ink-on-room-3); }
+
+/* ── the floor card ──────────────────────────────────────────────
+   Anything that has to be read, on glass, in type. */
+
+.floor {
+  position: absolute;
+  z-index: 20;
+  left: var(--gutter);
+  bottom: var(--gutter);
+  width: min(23rem, 32vw);
+  padding: 1.35rem;
+  display: grid;
+  gap: 1rem;
+}
+.floor__view { border-radius: var(--r-md); overflow: hidden; aspect-ratio: 16 / 9; }
+.floor__plate { width: 100%; height: 100%; }
+.floor__body { display: grid; gap: 0.5rem; }
+.floor__title {
+  font-family: var(--serif);
+  font-size: var(--t-h3);
+  font-weight: 300;
+  color: var(--ivory);
+  margin: 0;
+}
+.floor__sub { margin: 0; }
+.floor__spots { list-style: none; margin: 0.4rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+
+.spot {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(247, 245, 239, 0.05);
+  border: 1px solid var(--line-room-soft);
+  border-radius: var(--r-sm);
+  color: var(--ink-on-room-2);
+  font: inherit;
   font-size: var(--t-small);
-  max-width: 0; overflow: hidden; opacity: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
+}
+.spot:hover { background: rgba(247, 245, 239, 0.1); color: var(--ivory); border-color: var(--line-room); }
+.spot__price { color: rgba(232, 212, 164, 0.9); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.floor__go { margin-top: 0.4rem; justify-self: start; }
+
+/* ── the lift ────────────────────────────────────────────────────
+   Numbers always visible; names expand where a pointer exists. */
+
+.lift {
+  position: fixed;
+  z-index: 30;
+  right: var(--gutter);
+  /* Centred with auto margins, NOT `top: 50%; translateY(-50%)`.
+     The lift is a motion element, and Framer writes its entrance into the
+     same `transform` property — so the CSS translate was silently replaced
+     the moment the panel animated in, dropping the car half a screen and
+     running its lowest floors off the bottom of the window. Auto margins
+     centre it in a property nothing else is competing for. */
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin-block: auto;
+  padding: 0.85rem 0.7rem;
+  display: grid;
+  gap: 0.7rem;
+  max-height: 86svh;
+}
+.lift__plaque {
+  color: rgba(232, 212, 164, 0.75);
+  text-align: center;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line-room-soft);
+}
+.lift__car, .lift__tools { display: grid; gap: 0.1rem; }
+.lift__tools { padding-top: 0.6rem; border-top: 1px solid var(--line-room-soft); }
+
+.lift__btn, .lift__tool {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.42rem 0.45rem;
+  background: none;
+  border: 0;
+  border-radius: var(--r-sm);
+  color: var(--ink-on-room-3);
+  font: inherit;
+  font-size: var(--t-small);
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease);
+}
+.lift__no {
+  flex: none;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-room-soft);
+  border-radius: var(--r-pill);
+  font-size: var(--t-label);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--d-fast) var(--ease), color var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease);
+}
+.lift__name {
+  /* The names take their width from the pointer, not from a media query:
+     a touch device gets them permanently (see below), a mouse gets them
+     on approach. Collapsing to 0 rather than display:none keeps them in
+     the accessibility tree, so a screen reader always reads the floor. */
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
   transition: max-width var(--d-base) var(--ease), opacity var(--d-base) var(--ease);
 }
-.lift:hover .lift__name, .lift:focus-within .lift__name { max-width: 10rem; opacity: .94; }
+.lift:hover .lift__name,
+.lift:focus-within .lift__name { max-width: 9rem; opacity: 1; }
 
-.lift__badge { position: relative; display: grid; place-items: center; width: 1.5rem; flex: none; }
-.lift__count {
-  position: absolute; top: -5px; right: -6px;
-  min-width: 14px; height: 14px; padding: 0 3px;
-  display: grid; place-items: center; border-radius: 99px;
-  background: var(--ivory); color: var(--black); font-size: 9px; font-weight: 600;
+.lift__btn:hover, .lift__tool:hover,
+.lift__btn:focus-visible, .lift__tool:focus-visible { color: var(--ivory); background: rgba(247, 245, 239, 0.07); }
+.lift__btn[data-on] { color: var(--ivory); }
+.lift__btn[data-on] .lift__no {
+  color: var(--black);
+  border-color: transparent;
+  background: linear-gradient(145deg, #f0e2c0 0%, #c5a059 52%, #8d6f33 100%);
+  box-shadow: 0 0 14px rgba(232, 212, 164, 0.3);
 }
-.lift__tool > svg { flex: none; width: 1.5rem; }
-.lift__rule { height: 1px; margin: .45rem .6rem; background: rgba(247,245,239,.14); }
 
-/* ══ the floor plate ════════════════════════════════════════════ */
-.plate {
-  position: absolute; z-index: 15;
-  left: clamp(1rem, 3vw, 2.4rem); bottom: clamp(1rem, 4vh, 2.4rem);
-  width: min(100% - 2rem, 21rem);
-  padding: 1.1rem 1.3rem; border-radius: var(--r-lg);
-  background:
-    linear-gradient(152deg, rgba(247,245,239,.09) 0%, rgba(247,245,239,.025) 100%),
-    rgba(13, 12, 12, 0.72);
-  box-shadow: inset 0 1px 0 rgba(247,245,239,.2), var(--shadow-float);
+/* ── the way out, and the links the building hides ───────────────── */
+
+.tower__out {
+  position: absolute;
+  z-index: 25;
+  left: var(--gutter);
+  top: var(--gutter);
+  background: none;
+  border: 0;
+  padding: 0.6rem 0.2rem;
+  color: var(--ink-on-room-3);
+  cursor: pointer;
+  transition: color var(--d-fast) var(--ease);
 }
-.plate__title { margin: .3rem 0 .4rem; }
-.plate__note { margin: 0; }
+.tower__out:hover { color: var(--ivory); }
 
-/* ══ drawers ════════════════════════════════════════════════════ */
-.dwr { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; }
-.dwr__scrim {
-  position: absolute; inset: 0; border: 0; padding: 0;
-  background: rgba(6,6,8,.62);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  cursor: default;
+/* Every level has a real URL. The building is the way in for a person;
+   this is the way in for a crawler and for anyone browsing without
+   JavaScript. Off-screen, never hidden from assistive technology. */
+.tower__routes {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.dwr__panel {
-  position: relative; display: flex; flex-direction: column;
-  width: min(100%, 27rem); height: 100%;
-  border-radius: var(--r-xl) 0 0 var(--r-xl);
-  background:
-    linear-gradient(152deg, rgba(247,245,239,.09) 0%, rgba(247,245,239,.025) 100%),
-    rgba(13, 12, 12, 0.88);
-  box-shadow: inset 1px 0 0 rgba(247,245,239,.16), var(--shadow-float);
+
+/* ── smaller rooms ───────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .elev__frame { height: min(58svh, 560px); }
+  .floor { width: min(21rem, 46vw); }
 }
-.dwr__head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1.1rem 1.2rem; border-bottom: 1px solid rgba(247,245,239,.12);
-}
-.dwr__body { flex: 1; overflow-y: auto; padding: 1.2rem; }
 
-.dwr__hero { display: block; aspect-ratio: 3/4; border-radius: var(--r-md); overflow: hidden; background: rgba(247,245,239,.05); }
-.dwr__title { margin: 1rem 0 0; }
-.dwr__cost { margin: .5rem 0 0; font-size: 1.2rem; }
-.dwr__desc { margin: 1rem 0 0; color: rgba(247,245,239,.78); }
-.dwr__spec { margin: 1.2rem 0 0; display: grid; gap: .1rem; }
-.dwr__spec > div { padding: .6rem 0; border-top: 1px solid rgba(247,245,239,.12); }
-.dwr__spec dd { margin: .25rem 0 0; font-size: var(--t-small); color: rgba(247,245,239,.74); }
-
-.dwr__sizelabel { margin: 1.2rem 0 .6rem; }
-.dwr__sizes { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; margin: 0; padding: 0; }
-.dwr__size {
-  min-width: 2.8rem; height: 2.4rem; padding: 0 .7rem;
-  border: 0; border-radius: var(--r-xs);
-  background: transparent; color: inherit;
-  box-shadow: inset 0 0 0 1px rgba(247,245,239,.22);
-  font-size: var(--t-small); cursor: pointer;
-  transition: background var(--d-base) var(--ease), box-shadow var(--d-base) var(--ease);
-}
-.dwr__size:hover:not(:disabled) { box-shadow: inset 0 0 0 1px rgba(247,245,239,.62); }
-.dwr__size[data-on] { background: var(--ivory); color: var(--black); box-shadow: none; }
-.dwr__size:disabled { opacity: .32; cursor: not-allowed; text-decoration: line-through; }
-
-.dwr__buy { display: flex; gap: .6rem; margin-top: 1.3rem; }
-.dwr__add { flex: 1; }
-.dwr__more { display: block; margin-top: 1rem; text-align: center; }
-
-.dwr__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
-.dwr__row {
-  display: grid; grid-template-columns: 3.4rem 1fr auto;
-  align-items: center; gap: .9rem;
-  padding: .55rem; border-radius: var(--r-sm);
-  text-decoration: none; color: inherit;
-  transition: background var(--d-base) var(--ease);
-}
-.dwr__row:hover { background: rgba(247,245,239,.08); }
-.dwr__thumb { display: block; width: 3.4rem; aspect-ratio: 3/4; border-radius: 3px; overflow: hidden; background: rgba(247,245,239,.06); }
-.dwr__meta { display: grid; gap: 1px; min-width: 0; }
-.dwr__name { font-size: .92rem; }
-.dwr__price { font-size: var(--t-small); }
-
-/* ══ small screens ══════════════════════════════════════════════ */
-@media (max-width: 760px) {
-  .lift {
-    top: auto; bottom: calc(.6rem + env(safe-area-inset-bottom));
-    right: 50%; transform: translateX(50%);
-    max-width: calc(100% - 1rem);
+@media (max-width: 820px) {
+  /* A phone cannot hold the desktop arrangement — building in the middle,
+     card to one side, lift to the other — so it stacks instead: the tower
+     takes the top of the screen, what is on the floor sits under it, and
+     the lift runs down the right edge as a rail. The annotation goes: it
+     needs clear space either side of the building and there is none. */
+  .elev {
+    align-items: start;
+    padding: 0.5rem calc(var(--gutter) + 3.2rem) 0 var(--gutter);
   }
-  .lift__glass { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .5rem; }
-  .lift__head { display: none; }
-  .lift__floors, .lift__tools { grid-auto-flow: column; }
+  .elev__frame { height: min(42svh, 360px); }
+  .elev__tag { display: none; }
+
+  .floor {
+    left: var(--gutter);
+    right: calc(var(--gutter) + 3.2rem);
+    bottom: var(--gutter);
+    width: auto;
+    max-height: 48svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+    gap: 0.7rem;
+  }
+  /* The floor's own photograph is the first thing to go: it was taking
+     half the sheet and pushing the thing you came for — the pieces and
+     their prices — below the fold. */
+  .floor__view { display: none; }
+
+  .lift { padding: 0.5rem 0.4rem; gap: 0.4rem; max-height: 92svh; overflow-y: auto; }
+  .lift__plaque { display: none; }
   .lift__name { display: none; }
-  .lift__rule { width: 1px; height: auto; margin: .3rem .45rem; }
-  .plate { bottom: 5.2rem; width: calc(100% - 2rem); }
-  .dwr__panel { width: 100%; border-radius: var(--r-xl) var(--r-xl) 0 0; height: 90%; margin-top: auto; }
-  .spot__tip { display: none; }
+  .lift__no { width: 1.55rem; height: 1.55rem; }
+  .lift__btn, .lift__tool { padding: 0.3rem 0.2rem; }
+
+  /* The way out stays top-left, over the padded black above the dome,
+     because the bottom of a phone screen already belongs to the floor. */
+}
+
+@media (hover: none) {
+  /* No pointer to approach with: the names are simply always there. */
+  .lift__name { max-width: 9rem; opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spot__pulse { animation: none; opacity: .3; }
-  .facade__brand { animation: none; }
+  .elev__frame, .ovr__frame { transition: none !important; }
+  .plate-img[data-grain]::after { opacity: 0.1; }
+}
+
+/* ── ink, on black ───────────────────────────────────────────────
+   The site's utility inks (.small, .muted, .label--soft) are tuned for
+   type on ivory paper. Used unchanged on this stage they land at about
+   1.3:1 on black — invisible, and a straight WCAG failure. Inside the
+   tower they take the on-room ramp instead, which clears AA against the
+   black ground and against the glass sitting on it. */
+.tower .small { color: var(--ink-on-room-2); }
+.tower .muted,
+.tower .label--soft { color: var(--ink-on-room-3); }
+
+/* `.btn--glass` sets its ink to --ink, which is right for glass floating
+   over ivory paper and wrong here: black type on a dark sheet on a black
+   stage. On the tower the glass gets a dark substrate and ivory ink, so a
+   button reads whether it is sitting over the night sky or over a lit
+   window. */
+.tower .btn--glass {
+  color: var(--ivory);
+  background: linear-gradient(
+    152deg,
+    rgba(247, 245, 239, 0.17) 0%,
+    rgba(10, 10, 10, 0.44) 100%
+  );
+}
+
+/* the lift's icons */
+.lift__no svg { width: 0.85rem; height: 0.85rem; }
+.lift__no[data-on] { color: rgba(232, 212, 164, 0.95); border-color: rgba(232, 212, 164, 0.4); }
+.lift__no[data-count] {
+  color: var(--black);
+  border-color: transparent;
+  background: linear-gradient(145deg, #f0e2c0 0%, #c5a059 52%, #8d6f33 100%);
 }

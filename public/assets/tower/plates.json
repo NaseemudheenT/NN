@@ -1,0 +1,32 @@
+{
+  "facade": {
+    "w": 922,
+    "h": 766,
+    "blur": "data:image/webp;base64,UklGRtoAAABXRUJQVlA4IM4AAADQBQCdASoUABEAPsFWoU2npKKiKAqo8BgJZACdMusCrb5g3gXBsVhZbfDqQ1hzzvlWnAc4DmGAAP7kIag6Pq9gfI8Xzw2P3Vj8hclrnmSEnjSq7oyR2B2HVGkwc8ev82Qat7THmVKQR9b/uID6Wdrcyyb3YmzyE07VVhXdUKc14g0kRZVW+aR4st9SwX+9H1wphZ6s8fBNoMWAaM8gyrSmowY4LmIy/Ya9g5luEFeYqf52nopgFuHGkzlIfr1KGJlo4mnB0hEdhnag3+IAAA=="
+  },
+  "rear": {
+    "w": 680,
+    "h": 766,
+    "blur": "data:image/webp;base64,UklGRsIAAABXRUJQVlA4ILYAAABQBQCdASoSABQAPsFUoEynpKMiKA1Q8BgJQBdgMY7OM5AMj6PnmkJGDDM9mnjvNKQjEnAA/s1hojGNgrfrNDVh/+oiVewYrlrSddvN+d79bj8V2Oj2iPZ4ltv3P9seW93qdh47iRdCaqfvG0g8mDBlZ1DQyCbCRGETefG4TVkXz8iZpmPHja0X+GS/YUsQbcfLYjcAPwj6bNbUiKHnCxxpGSGNaEyfGSQYUJjiHwHyHS3nTiQAAA=="
+  },
+  "aerial": {
+    "w": 690,
+    "h": 590,
+    "blur": "data:image/webp;base64,UklGRt4AAABXRUJQVlA4INIAAAAQBQCdASoUABEAPsFapk6npSOiKAgA8BgJQBYdu4FvSlPMqareGSZ81KKc216bUQrAAP7vYskllfkI523fbKMVt5J+8H+1u/LKyXfR7OkBL02mXPPCWBlNflMsO1mbUsTFV8IpFrTN9xkQ0ppUXwGAxu4WfmXWMgF580KVQwF94R7+wy75ZH0v6P83MUgj6ZmURsNeSKgKrXrQ/pdVYR7ceWGit8lgCmu5uNaT0fCVRYsGELXEVArcfMBHMT30esEjpQH4iM0rUsXPBxDO2sAAAAA="
+  },
+  "cutaway": {
+    "w": 1116,
+    "h": 1184,
+    "blur": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4IKAAAADQBACdASoTABQAPsFYpU6npKMiKAgA8BgJQBlEEnwXAYKdUQQ+L+dVijBRtWM4AAD+9pHObn10mSUj6zn3Dyj4SiCfCSf0JgRZcqyzoInTm1loiIWeFU435WKn/8kRr9ICL6KWQKzSOvU3/zcDzx9lMtk3ghBg7de5I4d3DZ2671GUnEsPimlNGNCK+klFudI63S2XJybqUalVbGzfAAAA"
+  },
+  "street": {
+    "w": 996,
+    "h": 608,
+    "blur": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAABQBACdASoUAAwAPsFOoUqnpCMhsAgA8BgJQBOmUABn98nBLzxFmCamTc1gAP2ySxx/JTvuv8bTAvRjgfgaDVswOu+vs4W+TsMATj9qQzzxXS4VEMlAppESSVhJExG7UGOLyJnHYHMRBWopgdweR1GWhYYyJcUEnJKnP77qKUgSYPMDGgMIAVahApvViTYAAAA="
+  },
+  "hall": {
+    "w": 1030,
+    "h": 600,
+    "blur": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoUAAwAPsFOoEqnpCMhsAgA8BgJZQCdABwv40K39S0JD6KAAAD+8YCA3W0OUMtY/m1m/cM7h9e7x9E7iX4quBPGqd1mbs0Q4i8UfLwE0ZEuaDa2ZlY1z3CxaJMJjA4F3WHmtrHJdfg4u4PeDPKyuAAA"
+  }
+}
