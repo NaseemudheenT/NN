@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type CameraControls from "camera-controls";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { Monogram } from "@/components/brand/Monogram";
 import { Bag, Ruler, Search, Sound, Sparkle } from "@/components/ui/icons";
@@ -11,6 +12,7 @@ import { useBag } from "@/lib/bag/BagProvider";
 import { useStylist } from "@/components/stylist/StylistProvider";
 import { useSearch } from "@/components/shell/SearchProvider";
 import { useSoundscape } from "@/components/shell/SoundscapeProvider";
+import { Controls } from "./three/Controls";
 import type { Mode } from "./three/Scene";
 import { Drawer } from "./Drawer";
 import { formatMinor } from "@/lib/money";
@@ -72,6 +74,7 @@ export function NNTower({ products }: { products: Product[] }) {
   const [quality, setQuality] = useState<Quality>("medium");
   const [ready, setReady] = useState(false);
   const [drawer, setDrawer] = useState<{ product?: Product; products?: Product[]; title?: string } | null>(null);
+  const controls = useRef<CameraControls | null>(null);
 
   const { count, openBag } = useBag();
   const { open: openStylist } = useStylist();
@@ -165,6 +168,18 @@ export function NNTower({ products }: { products: Product[] }) {
           onTouch={onTouch}
           price={price}
           quality={quality}
+          controls={controls}
+        />
+
+        {/* Keyboard and touch. Arrow up and down change FLOOR, because that
+            is the verb in a tower; left and right turn you round it. */}
+        <Controls
+          controls={controls}
+          enabled={!drawer}
+          onFloorUp={() => setFloor((f) => Math.min(8, (f ?? 0) + 1))}
+          onFloorDown={() => setFloor((f) => Math.max(0, (f ?? 0) - 1))}
+          onEnter={() => (mode === "intro" ? enter() : undefined)}
+          onBack={leave}
         />
 
         {/* ── before you go in: the building, and the way in ────────── */}

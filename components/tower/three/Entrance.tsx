@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { material, lit } from "./materials";
 import { monogramTexture } from "./textures";
+import { bannerGeometry } from "./fixtures";
 import { ROTUNDA } from "./geometry";
 
 /**
@@ -57,6 +58,9 @@ export function Entrance({ open }: { open: boolean }) {
   const head = useMemo(() => new THREE.BoxGeometry(LEAF_W * 2 + 0.6, 0.28, 0.4), []);
   const pull = useMemo(() => new THREE.CylinderGeometry(0.035, 0.035, 1.5, 10), []);
   const mark = useMemo(() => monogramTexture(256), []);
+  const banner = useMemo(() => bannerGeometry(0.9, 2.6), []);
+  const step = useMemo(() => new THREE.BoxGeometry(5.2, 0.16, 0.42), []);
+  const planter = useMemo(() => new THREE.BoxGeometry(0.72, 0.78, 0.72), []);
 
   return (
     <group position={[DOOR_X, 0, DOOR_Z]} rotation={[0, DOOR_FACING, 0]}>
@@ -82,6 +86,54 @@ export function Entrance({ open }: { open: boolean }) {
         <planeGeometry args={[LEAF_W * 2.1, 1.7]} />
       </mesh>
       <pointLight position={[0, 2.4, 0.6]} intensity={30} distance={13} decay={2} color="#ffd9a8" />
+
+      {/* The black canvas banners that flank the entrance — the single
+          most recognisable thing on the reference board's street view, and
+          the only place the monogram appears at architectural scale. */}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * 2.9, LEAF_H + 0.55, 0.3]}>
+          <mesh geometry={banner} material={material("steel")} castShadow>
+            <meshStandardMaterial
+              color={new THREE.Color("#0a0a0a").convertSRGBToLinear()}
+              roughness={0.92}
+              metalness={0}
+            />
+          </mesh>
+          <mesh position={[0, -1.1, 0.02]}>
+            <planeGeometry args={[0.6, 0.47]} />
+            <meshBasicMaterial map={mark ?? undefined} color="#c5a059" transparent toneMapped={false} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Three steps up to the threshold. A shop you step UP into reads as
+          a different order of thing from one you walk straight into, and
+          the reference puts the entrance on a plinth. */}
+      {[0, 1, 2].map((i) => (
+        <mesh
+          key={i}
+          geometry={step}
+          material={material("limestone")}
+          position={[0, -0.08 - i * 0.16, 1.5 + i * 0.42]}
+          receiveShadow
+          castShadow
+        />
+      ))}
+
+      {/* clipped bay trees either side of the door */}
+      {[-2.5, 2.5].map((x, i) => (
+        <group key={i} position={[x, 0, 1.5]}>
+          <mesh geometry={planter} material={material("basalt")} position={[0, 0.39, 0]} castShadow receiveShadow />
+          <mesh position={[0, 1.22, 0]} castShadow>
+            <sphereGeometry args={[0.46, 12, 10]} />
+            <meshStandardMaterial color={new THREE.Color("#3c4e2c").convertSRGBToLinear()} roughness={0.95} flatShading />
+          </mesh>
+          <mesh position={[0, 0.88, 0]}>
+            <cylinderGeometry args={[0.05, 0.06, 0.4, 8]} />
+            <meshStandardMaterial color={new THREE.Color("#3b2d24").convertSRGBToLinear()} roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
 
       {/* The mark above the door — the real monogram, lit, not a blank
           rectangle standing in for one. */}

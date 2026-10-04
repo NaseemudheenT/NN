@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, LEVELS, ATRIUM_CENTRE, DOME_R } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV, planShape } from "../geometry";
 
 /**
@@ -150,6 +151,12 @@ export function Rooftop({ visible = true }: { visible?: boolean }) {
       {/* the dome's own light, seen from the terrace and from the street */}
       <pointLight position={[ATRIUM_CENTRE[0], 1.6, ATRIUM_CENTRE[1]]} intensity={30} distance={DOME_R * 4} decay={2} color={warm} />
       <pointLight position={[0, 4.5, 0]} intensity={14} distance={INNER * 2} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={97} count={5} bounds={7.4} y={0.08} />
     </group>
   );
 }

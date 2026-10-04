@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
 import { dressFormGeometry, clothBoltGeometry, chairGeometry, shelvingGeometry } from "../fixtures";
 
@@ -148,6 +149,12 @@ export function Level2({ visible = true }: { visible?: boolean }) {
       </group>
 
       <pointLight position={[0, CLEAR * 0.75, 0]} intensity={44} distance={26} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={31} count={5} bounds={8.6} y={0} />
     </group>
   );
 }

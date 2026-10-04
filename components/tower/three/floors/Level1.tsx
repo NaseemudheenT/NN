@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
-import { railGeometry, hangingGeometry, pedestalGeometry } from "../fixtures";
+import { railGeometry, hangingGeometry, pedestalGeometry, mannequinGeometry, frameGeometry } from "../fixtures";
+import { monogramTexture } from "../textures";
 
 /**
  * NN TOWER — Level 1. The hero board and the collection gallery.
@@ -79,6 +81,18 @@ export function Level1({ visible = true }: { visible?: boolean }) {
   const rail = useMemo(() => railGeometry(3.4, 9), []);
   const coats = useMemo(() => hangingGeometry(3.4, 9, "coat"), []);
   const pedestal = useMemo(() => pedestalGeometry(1.1, 1.1, 0.72), []);
+  const mannequin = useMemo(() => mannequinGeometry(1.82), []);
+  const frame = useMemo(() => frameGeometry(1.3, 1.8), []);
+  const mark = useMemo(() => monogramTexture(256), []);
+
+  /* The HERO BOARD. The reference puts a tall dark signage wall on this
+     floor carrying the house name — it is the first thing you read when
+     you come up from reception, and the floor is named after it. */
+  const board = useMemo(() => {
+    const g = metricUV(new THREE.BoxGeometry(7.2, CLEAR - 0.9, 0.22), 7.2, CLEAR - 0.9);
+    g.translate(0, (CLEAR - 0.9) / 2, 0);
+    return g;
+  }, []);
 
   if (!visible) return null;
   const warm = kelvinToColor(SPEC.kelvin);
@@ -126,8 +140,44 @@ export function Level1({ visible = true }: { visible?: boolean }) {
         </group>
       ))}
 
+      {/* the hero board */}
+      <group position={[6.4, 0, -5.2]} rotation={[0, -Math.PI / 2.6, 0]}>
+        <mesh geometry={board} material={material("walnut")} castShadow receiveShadow />
+        <mesh position={[0, CLEAR * 0.56, 0.12]}>
+          <planeGeometry args={[1.5, 1.18]} />
+          <meshBasicMaterial map={mark ?? undefined} color="#c5a059" transparent toneMapped={false} />
+        </mesh>
+        {/* a lit rule under the mark, which is how signage is actually
+            picked out on a dark board */}
+        <mesh position={[0, CLEAR * 0.33, 0.12]} material={lit(2900, 0.85)}>
+          <planeGeometry args={[4.4, 0.012]} />
+        </mesh>
+      </group>
+
+      {/* mannequins — a whole outfit standing up, which a rail cannot show */}
+      {([[-4.6, 5.4, 0.4], [-3.1, 6.3, -0.9], [1.4, -6.4, 2.1]] as const).map(([x, z, r], i) => (
+        <mesh key={i} geometry={mannequin} material={material(i === 1 ? "linen" : "basalt")}
+              position={[x, 0, z]} rotation={[0, r, 0]} castShadow receiveShadow />
+      ))}
+
+      {/* framed campaign work on the slat wall */}
+      {[-4.6, -1.6, 1.4].map((x, i) => (
+        <group key={i} position={[x, 2.1, -INNER + 0.52]}>
+          <mesh geometry={frame} material={material("walnut")} castShadow />
+          <mesh position={[0, 0, 0.012]} material={lit(3200, 0.3)}>
+            <planeGeometry args={[1.2, 1.7]} />
+          </mesh>
+        </group>
+      ))}
+
       {/* the ambient the spots sit against — deliberately low */}
       <pointLight position={[0, CLEAR * 0.72, 0]} intensity={34} distance={26} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={23} count={11} bounds={9.2} y={0} />
     </group>
   );
 }

@@ -4,7 +4,9 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
+import { monogramTexture } from "../textures";
 
 /**
  * NN TOWER — Street Level. Entrance, reception, check-in.
@@ -123,6 +125,7 @@ export function StreetLevel({ visible = true }: { visible?: boolean }) {
 
   /* The working map: a lit screen in a blackened frame. */
   const mapFrame = useMemo(() => metricUV(new THREE.BoxGeometry(2.3, 1.45, 0.09), 2.3, 1.45), []);
+  const mark = useMemo(() => monogramTexture(256), []);
 
   if (!visible) return null;
 
@@ -155,6 +158,22 @@ export function StreetLevel({ visible = true }: { visible?: boolean }) {
         </mesh>
       </group>
 
+      {/* The house name behind reception. A hotel or a flagship puts its
+          mark on the wall the desk stands against, lit from above — it is
+          what tells you which building you have walked into. */}
+      <group position={[-5.5, 0, -6.1]} rotation={[0, Math.PI * 0.18, 0]}>
+        <mesh material={material("travertine")} position={[0, 2.1, 0]} receiveShadow castShadow>
+          <boxGeometry args={[5.4, 4.2, 0.14]} />
+        </mesh>
+        <mesh position={[0, 2.5, 0.09]}>
+          <planeGeometry args={[1.25, 0.98]} />
+          <meshBasicMaterial map={mark ?? undefined} color="#c5a059" transparent toneMapped={false} />
+        </mesh>
+        <mesh position={[0, 1.62, 0.09]} material={lit(2800, 0.6)}>
+          <planeGeometry args={[3.0, 0.01]} />
+        </mesh>
+      </group>
+
       {/* check-in portals */}
       {[0, 1, 2].map((i) => (
         <group key={i} position={[2.6 + i * 1.5, 0, -7.4]}>
@@ -177,6 +196,12 @@ export function StreetLevel({ visible = true }: { visible?: boolean }) {
       {/* the wash that lights the volume */}
       <pointLight position={[0, CLEAR * 0.78, 0]} intensity={90} distance={34} decay={2} color={warm} />
       <pointLight position={[7, 2.6, 7]} intensity={26} distance={16} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={11} count={9} bounds={9.0} y={0} />
     </group>
   );
 }

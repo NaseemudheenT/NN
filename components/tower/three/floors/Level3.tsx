@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
-import { railGeometry, hangingGeometry, pedestalGeometry, chairGeometry } from "../fixtures";
+import { railGeometry, hangingGeometry, pedestalGeometry, chairGeometry, mannequinGeometry, frameGeometry } from "../fixtures";
 
 /**
  * NN TOWER — Level 3. Men & boys.
@@ -77,6 +78,9 @@ export function Level3({ visible = true }: { visible?: boolean }) {
   }, []);
 
   const mirror = useMemo(() => metricUV(new THREE.BoxGeometry(1.05, 2.0, 0.07), 1.05, 2.0), []);
+  const mannequin = useMemo(() => mannequinGeometry(1.8), []);
+  const boyMannequin = useMemo(() => mannequinGeometry(1.8 * BOY), []);
+  const frame = useMemo(() => frameGeometry(0.95, 1.25), []);
 
   if (!visible) return null;
   const warm = kelvinToColor(SPEC.kelvin);
@@ -154,8 +158,32 @@ export function Level3({ visible = true }: { visible?: boolean }) {
         </group>
       ))}
 
+      {/* mannequins, men and boys, so the two scales stand side by side */}
+      {([[-4.4, -2.0, 0.5], [-3.2, -0.6, -0.8]] as const).map(([x, z, r], i) => (
+        <mesh key={i} geometry={mannequin} material={material(i ? "linen" : "basalt")}
+              position={[x, 0, z]} rotation={[0, r, 0]} castShadow receiveShadow />
+      ))}
+      <mesh geometry={boyMannequin} material={material("walnut")} position={[7.6, 0, 1.6]} rotation={[0, -0.6, 0]} castShadow receiveShadow />
+
+      {/* framed pieces hung in the picture rail, which is what the rail is
+          for — without them it is moulding around nothing */}
+      {[-5.2, -2.8, -0.4, 2.0].map((x, i) => (
+        <group key={i} position={[x, 1.55, -INNER + 0.4]}>
+          <mesh geometry={frame} material={material("walnut")} castShadow />
+          <mesh position={[0, 0, 0.012]} material={lit(2900, 0.26)}>
+            <planeGeometry args={[0.85, 1.15]} />
+          </mesh>
+        </group>
+      ))}
+
       <pointLight position={[-3, CLEAR * 0.76, -1]} intensity={40} distance={24} decay={2} color={warm} />
       <pointLight position={[6, CLEAR * 0.76, 4]} intensity={30} distance={20} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={41} count={10} bounds={9.0} y={0} />
     </group>
   );
 }

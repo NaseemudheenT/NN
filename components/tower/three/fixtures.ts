@@ -227,3 +227,138 @@ export function wingbackGeometry(): THREE.BufferGeometry {
   parts.forEach((g) => g.dispose());
   return m;
 }
+
+/**
+ * A dressed mannequin.
+ *
+ * Different from a dress form: it has legs and stands at full height,
+ * because a mannequin shows a whole outfit and a dress form shows a
+ * torso being fitted. The reference uses both — forms in the atelier,
+ * mannequins on the retail floors — and mixing them up makes a shop floor
+ * look like a workroom.
+ */
+export function mannequinGeometry(height = 1.82): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const h = height;
+  const shoulder = h * 0.135;
+  const torsoTop = h * 0.84;
+  const torsoBot = h * 0.46;
+  const prof: [number, number][] = [
+    [shoulder * 0.52, 0.0], [shoulder * 0.42, 0.26], [shoulder * 0.46, 0.58],
+    [shoulder * 0.54, 0.84], [shoulder * 0.44, 0.96], [shoulder * 0.2, 1.0],
+  ];
+  const torso = new THREE.LatheGeometry(
+    prof.map(([r, t]) => new THREE.Vector2(r, torsoBot + t * (torsoTop - torsoBot))), 16);
+  torso.scale(1, 1, 0.64);
+  parts.push(torso);
+  for (const s of [-1, 1]) {
+    const leg = new THREE.CylinderGeometry(shoulder * 0.17, shoulder * 0.12, torsoBot, 10);
+    leg.translate(s * shoulder * 0.2, torsoBot / 2, 0);
+    parts.push(leg);
+  }
+  // no head: a tailoring mannequin is headless, and a headless form reads
+  // as a garment stand rather than as a person who has stopped moving
+  const base = new THREE.CylinderGeometry(shoulder * 1.5, shoulder * 1.7, 0.03, 20);
+  base.translate(0, 0.015, 0);
+  parts.push(base);
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  m.computeVertexNormals();
+  return m;
+}
+
+/**
+ * A glass cloche on a plinth — the "product ID" display from the board.
+ * A single object under glass, lit from the base: the museum convention
+ * for "this one matters".
+ */
+export function clocheGeometry(r = 0.42, h = 0.78): THREE.BufferGeometry {
+  const dome = new THREE.SphereGeometry(r, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.52);
+  dome.translate(0, h, 0);
+  const wall = new THREE.CylinderGeometry(r, r, h * 0.55, 24, 1, true);
+  wall.translate(0, h * 0.72, 0);
+  const m = mergeAll([dome, wall]);
+  [dome, wall].forEach((g) => g.dispose());
+  return m;
+}
+
+/** A framed piece on a wall: frame, mount, image plane. */
+export function frameGeometry(w: number, h: number): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const t = 0.05;
+  for (const [bw, bh, x, y] of [
+    [w, t, 0, h / 2], [w, t, 0, -h / 2], [t, h, -w / 2, 0], [t, h, w / 2, 0],
+  ] as const) {
+    const b = metricUV(new THREE.BoxGeometry(bw, bh, 0.045), bw, bh);
+    b.translate(x, y, 0);
+    parts.push(b);
+  }
+  const back = metricUV(new THREE.BoxGeometry(w - t, h - t, 0.015), w, h);
+  back.translate(0, 0, -0.015);
+  parts.push(back);
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}
+
+/** A bank of drawers — the checkout drawers on L6. */
+export function drawerBankGeometry(w: number, h: number, d: number, rows: number): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  const carcass = metricUV(new THREE.BoxGeometry(w, h, d), w, h);
+  carcass.translate(0, h / 2, 0);
+  parts.push(carcass);
+  const pitch = h / rows;
+  for (let i = 0; i < rows; i++) {
+    const face = metricUV(new THREE.BoxGeometry(w * 0.94, pitch * 0.84, 0.03), w, pitch);
+    face.translate(0, pitch * (i + 0.5), d / 2 + 0.015);
+    parts.push(face);
+    const pull = new THREE.CylinderGeometry(0.012, 0.012, w * 0.3, 8);
+    pull.rotateZ(Math.PI / 2);
+    pull.translate(0, pitch * (i + 0.5), d / 2 + 0.045);
+    parts.push(pull);
+  }
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}
+
+/** A stock trolley: a frame on castors with a shelf. */
+export function trolleyGeometry(): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const y of [0.18, 0.72]) {
+    const shelf = metricUV(new THREE.BoxGeometry(0.76, 0.03, 0.48), 0.76, 0.48);
+    shelf.translate(0, y, 0);
+    parts.push(shelf);
+  }
+  for (const [x, z] of [[-0.34, -0.2], [0.34, -0.2], [-0.34, 0.2], [0.34, 0.2]] as const) {
+    const post = new THREE.CylinderGeometry(0.014, 0.014, 0.76, 8);
+    post.translate(x, 0.38, z);
+    parts.push(post);
+    const castor = new THREE.SphereGeometry(0.035, 8, 6);
+    castor.translate(x, 0.035, z);
+    parts.push(castor);
+  }
+  const handle = new THREE.CylinderGeometry(0.016, 0.016, 0.5, 8);
+  handle.rotateZ(Math.PI / 2);
+  handle.translate(0, 0.98, -0.2);
+  parts.push(handle);
+  for (const x of [-0.25, 0.25]) {
+    const up = new THREE.CylinderGeometry(0.014, 0.014, 0.26, 8);
+    up.translate(x, 0.85, -0.2);
+    parts.push(up);
+  }
+  const m = mergeAll(parts);
+  parts.forEach((g) => g.dispose());
+  return m;
+}
+
+/** A hanging banner: a cloth panel on a projecting arm. */
+export function bannerGeometry(w: number, h: number): THREE.BufferGeometry {
+  const cloth = metricUV(new THREE.BoxGeometry(w, h, 0.02), w, h);
+  cloth.translate(0, -h / 2, 0);
+  const arm = new THREE.CylinderGeometry(0.03, 0.03, w * 1.1, 8);
+  arm.rotateZ(Math.PI / 2);
+  const m = mergeAll([cloth, arm]);
+  [cloth, arm].forEach((g) => g.dispose());
+  return m;
+}

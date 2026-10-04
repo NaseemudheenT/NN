@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
 import { wingbackGeometry, chairGeometry } from "../fixtures";
 
@@ -146,6 +147,12 @@ export function Level7({ visible = true }: { visible?: boolean }) {
       <mesh geometry={wing} material={material("leather")} position={[6.6, 0, 4.4]} rotation={[0, -2.2, 0]} castShadow />
 
       <pointLight position={[0, CLEAR * 0.76, 0]} intensity={22} distance={22} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={83} count={3} bounds={7.6} y={0} />
     </group>
   );
 }

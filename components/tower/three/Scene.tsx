@@ -48,12 +48,13 @@ function Camera({
   mode,
   floor,
   explode,
+  controls,
 }: {
   mode: Mode;
   floor: number | null;
   explode: number;
+  controls: React.RefObject<CameraControls | null>;
 }) {
-  const controls = useRef<CameraControls>(null);
   const t = useRef(0);
 
   useEffect(() => {
@@ -88,7 +89,7 @@ function Camera({
       0.5, eye + lift * 0.6, 0.5,
       true,
     );
-  }, [mode, floor, explode]);
+  }, [mode, floor, explode, controls]);
 
   /* The automatic orbit. Azimuth advances at a constant rate; elevation
      breathes on a much slower sine so the roof comes into view roughly once
@@ -131,6 +132,7 @@ export function Scene({
   onTouch,
   price,
   quality,
+  controls,
 }: {
   mode: Mode;
   floor: number | null;
@@ -140,6 +142,7 @@ export function Scene({
   onTouch: (t: Touch) => void;
   price: (handle: string) => string | null;
   quality: "high" | "medium" | "low";
+  controls: React.RefObject<CameraControls | null>;
 }) {
   /* Only the floor you are standing on offers its touch points. Showing all
      of them at once turns the building into a map covered in pins, and the
@@ -183,6 +186,9 @@ export function Scene({
       dpr={quality === "high" ? [1, 2] : [1, 1.4]}
       gl={GL_SETTINGS}
       camera={{ fov: 38, near: 0.15, far: 800, position: ORBIT_FROM }}
+      /* One finger turns, two push in. Without this the browser claims the
+         gesture first and the page scrolls under the building. */
+      style={{ touchAction: "none" }}
       onCreated={({ scene }) => {
         scene.background = new THREE.Color("#07070a").convertSRGBToLinear();
         /* Aerial perspective. Real air scatters, and a tower with perfectly
@@ -223,7 +229,7 @@ export function Scene({
           ))}
         <Core floor={floor ?? 0} />
         <Entrance open={doorsOpen} />
-        <Camera mode={mode} floor={floor} explode={explode} />
+        <Camera mode={mode} floor={floor} explode={explode} controls={controls} />
         <Preload all />
       </Suspense>
       <AdaptiveDpr pixelated={false} />

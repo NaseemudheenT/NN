@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
-import { shelvingGeometry } from "../fixtures";
+import { shelvingGeometry, drawerBankGeometry, trolleyGeometry } from "../fixtures";
 
 /**
  * NN TOWER — Level 6. The bag and the checkout.
@@ -99,6 +100,8 @@ export function Level6({ visible = true }: { visible?: boolean }) {
   }, []);
 
   const bag = useMemo(() => metricUV(new THREE.BoxGeometry(0.3, 0.38, 0.14), 0.3, 0.38), []);
+  const drawers = useMemo(() => drawerBankGeometry(1.1, 1.35, 0.6, 5), []);
+  const trolley = useMemo(() => trolleyGeometry(), []);
 
   if (!visible) return null;
   const warm = kelvinToColor(SPEC.kelvin);
@@ -150,7 +153,31 @@ export function Level6({ visible = true }: { visible?: boolean }) {
         </group>
       ))}
 
+      {/* the checkout drawers the reference calls out by name */}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh
+          key={i}
+          geometry={drawers}
+          material={material("steel")}
+          position={[8.6, 0, -0.2 + i * 1.18]}
+          rotation={[0, -Math.PI / 2, 0]}
+          castShadow
+          receiveShadow
+        />
+      ))}
+
+      {/* trolleys, parked where stock is being worked */}
+      {([[-4.0, 5.6, 0.5], [-2.2, 6.4, -0.8], [-5.6, 1.6, 1.9]] as const).map(([x, z, r], i) => (
+        <mesh key={i} geometry={trolley} material={material("brushed")} position={[x, 0, z]} rotation={[0, r, 0]} castShadow />
+      ))}
+
       <pointLight position={[0, CLEAR * 0.76, 0]} intensity={24} distance={22} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={71} count={6} bounds={8.6} y={0} />
     </group>
   );
 }

@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
 import { dressFormGeometry } from "../fixtures";
 
@@ -158,6 +159,12 @@ export function Level5({ visible = true }: { visible?: boolean }) {
 
       {/* fill from above, kept low so the ceiling does the work */}
       <pointLight position={[0, CLEAR * 0.82, 0]} intensity={26} distance={24} decay={2} color={cool} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={61} count={6} bounds={8.4} y={0} />
     </group>
   );
 }

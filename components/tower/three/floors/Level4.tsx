@@ -4,8 +4,9 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { HALF, SLAB, WALL, LEVELS } from "@/lib/tower/spec";
 import { material, lit, kelvinToColor } from "../materials";
+import { People } from "../People";
 import { mergeAll, metricUV } from "../geometry";
-import { shelvingGeometry, booksGeometry, wingbackGeometry, chairGeometry } from "../fixtures";
+import { shelvingGeometry, booksGeometry, wingbackGeometry, chairGeometry, clocheGeometry, frameGeometry } from "../fixtures";
 
 /**
  * NN TOWER — Level 4. The journal and the archive.
@@ -81,6 +82,9 @@ export function Level4({ visible = true }: { visible?: boolean }) {
   /* A silk rug. Not a texture on the floor — a thing lying on it, with an
      edge you can see and a shadow under it. */
   const rug = useMemo(() => metricUV(new THREE.BoxGeometry(4.6, 0.016, 3.2), 4.6, 3.2), []);
+  const cloche = useMemo(() => clocheGeometry(0.42, 0.78), []);
+  const plinth = useMemo(() => new THREE.CylinderGeometry(0.46, 0.5, 0.92, 24), []);
+  const frame = useMemo(() => frameGeometry(1.1, 1.5), []);
 
   if (!visible) return null;
   const warm = kelvinToColor(SPEC.kelvin);
@@ -152,8 +156,48 @@ export function Level4({ visible = true }: { visible?: boolean }) {
         <mesh key={i} geometry={wing} material={material("leather")} position={[x, 0, z]} rotation={[0, r, 0]} castShadow receiveShadow />
       ))}
 
+      {/* The cloches. One object under glass, lit from the plinth: the
+          museum convention for "this one matters", and what the reference
+          labels PRODUCT ID. */}
+      {([[-6.2, -6.0], [-4.3, -6.6]] as const).map(([x, z], i) => (
+        <group key={i} position={[x, 0, z]}>
+          <mesh geometry={plinth} material={material("basalt")} position={[0, 0.46, 0]} castShadow receiveShadow />
+          <mesh geometry={cloche} material={material("glass")} position={[0, 0.92, 0]} />
+          {/* the ring of light in the plinth top */}
+          <mesh position={[0, 0.93, 0]} rotation={[-Math.PI / 2, 0, 0]} material={lit(4200, 1.2)}>
+            <ringGeometry args={[0.3, 0.4, 24]} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* wall screens and framed archive material */}
+      {([[2.0, -INNER + 0.4, 0], [4.4, -INNER + 0.4, 0]] as const).map(([x, z], i) => (
+        <group key={i} position={[x, 2.0, z]}>
+          <mesh material={material("steel")} castShadow>
+            <boxGeometry args={[1.5, 0.9, 0.06]} />
+          </mesh>
+          <mesh position={[0, 0, 0.04]} material={lit(5000, 0.34)}>
+            <planeGeometry args={[1.4, 0.8]} />
+          </mesh>
+        </group>
+      ))}
+      {[6.8, 8.2].map((z, i) => (
+        <group key={i} position={[-INNER + 0.42, 2.0, z]} rotation={[0, Math.PI / 2, 0]}>
+          <mesh geometry={frame} material={material("walnut")} castShadow />
+          <mesh position={[0, 0, 0.012]} material={lit(2900, 0.22)}>
+            <planeGeometry args={[1.0, 1.4]} />
+          </mesh>
+        </group>
+      ))}
+
       {/* deliberately low: everything between the pools falls away */}
       <pointLight position={[0, CLEAR * 0.7, 0]} intensity={16} distance={20} decay={2} color={warm} />
+
+      {/* The people in the room. Without them a luxury interior reads as
+          closed, and there is nothing in frame to tell you how tall the
+          ceiling is — a 4 m soffit is a number until a 1.75 m figure
+          stands under it. */}
+      <People seed={53} count={6} bounds={8.8} y={0} />
     </group>
   );
 }
